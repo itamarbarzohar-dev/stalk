@@ -6,21 +6,19 @@ struct ContentView: View {
     @State private var chartTicker: String? = nil
 
     var body: some View {
-        ZStack(alignment: .bottom) {
-            Group {
-                switch appState.selectedTab {
-                case .market:    MarketView(onTicker: { chartTicker = $0 })
-                case .portfolio: PortfolioView(onTicker: { chartTicker = $0 }, onAdd: { addingPosition = true })
-                case .search:    SearchView(onTicker: { chartTicker = $0 })
-                case .feed:      FeedView(onTicker: { chartTicker = $0 })
-                case .forYou:    ForYouView(onTicker: { chartTicker = $0 })
-                }
+        Group {
+            switch appState.selectedTab {
+            case .market:    MarketView(onTicker: { chartTicker = $0 })
+            case .portfolio: PortfolioView(onTicker: { chartTicker = $0 }, onAdd: { addingPosition = true })
+            case .search:    SearchView(onTicker: { chartTicker = $0 })
+            case .feed:      FeedView(onTicker: { chartTicker = $0 })
+            case .forYou:    ForYouView(onTicker: { chartTicker = $0 })
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .safeAreaInset(edge: .bottom, spacing: 0) {
             CustomTabBar(addingPosition: $addingPosition)
         }
-        .ignoresSafeArea(edges: .bottom)
         .sheet(isPresented: $addingPosition) {
             AddPositionSheet()
         }
@@ -38,6 +36,12 @@ struct ContentView: View {
             set: { appState.showAIChat = $0 }
         )) {
             AIFullChatView()
+        }
+        .sheet(isPresented: Binding(
+            get: { appState.showDailyBrief },
+            set: { appState.showDailyBrief = $0 }
+        )) {
+            DailyBriefView()
         }
         .background(Theme.bg.ignoresSafeArea())
     }
@@ -80,21 +84,12 @@ struct CustomTabBar: View {
         }
         .padding(.horizontal, 8)
         .padding(.top, 12)
-        .frame(height: 72 + safeAreaBottom)
-        .padding(.bottom, safeAreaBottom)
+        .padding(.bottom, 8)
         .background(.ultraThinMaterial)
+        .ignoresSafeArea(edges: .bottom)
         .overlay(alignment: .top) {
             Divider()
         }
-    }
-
-    var safeAreaBottom: CGFloat {
-        #if os(iOS)
-        (UIApplication.shared.connectedScenes.first as? UIWindowScene)?
-            .windows.first?.safeAreaInsets.bottom ?? 0
-        #else
-        0
-        #endif
     }
 }
 

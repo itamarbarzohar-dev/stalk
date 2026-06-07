@@ -40,6 +40,9 @@ struct ForYouView: View {
                 .padding(.horizontal, 14)
                 .padding(.bottom, 10)
 
+                hotOnSTALKSection()
+                missedOpportunitiesSection()
+
                 sectionLabel("🌍 Today's Top Portfolios · Copy & Invest")
                 worldGainersSection()
 
@@ -89,6 +92,110 @@ struct ForYouView: View {
             .padding(.horizontal, 14)
             .padding(.bottom, 10)
             .padding(.top, 22)
+    }
+
+    func hotOnSTALKSection() -> some View {
+        let hot: [(ticker: String, adds: Int, pct: Double, icon: String)] = [
+            ("NVDA", 1243, 4.2, "🔥"),
+            ("TSLA", 891,  2.1, "⚡"),
+            ("META", 734, -0.8, "📱"),
+            ("PLTR", 612,  6.7, "🤖"),
+            ("AAPL", 504,  0.9, "🍎"),
+        ]
+        return VStack(alignment: .leading, spacing: 0) {
+            sectionLabel("🔥 Hot on STALK This Week")
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 10) {
+                    ForEach(hot, id: \.ticker) { item in
+                        Button { onTicker(item.ticker) } label: {
+                            VStack(alignment: .leading, spacing: 6) {
+                                HStack {
+                                    Text(item.icon).font(.system(size: 20))
+                                    Spacer()
+                                    Text(item.pct.fmtPct())
+                                        .font(.system(size: 13, weight: .black))
+                                        .foregroundStyle(item.pct >= 0 ? Theme.gain : Theme.loss)
+                                }
+                                Text(item.ticker)
+                                    .font(.system(size: 16, weight: .black))
+                                    .foregroundStyle(Theme.text)
+                                Text("\(item.adds.formatted()) users added")
+                                    .font(.system(size: 10))
+                                    .foregroundStyle(Theme.text3)
+                                Text("this week")
+                                    .font(.system(size: 10, weight: .bold))
+                                    .foregroundStyle(Theme.accent)
+                            }
+                            .padding(14)
+                            .frame(width: 130)
+                            .background(Theme.card)
+                            .clipShape(RoundedRectangle(cornerRadius: 18))
+                            .overlay(RoundedRectangle(cornerRadius: 18).stroke(Theme.border, lineWidth: 1))
+                            .shadow(color: .black.opacity(0.05), radius: 4, y: 1)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(.horizontal, 14)
+            }
+        }
+    }
+
+    func missedOpportunitiesSection() -> some View {
+        let missed: [(ticker: String, gain: Double, days: Int, desc: String)] = [
+            ("NVDA", 247, 180, "AI chip supercycle — up 247% in 6 months"),
+            ("PLTR", 89,  90,  "Government AI contracts drove massive run"),
+            ("ARM",  72,  60,  "IPO pop + AI tailwind since September"),
+            ("SMCI", 61,  45,  "Data center build-out beneficiary"),
+        ]
+        return VStack(alignment: .leading, spacing: 0) {
+            sectionLabel("😬 Missed Opportunities")
+            VStack(spacing: 9) {
+                ForEach(missed, id: \.ticker) { item in
+                    Button { onTicker(item.ticker) } label: {
+                        HStack(spacing: 14) {
+                            VStack(alignment: .leading, spacing: 3) {
+                                HStack(spacing: 6) {
+                                    Text(item.ticker)
+                                        .font(.system(size: 15, weight: .black))
+                                        .foregroundStyle(Theme.text)
+                                    Text("not in your portfolio")
+                                        .font(.system(size: 10))
+                                        .foregroundStyle(Theme.text3)
+                                }
+                                Text(item.desc)
+                                    .font(.system(size: 12))
+                                    .foregroundStyle(Theme.text2)
+                            }
+                            Spacer()
+                            VStack(alignment: .trailing, spacing: 1) {
+                                Text("+\(String(format: "%.0f", item.gain))%")
+                                    .font(.system(size: 18, weight: .black))
+                                    .foregroundStyle(Theme.gain)
+                                Text("\(item.days)d")
+                                    .font(.system(size: 10))
+                                    .foregroundStyle(Theme.text3)
+                            }
+                        }
+                        .padding(14)
+                        .background(Theme.card)
+                        .clipShape(RoundedRectangle(cornerRadius: 18))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 18)
+                                .stroke(Theme.gain.opacity(0.25), lineWidth: 1)
+                        )
+                        .overlay(alignment: .leading) {
+                            Rectangle().fill(Theme.gain).frame(width: 3)
+                                .clipShape(RoundedRectangle(cornerRadius: 3))
+                                .padding(.vertical, 6)
+                        }
+                        .shadow(color: .black.opacity(0.04), radius: 3, y: 1)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.horizontal, 14)
+        }
     }
 
     func worldGainersSection() -> some View {

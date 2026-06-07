@@ -100,11 +100,18 @@ class AppState {
     var selectedTab: Tab = .portfolio
     var showSettings = false
     var showAIChat = false
+    var showDailyBrief = false
+
+    // MARK: Gamification
+    var streak: Int = 0
+    var portfolioATH: Double = 0
 
     init() {
         loadPositions()
         loadSocial()
         loadSettings()
+        loadStreak()
+        portfolioATH = UserDefaults.standard.double(forKey: "stalk_ath")
     }
 
     // MARK: - Persistence
@@ -168,6 +175,29 @@ class AppState {
         return rows.joined(separator: "\n")
     }
 
+    func updateATH() {
+        if totalValue > portfolioATH && totalValue > 0 {
+            portfolioATH = totalValue
+            UserDefaults.standard.set(portfolioATH, forKey: "stalk_ath")
+        }
+    }
+
+    private func loadStreak() {
+        streak = UserDefaults.standard.integer(forKey: "stalk_streak")
+        let last = UserDefaults.standard.object(forKey: "stalk_streak_date") as? Date ?? .distantPast
+        var cal = Calendar.current
+        cal.timeZone = MarketCalendar.eastern
+        if !cal.isDateInToday(last) {
+            if cal.isDateInYesterday(last) {
+                streak += 1
+            } else {
+                streak = 1
+            }
+            UserDefaults.standard.set(streak, forKey: "stalk_streak")
+            UserDefaults.standard.set(Date(), forKey: "stalk_streak_date")
+        }
+    }
+
     func toggleFollow(_ id: Int) {
         if followed.contains(id) { followed.remove(id) } else { followed.insert(id) }
         UserDefaults.standard.set(Array(followed), forKey: "stalk_followed")
@@ -211,6 +241,7 @@ class AppState {
         let fetched = await QuoteService.fetchManyQuotes(tickers)
         quotes.merge(fetched) { _, new in new }
         isLoadingPortfolio = false
+        updateATH()
     }
 
     func refreshMarket() async {

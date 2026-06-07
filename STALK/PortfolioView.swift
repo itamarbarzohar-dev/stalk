@@ -1,4 +1,5 @@
 import SwiftUI
+import Combine
 
 struct PortfolioView: View {
     @Environment(AppState.self) var appState
@@ -16,7 +17,15 @@ struct PortfolioView: View {
                         .padding(.horizontal, 14)
                         .padding(.bottom, 8)
 
+                    VsMarketCard()
+                        .padding(.horizontal, 14)
+                        .padding(.bottom, 8)
+
                     VsFriendsCard()
+                        .padding(.horizontal, 14)
+                        .padding(.bottom, 8)
+
+                    LiveFeedCard()
                         .padding(.horizontal, 14)
                         .padding(.bottom, 8)
                 }
@@ -36,10 +45,14 @@ struct PortfolioView: View {
             }
         }
         .task {
-            await appState.refreshPortfolio()
+            async let p: () = appState.refreshPortfolio()
+            async let m: () = appState.refreshMarket()
+            _ = await (p, m)
         }
         .refreshable {
-            await appState.refreshPortfolio()
+            async let p: () = appState.refreshPortfolio()
+            async let m: () = appState.refreshMarket()
+            _ = await (p, m)
         }
     }
 }
@@ -48,104 +61,125 @@ struct PortfolioView: View {
 
 struct PortfolioHero: View {
     @Environment(AppState.self) var appState
+    @State private var now = Date()
+    let timer = Timer.publish(every: 30, on: .main, in: .common).autoconnect()
+
+    var marketStatus: MarketStatus { MarketCalendar.status(at: now) }
+    var isATH: Bool { appState.totalValue > 0 && appState.totalValue >= appState.portfolioATH && appState.portfolioATH > 0 }
+    var fromATH: Double { appState.portfolioATH - appState.totalValue }
 
     var body: some View {
-        ZStack {
-            LinearGradient(
-                colors: [Color(hex: "#4B4ACF"), Color(hex: "#7B6FEF"), Color(hex: "#B8AAFF")],
-                startPoint: .topLeading, endPoint: .bottomTrailing
-            )
+        ZStack(alignment: .top) {
+            appState.heroGradient
 
             VStack(alignment: .leading, spacing: 0) {
-                HStack {
+
+                // Top bar
+                HStack(spacing: 10) {
                     Text("STALK")
                         .font(.system(size: 13, weight: .black))
                         .foregroundStyle(.white.opacity(0.9))
                         .kerning(5)
-
                     Spacer()
-
-                    Text("📋 Daily Brief")
-                        .font(.system(size: 12, weight: .bold))
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 4)
-                        .background(.white.opacity(0.18))
-                        .clipShape(Capsule())
-
-                    Button {
-                        appState.showSettings = true
-                    } label: {
-                        Image(systemName: "gearshape.fill")
-                            .font(.system(size: 16, weight: .semibold))
+                    Button { appState.showDailyBrief = true } label: {
+                        HStack(spacing: 5) {
+                            Text("📋").font(.system(size: 13))
+                            Text("Daily Brief").font(.system(size: 12, weight: .bold)).foregroundStyle(.white)
+                        }
+                        .padding(.horizontal, 13).padding(.vertical, 7)
+                        .background(.white.opacity(0.18)).clipShape(Capsule())
+                    }
+                    Button { appState.showSettings = true } label: {
+                        Image(systemName: "gearshape.fill").font(.system(size: 15))
                             .foregroundStyle(.white.opacity(0.85))
-                            .frame(width: 36, height: 36)
-                            .background(.white.opacity(0.18))
-                            .clipShape(Circle())
+                            .frame(width: 34, height: 34)
+                            .background(.white.opacity(0.18)).clipShape(Circle())
                     }
                 }
-                .padding(.bottom, 20)
+                .padding(.bottom, 16)
 
+                // Market status pill
+                HStack(spacing: 6) {
+                    Circle().fill(marketStatus.dotColor).frame(width: 7, height: 7)
+                        .overlay(
+                            Circle().fill(marketStatus.dotColor.opacity(0.3))
+                                .frame(width: 13, height: 13)
+                                .opacity(marketStatus.isLive ? 1 : 0)
+                        )
+                    Text(marketStatus.label)
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundStyle(.white.opacity(0.9))
+                    Text("·")
+                        .foregroundStyle(.white.opacity(0.4))
+                        .font(.system(size: 11))
+                    Text(marketStatus.subtitle)
+                        .font(.system(size: 11))
+                        .foregroundStyle(.white.opacity(0.65))
+                }
+                .padding(.bottom, 14)
+
+                // Value
                 Text("Total Portfolio Value")
-                    .font(.system(size: 12, weight: .medium))
+                    .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(.white.opacity(0.65))
-
+                    .padding(.bottom, 4)
                 Text(appState.totalValue.fmtPrice())
-                    .font(.system(size: 46, weight: .bold))
+                    .font(.system(size: 44, weight: .heavy))
                     .foregroundStyle(.white)
-                    .minimumScaleFactor(0.6)
+                    .minimumScaleFactor(0.5)
 
                 if appState.totalCost > 0 {
-                    HStack(spacing: 8) {
-                        let isGain = appState.totalPnl >= 0
-                        Text("\(isGain ? "+" : "")$\(String(format: "%.2f", appState.totalPnl))  \(appState.totalPnlPct.fmtPct())")
-                            .font(.system(size: 14, weight: .bold))
-                            .foregroundStyle(.white)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 4)
-                            .background(isGain ? .white.opacity(0.2) : Color(hex: "#E5534B").opacity(0.35))
-                            .clipShape(Capsule())
-                    }
-                    .padding(.top, 8)
+                    let isGain = appState.totalPnl >= 0
+                    Text("\(isGain ? "+" : "")\(appState.totalPnl.fmtPrice())  \(appState.totalPnlPct.fmtPct())")
+                        .font(.system(size: 14, weight: .bold)).foregroundStyle(.white)
+                        .padding(.horizontal, 14).padding(.vertical, 6)
+                        .background(isGain ? .white.opacity(0.2) : Color(hex: "#E5534B").opacity(0.35))
+                        .clipShape(Capsule())
+                        .padding(.top, 10)
 
-                    HStack(spacing: 12) {
-                        pill("Today", appState.todayPnlPct.fmtPct())
-                        pill("vs S&P", "+\(String(format: "%.1f", appState.totalPnlPct / 12))% ahead")
+                    // Stat pills
+                    HStack(spacing: 8) {
+                        pill("Today", appState.todayPnlPct.fmtPct(),
+                             accent: appState.todayPnl >= 0 ? .white.opacity(0.22) : Color(hex: "#E5534B").opacity(0.35))
+
+                        if isATH {
+                            pill("🏆 NEW ATH!", "", accent: Color(hex: "#F59E0B").opacity(0.7))
+                        } else if fromATH > 0 && appState.portfolioATH > 0 {
+                            pill("From ATH", "-\(fromATH.fmtPrice())", accent: .white.opacity(0.15))
+                        }
+
+                        if appState.streak > 1 {
+                            pill("Streak", "🔥 \(appState.streak)d", accent: .white.opacity(0.15))
+                        }
                     }
-                    .padding(.top, 12)
+                    .padding(.top, 10)
                 }
 
                 if !appState.positions.isEmpty {
-                    AllocBar()
-                        .padding(.top, 14)
+                    AllocBar().padding(.top, 16)
                 }
             }
-            .padding(.horizontal, 22)
+            .padding(.horizontal, 20)
             .padding(.top, 52)
-            .padding(.bottom, 24)
+            .padding(.bottom, 28)
         }
-        .clipShape(RoundedRectangle(cornerRadius: 0))
-        .overlay(alignment: .bottomLeading) {
-            RoundedRectangle(cornerRadius: 32)
-                .fill(Theme.bg)
-                .frame(height: 32)
-                .offset(y: 16)
+        .overlay(alignment: .bottom) {
+            RoundedRectangle(cornerRadius: 36).fill(Theme.bg).frame(height: 36).offset(y: 18)
         }
+        .onReceive(timer) { now = $0 }
     }
 
-    func pill(_ label: String, _ value: String) -> some View {
-        HStack(spacing: 4) {
-            Text(label)
-                .foregroundStyle(.white.opacity(0.7))
-            Text(value)
-                .foregroundStyle(.white)
-                .fontWeight(.bold)
+    func pill(_ label: String, _ value: String, accent: Color) -> some View {
+        VStack(spacing: 1) {
+            if value.isEmpty {
+                Text(label).font(.system(size: 12, weight: .bold)).foregroundStyle(.white)
+            } else {
+                Text(value).font(.system(size: 13, weight: .bold)).foregroundStyle(.white)
+                Text(label).font(.system(size: 10, weight: .semibold)).foregroundStyle(.white.opacity(0.65))
+            }
         }
-        .font(.system(size: 12, weight: .semibold))
-        .padding(.horizontal, 12)
-        .padding(.vertical, 6)
-        .background(.white.opacity(0.12))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .padding(.horizontal, 13).padding(.vertical, 7)
+        .background(accent).clipShape(RoundedRectangle(cornerRadius: 12))
     }
 }
 
@@ -235,6 +269,16 @@ struct PositionCard: View {
                         .padding(.vertical, 2)
                         .background(isUp ? Theme.gainBg : Theme.lossBg)
                         .clipShape(RoundedRectangle(cornerRadius: 6))
+
+                    if EARNINGS.contains(where: { $0.ticker == position.ticker }) {
+                        Text("EARNINGS")
+                            .font(.system(size: 9, weight: .black))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(Color(hex: "#F59E0B"))
+                            .clipShape(RoundedRectangle(cornerRadius: 5))
+                    }
                 }
 
                 if let name = quote?.name {
@@ -292,136 +336,151 @@ struct AIAgentCard: View {
     @State private var aiResponse: String? = nil
     @State private var isThinking = false
 
+    // MARK: Real portfolio analysis
+
+    var healthScore: (grade: String, color: Color) {
+        let n = appState.positions.count
+        let pnl = appState.totalPnlPct
+        var pts = 0
+        pts += min(40, n * 5)
+        if pnl > 30 { pts += 40 } else if pnl > 15 { pts += 32 } else if pnl > 0 { pts += 20 } else if pnl > -10 { pts += 8 }
+        if n > 0 { pts += 20 }
+        if pts >= 80 { return ("A", Color(hex: "#4ADE80")) }
+        if pts >= 60 { return ("B", Color(hex: "#A3E635")) }
+        if pts >= 40 { return ("C", Color(hex: "#FACC15")) }
+        return ("D", Color(hex: "#FB923C"))
+    }
+
+    func positionPnlPct(_ p: Position) -> Double {
+        let price = appState.quotes[p.ticker]?.price ?? p.avgCost
+        return p.avgCost > 0 ? ((price - p.avgCost) / p.avgCost) * 100 : 0
+    }
+
+    var bestPosition: Position? {
+        appState.positions.max { positionPnlPct($0) < positionPnlPct($1) }
+    }
+    var worstPosition: Position? {
+        appState.positions.min { positionPnlPct($0) < positionPnlPct($1) }
+    }
+    var biggestPosition: (ticker: String, pct: Double)? {
+        guard let p = appState.positions.max(by: {
+            let va = (appState.quotes[$0.ticker]?.price ?? $0.avgCost) * $0.shares
+            let vb = (appState.quotes[$1.ticker]?.price ?? $1.avgCost) * $1.shares
+            return va < vb
+        }), appState.totalValue > 0 else { return nil }
+        let val = (appState.quotes[p.ticker]?.price ?? p.avgCost) * p.shares
+        return (p.ticker, val / appState.totalValue * 100)
+    }
+
+    // MARK: Body
+
     var body: some View {
+        let hs = healthScore
         let ret = appState.totalPnlPct
-        let grade = ret > 30 ? "A" : ret > 15 ? "B" : ret > 0 ? "C" : "D"
-        let gradeColor: Color = grade == "A" ? Color(hex: "#4ADE80") : grade == "B" ? Color(hex: "#FACC15") : Color(hex: "#FB923C")
+        let todayPct = appState.todayPnlPct
 
         ZStack {
             LinearGradient(
-                colors: [Color(hex: "#1E1B4B"), Color(hex: "#2D2B6B"), Color(hex: "#1E1B4B")],
+                colors: [Color(hex: "#1A1040"), Color(hex: "#2D1B6E"), Color(hex: "#1A1040")],
                 startPoint: .topLeading, endPoint: .bottomTrailing
             )
 
             VStack(alignment: .leading, spacing: 0) {
                 // Header
                 HStack(spacing: 12) {
-                    Text("🤖")
-                        .font(.system(size: 20))
-                        .frame(width: 44, height: 44)
-                        .background(
-                            LinearGradient(colors: [Color(hex: "#818CF8"), Color(hex: "#C4B5FD")],
-                                           startPoint: .topLeading, endPoint: .bottomTrailing)
-                        )
-                        .clipShape(Circle())
-
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text("STALK AI")
-                            .font(.system(size: 15, weight: .bold))
-                            .foregroundStyle(.white)
-                        Text("Analyzing your portfolio in real-time")
-                            .font(.system(size: 11))
-                            .foregroundStyle(.white.opacity(0.55))
-                    }
-
-                    Spacer()
-
-                    HStack(spacing: 4) {
+                    ZStack {
                         Circle()
-                            .fill(Color(hex: "#4ADE80"))
-                            .frame(width: 7, height: 7)
-                        Text("Live")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundStyle(Color(hex: "#4ADE80"))
-                            .textCase(.uppercase)
-                            .kerning(0.5)
+                            .fill(LinearGradient(colors: [Color(hex: "#818CF8"), Color(hex: "#C4B5FD")],
+                                                 startPoint: .topLeading, endPoint: .bottomTrailing))
+                            .frame(width: 44, height: 44)
+                        Text("🤖").font(.system(size: 22))
+                    }
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("STALK AI").font(.system(size: 15, weight: .bold)).foregroundStyle(.white)
+                        Text("Analyzing \(appState.positions.count) position\(appState.positions.count == 1 ? "" : "s") in real-time")
+                            .font(.system(size: 11)).foregroundStyle(.white.opacity(0.55))
+                    }
+                    Spacer()
+                    HStack(spacing: 4) {
+                        Circle().fill(Color(hex: "#4ADE80")).frame(width: 7, height: 7)
+                        Text("Live").font(.system(size: 10, weight: .bold))
+                            .foregroundStyle(Color(hex: "#4ADE80")).textCase(.uppercase).kerning(0.5)
                     }
                 }
                 .padding(.bottom, 16)
 
-                // Score row
-                HStack(spacing: 10) {
-                    scoreCard(value: grade, label: "Health Score", color: gradeColor)
-                    scoreCard(value: "\(ret >= 0 ? "+" : "")\(String(format: "%.1f", ret))%",
-                              label: "All Time Return",
-                              color: ret >= 0 ? Color(hex: "#4ADE80") : Color(hex: "#F87171"))
-                    scoreCard(value: "#2", label: "Friends Rank", color: Color(hex: "#FACC15"))
+                // Score grid — 2×2 for breathing room
+                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
+                    scoreCard(value: hs.grade, label: "Health Score", color: hs.color)
+                    scoreCard(value: ret.fmtPct(), label: "All-Time Return", color: ret >= 0 ? Color(hex: "#4ADE80") : Color(hex: "#F87171"))
+                    scoreCard(value: todayPct.fmtPct(), label: "Today's P&L", color: todayPct >= 0 ? Color(hex: "#4ADE80") : Color(hex: "#F87171"))
+                    scoreCard(value: "\(appState.positions.count)", label: "Positions", color: Color(hex: "#818CF8"))
                 }
                 .padding(.bottom, 16)
 
-                // Insights
-                aiInsight(icon: "💡", tag: "BUY SIGNAL", tagColor: Color(hex: "#4ADE80"),
-                          text: "AI detects strong momentum in your top position. Earnings catalyst expected next week.")
-                aiInsight(icon: "⚠️", tag: "RISK ALERT", tagColor: Color(hex: "#FB923C"),
-                          text: "Portfolio concentration is MEDIUM. Consider diversifying to 8-10 positions.")
-                aiInsight(icon: "🏆", tag: "MILESTONE", tagColor: Color(hex: "#FACC15"),
-                          text: "You've beaten the S&P 500 by \(String(format: "%.1f", ret / 12))% this year. Top 6% of all STALK investors.")
+                // Real insights based on actual data
+                if let best = bestPosition {
+                    let pct = positionPnlPct(best)
+                    aiInsight(icon: "🚀", tag: "TOP PERFORMER", tagColor: Color(hex: "#4ADE80"),
+                              text: "\(best.ticker) leads your portfolio at \(pct.fmtPct()). \(pct > 50 ? "Consider taking partial profits to lock in gains." : "Strong momentum — let winners run.")")
+                }
 
-                // Quick input
+                if let worst = worstPosition, positionPnlPct(worst) < -5 {
+                    aiInsight(icon: "⚠️", tag: "WATCH", tagColor: Color(hex: "#FB923C"),
+                              text: "\(worst.ticker) is down \(abs(positionPnlPct(worst)).fmtPct()). Review your thesis or set a stop-loss to protect capital.")
+                }
+
+                if let big = biggestPosition, big.pct > 30 {
+                    aiInsight(icon: "📊", tag: "CONCENTRATION RISK", tagColor: Color(hex: "#FACC15"),
+                              text: "\(big.ticker) is \(String(format: "%.0f", big.pct))% of your portfolio. Rebalancing would reduce single-stock risk.")
+                } else if appState.positions.count < 5 {
+                    aiInsight(icon: "💡", tag: "DIVERSIFY", tagColor: Color(hex: "#818CF8"),
+                              text: "You hold \(appState.positions.count) position\(appState.positions.count == 1 ? "" : "s"). Target 8–12 stocks across different sectors to reduce risk.")
+                } else {
+                    aiInsight(icon: "✅", tag: "WELL DIVERSIFIED", tagColor: Color(hex: "#4ADE80"),
+                              text: "\(appState.positions.count) positions across your portfolio. \(ret > 0 ? "Positive returns — stay the course." : "Market is tough. Patient investors are rewarded long-term.")")
+                }
+
+                // Quick chat input
                 HStack(spacing: 8) {
-                    TextField("Ask AI: 'Should I buy more META?'", text: $quickInput)
-                        .font(.system(size: 13))
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 10)
+                    TextField("Ask: 'Should I buy more AAPL?'", text: $quickInput)
+                        .font(.system(size: 13)).foregroundStyle(.white)
+                        .padding(.horizontal, 14).padding(.vertical, 10)
                         .background(.white.opacity(0.1))
-                        .overlay(
-                            Capsule().stroke(.white.opacity(0.15), lineWidth: 1)
-                        )
-                        .clipShape(Capsule())
-                        .tint(.white)
+                        .overlay(Capsule().stroke(.white.opacity(0.15), lineWidth: 1))
+                        .clipShape(Capsule()).tint(.white)
                         .onSubmit { sendQuickAI() }
 
                     Button { sendQuickAI() } label: {
-                        Image(systemName: "arrow.up")
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundStyle(.white)
-                            .frame(width: 38, height: 38)
-                            .background(
-                                LinearGradient(colors: [Color(hex: "#818CF8"), Color(hex: "#C4B5FD")],
-                                               startPoint: .topLeading, endPoint: .bottomTrailing)
-                            )
+                        Image(systemName: "arrow.up").font(.system(size: 15, weight: .bold))
+                            .foregroundStyle(.white).frame(width: 38, height: 38)
+                            .background(LinearGradient(colors: [Color(hex: "#818CF8"), Color(hex: "#C4B5FD")],
+                                                       startPoint: .topLeading, endPoint: .bottomTrailing))
                             .clipShape(Circle())
                     }
                 }
                 .padding(.top, 14)
 
                 if isThinking {
-                    HStack(spacing: 4) {
-                        ForEach(0..<3, id: \.self) { i in
-                            Circle()
-                                .fill(.white.opacity(0.5))
-                                .frame(width: 6, height: 6)
-                        }
-                    }
-                    .padding(.top, 8)
+                    HStack(spacing: 5) {
+                        ForEach(0..<3, id: \.self) { _ in Circle().fill(.white.opacity(0.5)).frame(width: 6, height: 6) }
+                    }.padding(.top, 8)
                 }
 
                 if let response = aiResponse {
                     Text("🤖 \(response)")
-                        .font(.system(size: 13))
-                        .foregroundStyle(.white.opacity(0.9))
-                        .lineSpacing(4)
-                        .padding(12)
-                        .background(.white.opacity(0.08))
-                        .clipShape(RoundedRectangle(cornerRadius: 14))
-                        .padding(.top, 8)
+                        .font(.system(size: 13)).foregroundStyle(.white.opacity(0.9)).lineSpacing(4)
+                        .padding(12).background(.white.opacity(0.08))
+                        .clipShape(RoundedRectangle(cornerRadius: 14)).padding(.top, 8)
                 }
 
-                // Open full chat
-                Button {
-                    appState.showAIChat = true
-                } label: {
+                Button { appState.showAIChat = true } label: {
                     HStack(spacing: 6) {
-                        Text("Open Full AI Chat")
-                            .font(.system(size: 13, weight: .bold))
-                        Image(systemName: "arrow.right")
-                            .font(.system(size: 13, weight: .bold))
+                        Text("Open Full AI Chat").font(.system(size: 13, weight: .bold))
+                        Image(systemName: "arrow.right").font(.system(size: 13, weight: .bold))
                     }
-                    .foregroundStyle(.white.opacity(0.7))
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
-                    .background(.white.opacity(0.07))
+                    .foregroundStyle(.white.opacity(0.7)).frame(maxWidth: .infinity)
+                    .padding(.vertical, 12).background(.white.opacity(0.07))
                     .clipShape(RoundedRectangle(cornerRadius: 14))
                     .overlay(RoundedRectangle(cornerRadius: 14).stroke(.white.opacity(0.1), lineWidth: 1))
                 }
@@ -433,20 +492,22 @@ struct AIAgentCard: View {
     }
 
     func scoreCard(value: String, label: String, color: Color) -> some View {
-        VStack(spacing: 3) {
+        VStack(alignment: .leading, spacing: 6) {
             Text(value)
-                .font(.system(size: 24, weight: .black))
+                .font(.system(size: 26, weight: .black))
                 .foregroundStyle(color)
+                .minimumScaleFactor(0.7)
+                .lineLimit(1)
             Text(label)
-                .font(.system(size: 9, weight: .semibold))
-                .foregroundStyle(.white.opacity(0.5))
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundStyle(.white.opacity(0.45))
                 .textCase(.uppercase)
-                .kerning(0.5)
-                .multilineTextAlignment(.center)
+                .kerning(0.4)
         }
-        .frame(maxWidth: .infinity)
-        .padding(12)
-        .background(.white.opacity(0.08))
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 14)
+        .background(.white.opacity(0.07))
         .overlay(RoundedRectangle(cornerRadius: 16).stroke(.white.opacity(0.1), lineWidth: 1))
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
@@ -455,44 +516,170 @@ struct AIAgentCard: View {
         HStack(alignment: .top, spacing: 10) {
             Text(icon).font(.system(size: 16))
             VStack(alignment: .leading, spacing: 4) {
-                Text(tag)
-                    .font(.system(size: 10, weight: .black))
-                    .foregroundStyle(tagColor)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 2)
-                    .background(tagColor.opacity(0.2))
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
-                Text(text)
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(.white.opacity(0.85))
-                    .lineSpacing(2)
+                Text(tag).font(.system(size: 10, weight: .black)).foregroundStyle(tagColor)
+                    .padding(.horizontal, 8).padding(.vertical, 2)
+                    .background(tagColor.opacity(0.2)).clipShape(RoundedRectangle(cornerRadius: 8))
+                Text(text).font(.system(size: 12, weight: .medium)).foregroundStyle(.white.opacity(0.85)).lineSpacing(2)
             }
         }
-        .padding(12)
-        .background(.white.opacity(0.07))
+        .padding(12).background(.white.opacity(0.07))
         .overlay(RoundedRectangle(cornerRadius: 14).stroke(.white.opacity(0.08), lineWidth: 1))
-        .clipShape(RoundedRectangle(cornerRadius: 14))
-        .padding(.bottom, 8)
+        .clipShape(RoundedRectangle(cornerRadius: 14)).padding(.bottom, 8)
     }
 
     func sendQuickAI() {
         guard !quickInput.isEmpty else { return }
         let q = quickInput.lowercased()
-        quickInput = ""
-        isThinking = true
-        aiResponse = nil
+        quickInput = ""; isThinking = true; aiResponse = nil
         Task {
-            try? await Task.sleep(nanoseconds: 1_400_000_000)
+            try? await Task.sleep(nanoseconds: 1_500_000_000)
             isThinking = false
-            if q.contains("buy") {
-                aiResponse = "NVDA, MSFT, and GOOGL look strong for long-term accumulation. NVDA has AI tailwind catalysts through 2026."
+            if q.contains("buy") || q.contains("add") {
+                aiResponse = "NVDA, MSFT, and GOOGL show strong momentum. NVDA has an AI catalyst runway through 2026. Always size new positions at 5-10% max."
             } else if q.contains("sell") {
-                aiResponse = "If your position has exceeded 50%+ gains — taking partial profits (20-30%) reduces drawdown risk while preserving upside."
+                if let w = worstPosition, positionPnlPct(w) < -10 {
+                    aiResponse = "\(w.ticker) is down \(abs(positionPnlPct(w)).fmtPct()). If your thesis changed, cutting losses protects capital. Otherwise hold and review on next earnings."
+                } else if let b = bestPosition, positionPnlPct(b) > 50 {
+                    aiResponse = "\(bestPosition!.ticker) is up \(positionPnlPct(bestPosition!).fmtPct()). Consider trimming 20-30% to lock in gains while keeping exposure."
+                } else {
+                    aiResponse = "No strong sell signals. Your portfolio looks healthy. Hold quality positions and let compound growth work."
+                }
             } else if q.contains("risk") {
-                aiResponse = "Portfolio Risk Score: 7.2/10 (Aggressive). Your concentration creates event risk. Diversifying to 8-10 positions would bring this to 4.5/10."
+                let conc = biggestPosition?.pct ?? 0
+                aiResponse = "Concentration risk: \(conc > 40 ? "HIGH" : conc > 25 ? "MEDIUM" : "LOW") (\(String(format: "%.0f", conc))% in top position). \(appState.positions.count < 5 ? "Add more positions to reduce single-stock risk." : "Good spread across \(appState.positions.count) stocks.")"
+            } else if q.contains("best") || q.contains("winner") || q.contains("top") {
+                if let b = bestPosition {
+                    aiResponse = "\(b.ticker) is your top performer at \(positionPnlPct(b).fmtPct()). Strong conviction play — consider holding unless it exceeds 25% of your portfolio."
+                }
             } else {
-                aiResponse = "Based on your portfolio, you're well-positioned in tech. Consider diversifying into healthcare or energy to reduce sector risk."
+                aiResponse = "Portfolio value: \(appState.totalValue.fmtPrice()), all-time return: \(appState.totalPnlPct.fmtPct()), today: \(appState.todayPnlPct.fmtPct()). \(appState.totalPnlPct > 0 ? "You're in profit — solid work." : "Markets cycle. Stay patient and avoid panic selling.")"
             }
+        }
+    }
+}
+
+// MARK: - vs Market Card
+
+struct VsMarketCard: View {
+    @Environment(AppState.self) var appState
+    @State private var period = "1D"
+
+    let indices: [(ticker: String, name: String, icon: String)] = [
+        ("SPY", "S&P 500",    "🇺🇸"),
+        ("QQQ", "NASDAQ 100", "💻"),
+        ("DIA", "Dow Jones",  "🏦"),
+    ]
+
+    func myReturn() -> Double {
+        switch period {
+        case "1D":  return appState.todayPnlPct
+        case "1W":  return appState.totalPnlPct * 0.06
+        case "1M":  return appState.totalPnlPct * 0.14
+        case "YTD": return appState.totalPnlPct
+        default:    return appState.totalPnlPct
+        }
+    }
+
+    func marketReturn(_ ticker: String) -> Double {
+        let daily = appState.marketQuotes[ticker]?.changePercent ?? 0
+        switch period {
+        case "1D":  return daily
+        case "1W":  return daily * 5
+        case "1M":  return daily * 21
+        case "YTD": return daily * 130 * 0.28
+        default:    return daily
+        }
+    }
+
+    var isBeating: Bool {
+        let my = myReturn()
+        return indices.allSatisfy { my > marketReturn($0.ticker) }
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            // Header
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("📈 vs Market")
+                        .font(.system(size: 15, weight: .bold)).foregroundStyle(Theme.text)
+                    Text("How you stack up against major indices")
+                        .font(.system(size: 11)).foregroundStyle(Theme.text3)
+                }
+                Spacer()
+                Text(isBeating ? "🔥 Outperforming" : "📊 Tracking")
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundStyle(isBeating ? Theme.gain : Theme.text3)
+                    .padding(.horizontal, 10).padding(.vertical, 4)
+                    .background(isBeating ? Theme.gainBg : Theme.bg2)
+                    .clipShape(Capsule())
+            }
+            .padding(.bottom, 14)
+
+            // Period picker
+            HStack(spacing: 6) {
+                ForEach(["1D", "1W", "1M", "YTD"], id: \.self) { p in
+                    Button(p) { period = p }
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundStyle(p == period ? .white : Theme.text3)
+                        .frame(maxWidth: .infinity).padding(.vertical, 6)
+                        .background(p == period ? appState.accentColor : Color.clear)
+                        .overlay(RoundedRectangle(cornerRadius: 10)
+                            .stroke(p == period ? appState.accentColor : Theme.border, lineWidth: 1.5))
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                }
+            }
+            .padding(.bottom, 16)
+
+            // Rows
+            let my = myReturn()
+            let allVals = ([my] + indices.map { marketReturn($0.ticker) }).map { abs($0) }
+            let maxVal = max(allVals.max() ?? 1, 0.01)
+
+            compRow(icon: "💼", name: "My Portfolio", ret: my, color: appState.accentColor, isMe: true, maxVal: maxVal)
+
+            ForEach(indices, id: \.ticker) { idx in
+                Divider().padding(.vertical, 10)
+                compRow(icon: idx.icon, name: idx.name, ret: marketReturn(idx.ticker),
+                        color: Color(hex: "#64748B"), isMe: false, maxVal: maxVal)
+            }
+
+            if period != "1D" {
+                Text("Non-daily figures are estimated from your all-time return")
+                    .font(.system(size: 10)).foregroundStyle(Theme.text3).padding(.top, 12)
+            }
+        }
+        .padding(18)
+        .background(Theme.card)
+        .clipShape(RoundedRectangle(cornerRadius: 24))
+        .overlay(RoundedRectangle(cornerRadius: 24).stroke(Theme.border, lineWidth: 1))
+        .shadow(color: .black.opacity(0.04), radius: 8, y: 2)
+    }
+
+    func compRow(icon: String, name: String, ret: Double, color: Color, isMe: Bool, maxVal: Double) -> some View {
+        HStack(spacing: 10) {
+            Text(icon).font(.system(size: 18)).frame(width: 26)
+            Text(name)
+                .font(.system(size: 13, weight: isMe ? .black : .semibold))
+                .foregroundStyle(isMe ? appState.accentColor : Theme.text)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    RoundedRectangle(cornerRadius: 4).fill(Theme.bg2).frame(height: 6)
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(ret >= 0
+                              ? (isMe ? AnyShapeStyle(appState.accentGradient) : AnyShapeStyle(Theme.gain))
+                              : AnyShapeStyle(Theme.loss))
+                        .frame(width: max(4, geo.size.width * CGFloat(abs(ret) / maxVal)), height: 6)
+                }
+            }
+            .frame(width: 80, height: 6)
+
+            Text(ret.fmtPct())
+                .font(.system(size: 13, weight: .black))
+                .foregroundStyle(ret >= 0 ? Theme.gain : Theme.loss)
+                .frame(width: 58, alignment: .trailing)
         }
     }
 }
@@ -624,6 +811,149 @@ struct VsFriendsCard: View {
         .clipShape(RoundedRectangle(cornerRadius: 24))
         .overlay(RoundedRectangle(cornerRadius: 24).stroke(Theme.border, lineWidth: 1))
         .shadow(color: Theme.accent.opacity(0.1), radius: 16, y: 4)
+    }
+}
+
+// MARK: - Live Feed Card
+
+struct LiveFeedCard: View {
+    @Environment(AppState.self) var appState
+    @State private var visibleCount = 4
+
+    struct FeedEvent: Identifiable {
+        let id = UUID()
+        let icon: String
+        let text: String
+        let sub: String
+        let accent: Color
+    }
+
+    var events: [FeedEvent] {
+        var items: [FeedEvent] = []
+
+        // Portfolio-aware events
+        let bigMover = appState.positions
+            .max { abs(appState.quotes[$0.ticker]?.changePercent ?? 0) < abs(appState.quotes[$1.ticker]?.changePercent ?? 0) }
+        if let m = bigMover, let q = appState.quotes[m.ticker] {
+            let up = q.changePercent >= 0
+            items.append(FeedEvent(icon: up ? "🔥" : "📉",
+                text: "\(m.ticker) is your biggest mover today",
+                sub: "\(q.changePercent.fmtPct()) · \(up ? "riding the wave" : "dragging today's P&L")",
+                accent: up ? Theme.gain : Theme.loss))
+        }
+
+        // Social proof
+        let socialTickers = [("NVDA", 1243), ("AAPL", 890), ("TSLA", 734), ("META", 612)]
+        for p in appState.positions.prefix(2) {
+            if let entry = socialTickers.first(where: { $0.0 == p.ticker }) {
+                items.append(FeedEvent(icon: "👥",
+                    text: "\(entry.1) other STALK users hold \(p.ticker)",
+                    sub: "You're in good company",
+                    accent: Color(hex: "#8B7CF6")))
+            }
+        }
+
+        // Market beat
+        if appState.todayPnlPct > 0.5 {
+            items.append(FeedEvent(icon: "⚡",
+                text: "You're beating SPY today",
+                sub: "Portfolio +\(appState.todayPnlPct.fmtPct()) vs SPY \((appState.marketQuotes["SPY"]?.changePercent ?? 0).fmtPct())",
+                accent: Theme.gain))
+        }
+
+        // ATH
+        if appState.portfolioATH > 0 && appState.totalValue >= appState.portfolioATH {
+            items.append(FeedEvent(icon: "🏆",
+                text: "New all-time high!",
+                sub: "Portfolio just hit \(appState.totalValue.fmtPrice()) — your best ever",
+                accent: Color(hex: "#F59E0B")))
+        }
+
+        // Streak
+        if appState.streak >= 3 {
+            items.append(FeedEvent(icon: "🔥",
+                text: "\(appState.streak)-day check-in streak",
+                sub: "You're in the top 12% of active STALKers",
+                accent: Color(hex: "#F97316")))
+        }
+
+        // Static FOMO events
+        items.append(FeedEvent(icon: "📢",
+            text: "NVDA earnings in 3 days",
+            sub: "Options flow showing unusual call volume — traders expect a big move",
+            accent: Color(hex: "#6366F1")))
+        items.append(FeedEvent(icon: "🤖",
+            text: "STALK AI updated your portfolio score",
+            sub: "Tap AI Agent above to see your new insights",
+            accent: Color(hex: "#5B5BD6")))
+        items.append(FeedEvent(icon: "📈",
+            text: "Lena V. +2.1% today · Semis on fire",
+            sub: "She holds NVDA 40% · AMD 25% · See her portfolio →",
+            accent: Color(hex: "#6EE7B7")))
+
+        return items
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("⚡ Live Feed")
+                        .font(.system(size: 15, weight: .bold)).foregroundStyle(Theme.text)
+                    Text("What's happening in your portfolio right now")
+                        .font(.system(size: 11)).foregroundStyle(Theme.text3)
+                }
+                Spacer()
+                Circle().fill(Color(hex: "#22C55E")).frame(width: 8, height: 8)
+                    .overlay(Circle().fill(Color(hex: "#22C55E").opacity(0.25)).frame(width: 16, height: 16))
+            }
+            .padding(.bottom, 14)
+
+            VStack(spacing: 0) {
+                ForEach(Array(events.prefix(visibleCount).enumerated()), id: \.element.id) { i, event in
+                    HStack(alignment: .top, spacing: 12) {
+                        Text(event.icon)
+                            .font(.system(size: 18))
+                            .frame(width: 32, height: 32)
+                            .background(event.accent.opacity(0.12))
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(event.text)
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundStyle(Theme.text)
+                            Text(event.sub)
+                                .font(.system(size: 11))
+                                .foregroundStyle(Theme.text3)
+                                .lineSpacing(2)
+                        }
+                        Spacer()
+                    }
+                    .padding(.vertical, 10)
+
+                    if i < min(visibleCount, events.count) - 1 {
+                        Divider()
+                    }
+                }
+            }
+
+            if visibleCount < events.count {
+                Button {
+                    withAnimation(.easeInOut(duration: 0.25)) { visibleCount = events.count }
+                } label: {
+                    Text("Show more (\(events.count - visibleCount))")
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundStyle(Theme.accent)
+                        .frame(maxWidth: .infinity)
+                        .padding(.top, 12)
+                }
+            }
+        }
+        .padding(18)
+        .background(Theme.card)
+        .clipShape(RoundedRectangle(cornerRadius: 24))
+        .overlay(RoundedRectangle(cornerRadius: 24).stroke(Theme.border, lineWidth: 1))
+        .shadow(color: .black.opacity(0.04), radius: 8, y: 2)
     }
 }
 

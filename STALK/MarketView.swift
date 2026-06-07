@@ -145,7 +145,7 @@ struct MarketRow: View {
                 Spacer()
 
                 VStack(alignment: .trailing, spacing: 2) {
-                    Text("$\(String(format: "%,.2f", quote.price))")
+                    Text(quote.price.fmtPrice())
                         .font(.system(size: 15, weight: .bold))
                         .foregroundStyle(Theme.text)
                     Text(quote.changePercent.fmtPct())

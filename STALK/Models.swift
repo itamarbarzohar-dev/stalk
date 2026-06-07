@@ -103,9 +103,11 @@ let SECTORS: [SectorInfo] = [
     .init(name: "Crypto",      etf: "IBIT", icon: "🪙"),
 ]
 
-let INDEX_TICKERS = ["^GSPC", "QQQ", "^DJI", "^RUT"]
+// Using ETF equivalents — SPY/DIA/IWM are more reliable from Yahoo Finance than ^ index tickers
+let INDEX_TICKERS = ["SPY", "QQQ", "DIA", "IWM"]
 let INDEX_NAMES: [String: String] = [
-    "^GSPC": "S&P 500", "QQQ": "NASDAQ 100", "^DJI": "Dow Jones", "^RUT": "Russell 2000",
+    "SPY": "S&P 500",      "QQQ": "NASDAQ 100",
+    "DIA": "Dow Jones",    "IWM": "Russell 2000",
 ]
 let TRENDING_TICKERS = ["NVDA", "AAPL", "TSLA", "META", "MSFT"]
 

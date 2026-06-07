@@ -1,17 +1,13 @@
-//
-//  STALKApp.swift
-//  STALK
-//
-//  Created by itamar bar zohar on 05/06/2026.
-//
-
 import SwiftUI
 
 @main
 struct STALKApp: App {
+    @State private var appState = AppState()
+
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environment(appState)
         }
     }
 }

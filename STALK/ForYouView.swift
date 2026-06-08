@@ -1,4 +1,5 @@
 import SwiftUI
+import StoreKit
 
 struct ForYouView: View {
     @Environment(AppState.self) var appState
@@ -799,72 +800,277 @@ struct CopyPortfolioSheet: View {
 // MARK: - Premium Sheet
 
 struct PremiumSheet: View {
+    @Environment(AppState.self) var appState
     @Environment(\.dismiss) var dismiss
 
+    @State private var selectedPlan: String = "annual"
+    @State private var isPurchasing = false
+    @State private var showError = false
+    @State private var showSuccess = false
+
     let features: [(String, String, String)] = [
-        ("🐋", "Whale Alerts",         "See $1M+ options trades in real-time"),
-        ("🔔", "Price Alerts",         "Get notified at your target price"),
-        ("🤖", "AI Stock Analysis",    "GPT-powered buy/sell signals"),
-        ("📉", "Short Squeeze Radar",  "Spot the next GME before it happens"),
-        ("📊", "Full Earnings Analysis","Beat/miss history, guidance trends"),
+        ("🐋", "Whale Alerts",            "See $1M+ options trades live"),
+        ("🤖", "AI Analysis (Unlimited)", "Real AI answers about your stocks"),
+        ("📉", "Short Squeeze Radar",     "Spot the next GME early"),
+        ("🔔", "Unlimited Price Alerts",  "Set as many thresholds as you want"),
+        ("🎨", "Premium Themes",          "Gold & Midnight — exclusive styles"),
     ]
 
+    var monthlyProduct: Product? {
+        appState.storeKitProducts.first { $0.id == "com.itamar.stalk.pro.monthly" }
+    }
+    var annualProduct: Product? {
+        appState.storeKitProducts.first { $0.id == "com.itamar.stalk.pro.annual" }
+    }
+    var monthlyPrice: String { monthlyProduct?.displayPrice ?? "$6.99" }
+    var annualPrice:  String { annualProduct?.displayPrice  ?? "$49.99" }
+
     var body: some View {
-        VStack(spacing: 0) {
-            Text("STALK Pro 🚀")
-                .font(.system(size: 24, weight: .black))
-                .foregroundStyle(Theme.text)
-                .padding(.top, 28)
-
-            Text("Unlock everything. Trade smarter.")
-                .font(.system(size: 14))
-                .foregroundStyle(Theme.text3)
-                .padding(.bottom, 22)
-
+        ScrollView {
             VStack(spacing: 0) {
-                ForEach(features, id: \.0) { icon, title, sub in
-                    HStack(spacing: 12) {
-                        Text(icon).font(.system(size: 20)).frame(width: 36)
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(title).font(.system(size: 14, weight: .semibold)).foregroundStyle(Theme.text)
-                            Text(sub).font(.system(size: 12)).foregroundStyle(Theme.text3)
+                // Dark gradient header
+                ZStack(alignment: .bottom) {
+                    LinearGradient(
+                        colors: [Color(hex: "#1A0B3B"), Color(hex: "#2D1B69"), Color(hex: "#4A2C8F")],
+                        startPoint: .topLeading, endPoint: .bottomTrailing
+                    )
+
+                    VStack(spacing: 10) {
+                        Text("🚀")
+                            .font(.system(size: 44))
+                            .padding(.top, 48)
+
+                        Text("STALK Pro")
+                            .font(.system(size: 32, weight: .black))
+                            .foregroundStyle(.white)
+
+                        Text("Trade smarter. Stay obsessed.")
+                            .font(.system(size: 15))
+                            .foregroundStyle(.white.opacity(0.7))
+                            .padding(.bottom, 28)
+                    }
+                }
+                .overlay(alignment: .topTrailing) {
+                    Button { dismiss() } label: {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundStyle(.white.opacity(0.7))
+                            .frame(width: 32, height: 32)
+                            .background(.white.opacity(0.15))
+                            .clipShape(Circle())
+                    }
+                    .padding(.top, 52)
+                    .padding(.trailing, 20)
+                }
+
+                // Feature list
+                VStack(spacing: 0) {
+                    ForEach(features, id: \.0) { icon, title, sub in
+                        HStack(spacing: 14) {
+                            Text(icon)
+                                .font(.system(size: 22))
+                                .frame(width: 40, height: 40)
+                                .background(Color(hex: "#7B6FEF").opacity(0.15))
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(title)
+                                    .font(.system(size: 14, weight: .semibold))
+                                    .foregroundStyle(Theme.text)
+                                Text(sub)
+                                    .font(.system(size: 12))
+                                    .foregroundStyle(Theme.text3)
+                            }
+                            Spacer()
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.system(size: 18))
+                                .foregroundStyle(Color(hex: "#7B6FEF"))
+                        }
+                        .padding(.vertical, 12)
+                        if icon != features.last!.0 {
+                            Divider()
                         }
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.vertical, 10)
-                    Divider()
                 }
-            }
-            .padding(.horizontal, 22)
+                .padding(.horizontal, 22)
+                .padding(.vertical, 8)
 
-            VStack(spacing: 4) {
-                Text("$9.99/mo")
-                    .font(.system(size: 32, weight: .black))
-                    .foregroundStyle(Theme.accent)
-                Text("Cancel anytime · 7-day free trial")
+                // Plan selector
+                VStack(spacing: 10) {
+                    // Annual plan (pre-selected)
+                    Button { selectedPlan = "annual" } label: {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 3) {
+                                HStack(spacing: 6) {
+                                    Text("Annual")
+                                        .font(.system(size: 16, weight: .black))
+                                        .foregroundStyle(Theme.text)
+                                    Text("BEST VALUE")
+                                        .font(.system(size: 9, weight: .black))
+                                        .foregroundStyle(.white)
+                                        .padding(.horizontal, 7)
+                                        .padding(.vertical, 2)
+                                        .background(Color(hex: "#7B6FEF"))
+                                        .clipShape(Capsule())
+                                }
+                                Text("\(annualPrice)/yr · \(annualMonthlyPrice)/mo · Save 40%")
+                                    .font(.system(size: 12))
+                                    .foregroundStyle(Theme.text3)
+                            }
+                            Spacer()
+                            Image(systemName: selectedPlan == "annual" ? "checkmark.circle.fill" : "circle")
+                                .font(.system(size: 22))
+                                .foregroundStyle(selectedPlan == "annual" ? Color(hex: "#7B6FEF") : Theme.text3)
+                        }
+                        .padding(16)
+                        .background(selectedPlan == "annual" ? Color(hex: "#7B6FEF").opacity(0.08) : Theme.bg2)
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 14)
+                                .stroke(selectedPlan == "annual" ? Color(hex: "#7B6FEF") : Color.clear, lineWidth: 2)
+                        )
+                    }
+                    .buttonStyle(.plain)
+
+                    // Monthly plan
+                    Button { selectedPlan = "monthly" } label: {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text("Monthly")
+                                    .font(.system(size: 16, weight: .black))
+                                    .foregroundStyle(Theme.text)
+                                Text("Billed monthly, cancel anytime")
+                                    .font(.system(size: 12))
+                                    .foregroundStyle(Theme.text3)
+                            }
+                            Spacer()
+                            Text("\(monthlyPrice)/mo")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundStyle(Theme.text3)
+                            Image(systemName: selectedPlan == "monthly" ? "checkmark.circle.fill" : "circle")
+                                .font(.system(size: 22))
+                                .foregroundStyle(selectedPlan == "monthly" ? Color(hex: "#7B6FEF") : Theme.text3)
+                        }
+                        .padding(16)
+                        .background(selectedPlan == "monthly" ? Color(hex: "#7B6FEF").opacity(0.08) : Theme.bg2)
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 14)
+                                .stroke(selectedPlan == "monthly" ? Color(hex: "#7B6FEF") : Color.clear, lineWidth: 2)
+                        )
+                    }
+                    .buttonStyle(.plain)
+                }
+                .padding(.horizontal, 22)
+                .padding(.top, 16)
+                .padding(.bottom, 8)
+
+                // CTA Button
+                Button {
+                    isPurchasing = true
+                    Task {
+                        let productID = selectedPlan == "annual"
+                            ? "com.itamar.stalk.pro.annual"
+                            : "com.itamar.stalk.pro.monthly"
+                        if let product = appState.storeKitProducts.first(where: { $0.id == productID }) {
+                            let success = await appState.purchaseProduct(product)
+                            if success {
+                                showSuccess = true
+                                try? await Task.sleep(for: .seconds(1.2))
+                                dismiss()
+                            } else {
+                                showError = true
+                            }
+                        } else {
+                            // Products not loaded yet — surface error
+                            showError = true
+                        }
+                        isPurchasing = false
+                    }
+                } label: {
+                    Group {
+                        if isPurchasing {
+                            ProgressView().tint(.white)
+                        } else {
+                            Text("Start 7-Day Free Trial")
+                                .font(.system(size: 17, weight: .black))
+                                .foregroundStyle(.white)
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 56)
+                    .background(
+                        LinearGradient(
+                            colors: [Color(hex: "#5B5BD6"), Color(hex: "#7B6FEF")],
+                            startPoint: .leading, endPoint: .trailing
+                        )
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 18))
+                    .shadow(color: Color(hex: "#7B6FEF").opacity(0.4), radius: 12, y: 4)
+                }
+                .disabled(isPurchasing)
+                .padding(.horizontal, 22)
+                .padding(.top, 8)
+
+                // Subtext under CTA
+                Text("Then \(selectedPlan == "annual" ? "\(annualPrice)/yr" : "\(monthlyPrice)/mo") · Cancel anytime")
+                    .font(.system(size: 12))
+                    .foregroundStyle(Theme.text3)
+                    .padding(.top, 6)
+
+                // Restore + Maybe later
+                HStack(spacing: 24) {
+                    Button("Restore Purchases") {
+                        Task { await appState.restorePurchases() }
+                    }
                     .font(.system(size: 13))
                     .foregroundStyle(Theme.text3)
-            }
-            .padding(.vertical, 18)
 
-            Button {
-                dismiss()
-            } label: {
-                Text("Start Free Trial →")
-                    .font(.system(size: 18, weight: .black))
-                    .foregroundStyle(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 18)
-                    .background(Theme.accentGradient)
-                    .clipShape(RoundedRectangle(cornerRadius: 18))
-            }
-            .padding(.horizontal, 22)
+                    Button("Maybe later") { dismiss() }
+                        .font(.system(size: 13))
+                        .foregroundStyle(Theme.text3)
+                }
+                .padding(.top, 12)
 
-            Button("Maybe later") { dismiss() }
-                .font(.system(size: 14))
-                .foregroundStyle(Theme.text3)
-                .padding(12)
+                // Trust signals
+                HStack(spacing: 6) {
+                    Image(systemName: "lock.fill")
+                        .font(.system(size: 10))
+                        .foregroundStyle(Theme.text3)
+                    Text("256-bit encryption · App Store verified")
+                        .font(.system(size: 11))
+                        .foregroundStyle(Theme.text3)
+                }
+                .padding(.top, 8)
+
+                // Legal footer (required by App Store)
+                Text("7-day free trial. Payment charged to your Apple ID at end of trial. Cancel anytime in Settings > Subscriptions. Subscription auto-renews unless cancelled at least 24 hours before the end of the current period.")
+                    .font(.system(size: 10))
+                    .foregroundStyle(Theme.text3)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 22)
+                    .padding(.top, 8)
+                    .padding(.bottom, 32)
+            }
         }
-        .background(Theme.card)
+        .background(Theme.bg)
+        .alert("Purchase Failed", isPresented: $showError) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("Something went wrong. Please try again.")
+        }
+        .alert("STALK Pro Activated!", isPresented: $showSuccess) {
+            Button("Let's go!", role: .cancel) {}
+        } message: {
+            Text("Enjoy your 7-day trial. Welcome to the pro side.")
+        }
+    }
+
+    var annualMonthlyPrice: String {
+        if let p = annualProduct {
+            // Approximate monthly equivalent — Decimal arithmetic, format as string
+            let val = (p.price as NSDecimalNumber).doubleValue / 12
+            return "$\(String(format: "%.2f", val))"
+        }
+        return "$4.16"
     }
 }

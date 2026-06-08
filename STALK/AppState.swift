@@ -1,5 +1,6 @@
 import SwiftUI
 import Observation
+import StoreKit
 
 // MARK: - Settings
 
@@ -22,6 +23,11 @@ struct STALKSettings: Codable {
     var displayName: String = "Itamar B."
     var username: String = "@itamar"
     var bio: String = "Investor · STALK Pro"
+
+    // MARK: - Pro / Monetisation
+    var isPro: Bool = false
+    var aiMessagesUsed: Int = 0
+    var priceAlertCount: Int = 0
 }
 
 enum AppTheme: String, CaseIterable {
@@ -101,6 +107,9 @@ class AppState {
     var showSettings = false
     var showAIChat = false
     var showDailyBrief = false
+
+    // MARK: StoreKit
+    var storeKitProducts: [Product] = []
 
     // MARK: Gamification
     var streak: Int = 0
@@ -250,6 +259,82 @@ class AppState {
         let fetched = await QuoteService.fetchManyQuotes(all)
         marketQuotes.merge(fetched) { _, new in new }
         isLoadingMarket = false
+    }
+
+    // MARK: - StoreKit
+
+    private static let monthlyProductID = "com.itamar.stalk.pro.monthly"
+    private static let annualProductID  = "com.itamar.stalk.pro.annual"
+    private static let proProductIDs: Set<String> = [monthlyProductID, annualProductID]
+
+    func loadStoreKitProducts() async {
+        do {
+            storeKitProducts = try await Product.products(for: AppState.proProductIDs)
+        } catch {
+            print("StoreKit product load failed: \(error)")
+        }
+    }
+
+    func purchaseProduct(_ product: Product) async -> Bool {
+        do {
+            let result = try await product.purchase()
+            switch result {
+            case .success(let verification):
+                switch verification {
+                case .verified(let transaction):
+                    await transaction.finish()
+                    settings.isPro = true
+                    saveSettings()
+                    return true
+                case .unverified:
+                    return false
+                }
+            case .userCancelled:
+                return false
+            case .pending:
+                return false
+            @unknown default:
+                return false
+            }
+        } catch {
+            print("Purchase failed: \(error)")
+            return false
+        }
+    }
+
+    func restorePurchases() async {
+        for await result in Transaction.currentEntitlements {
+            if case .verified(let transaction) = result {
+                if AppState.proProductIDs.contains(transaction.productID) {
+                    if transaction.revocationDate == nil {
+                        let isActive = (transaction.expirationDate ?? .distantFuture) > Date()
+                        if isActive {
+                            settings.isPro = true
+                            saveSettings()
+                            return
+                        }
+                    }
+                }
+            }
+        }
+        settings.isPro = false
+        saveSettings()
+    }
+
+    func listenForTransactions() {
+        Task {
+            for await result in Transaction.updates {
+                if case .verified(let transaction) = result {
+                    if AppState.proProductIDs.contains(transaction.productID) {
+                        let isActive = transaction.revocationDate == nil &&
+                                       (transaction.expirationDate ?? .distantFuture) > Date()
+                        settings.isPro = isActive
+                        saveSettings()
+                    }
+                    await transaction.finish()
+                }
+            }
+        }
     }
 
     // MARK: - Portfolio Mutations

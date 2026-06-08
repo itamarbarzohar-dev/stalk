@@ -207,7 +207,13 @@ struct SettingsView: View {
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 4), spacing: 12) {
                     ForEach(AppTheme.allCases, id: \.self) { t in
                         let selected = appState.settings.theme == t.rawValue
+                        let proThemes: Set<String> = ["gold", "midnight"]
+                        let isProLocked = proThemes.contains(t.rawValue) && !appState.settings.isPro
                         Button {
+                            if isProLocked {
+                                showPremium = true
+                                return
+                            }
                             appState.settings.theme = t.rawValue
                             appState.saveSettings()
                         } label: {
@@ -215,14 +221,23 @@ struct SettingsView: View {
                                 .fill(t.gradient)
                                 .frame(width: 48, height: 48)
                                 .overlay(
-                                    Image(systemName: "checkmark")
-                                        .font(.system(size: 14, weight: .black))
-                                        .foregroundStyle(.white)
-                                        .opacity(selected ? 1 : 0)
+                                    Group {
+                                        if isProLocked {
+                                            Image(systemName: "lock.fill")
+                                                .font(.system(size: 14, weight: .bold))
+                                                .foregroundStyle(.white.opacity(0.9))
+                                        } else {
+                                            Image(systemName: "checkmark")
+                                                .font(.system(size: 14, weight: .black))
+                                                .foregroundStyle(.white)
+                                                .opacity(selected ? 1 : 0)
+                                        }
+                                    }
                                 )
                                 .overlay(
                                     Circle().stroke(Theme.text.opacity(selected ? 0.8 : 0), lineWidth: 3)
                                 )
+                                .opacity(isProLocked ? 0.65 : 1.0)
                         }
                     }
                 }
@@ -382,13 +397,14 @@ struct SettingsView: View {
 
             SettingsDivider()
 
-            Button { showPremium = true } label: {
+            if appState.settings.isPro {
                 HStack {
                     Text("⭐").font(.system(size: 20)).frame(width: 32)
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Upgrade to Pro")
-                            .font(.system(size: 14, weight: .semibold)).foregroundStyle(Theme.text)
-                        Text("Whale alerts, AI analysis & more")
+                        Text("STALK Pro — Active")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(Theme.gain)
+                        Text("Thanks for supporting STALK!")
                             .font(.system(size: 11)).foregroundStyle(Theme.text3)
                     }
                     Spacer()
@@ -401,8 +417,29 @@ struct SettingsView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
                 .padding(.vertical, 14)
+            } else {
+                Button { showPremium = true } label: {
+                    HStack {
+                        Text("⭐").font(.system(size: 20)).frame(width: 32)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Upgrade to Pro")
+                                .font(.system(size: 14, weight: .semibold)).foregroundStyle(Theme.text)
+                            Text("Whale alerts, AI analysis & more")
+                                .font(.system(size: 11)).foregroundStyle(Theme.text3)
+                        }
+                        Spacer()
+                        Text("PRO")
+                            .font(.system(size: 12, weight: .black))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 4)
+                            .background(appState.accentGradient)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                    }
+                    .padding(.vertical, 14)
+                }
+                .buttonStyle(.plain)
             }
-            .buttonStyle(.plain)
 
             SettingsDivider()
             SettingsRow(icon: "📄", label: "Privacy Policy", sub: nil) {}

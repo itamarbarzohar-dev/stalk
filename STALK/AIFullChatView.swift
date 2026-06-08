@@ -8,17 +8,36 @@ struct AIFullChatView: View {
     @State private var input = ""
     @State private var isThinking = false
     @FocusState private var inputFocused: Bool
+    @State private var showPaywall = false
 
     var body: some View {
         ZStack(alignment: .bottom) {
             VStack(spacing: 0) {
                 header()
                 chatArea()
+                proGateHint()
                 inputBar()
             }
         }
         .background(Color(hex: "#0F0A1E"))
         .ignoresSafeArea(.keyboard)
+        .sheet(isPresented: $showPaywall) {
+            PremiumSheet()
+        }
+    }
+
+    // Subtle "1 question remaining" hint
+    @ViewBuilder
+    func proGateHint() -> some View {
+        if !appState.settings.isPro && appState.settings.aiMessagesUsed == 2 {
+            Text("1 free question remaining — Upgrade for unlimited AI analysis")
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(.white.opacity(0.6))
+                .padding(.horizontal, 16)
+                .padding(.vertical, 6)
+                .frame(maxWidth: .infinity)
+                .background(Color(hex: "#7B6FEF").opacity(0.25))
+        }
     }
 
     // MARK: - Header
@@ -230,6 +249,17 @@ struct AIFullChatView: View {
     func sendMessage(_ text: String) {
         let trimmed = text.trimmingCharacters(in: .whitespaces)
         guard !trimmed.isEmpty, !isThinking else { return }
+
+        // Pro gate: 3 free messages lifetime
+        if !appState.settings.isPro {
+            if appState.settings.aiMessagesUsed >= 3 {
+                showPaywall = true
+                return
+            }
+            appState.settings.aiMessagesUsed += 1
+            appState.saveSettings()
+        }
+
         messages.append(.init(role: .user, text: trimmed))
         input = ""
         isThinking = true

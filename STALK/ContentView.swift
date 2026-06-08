@@ -44,6 +44,12 @@ struct ContentView: View {
             DailyBriefView()
         }
         .background(Theme.bg.ignoresSafeArea())
+        .fullScreenCover(isPresented: Binding(
+            get: { !appState.settings.hasCompletedOnboarding },
+            set: { if !$0 { appState.settings.hasCompletedOnboarding = true; appState.saveSettings() } }
+        )) {
+            OnboardingFlowView()
+        }
     }
 }
 

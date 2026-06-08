@@ -4,6 +4,8 @@ struct AddPositionSheet: View {
     @Environment(AppState.self) var appState
     @Environment(\.dismiss) var dismiss
 
+    var prefillTicker: String = ""
+
     @State private var ticker = ""
     @State private var shares = ""
     @State private var avgCost = ""
@@ -83,6 +85,11 @@ struct AddPositionSheet: View {
                 .padding(22)
             }
             .background(Theme.bg)
+        }
+        .onAppear {
+            if !prefillTicker.isEmpty {
+                ticker = prefillTicker
+            }
         }
     }
 

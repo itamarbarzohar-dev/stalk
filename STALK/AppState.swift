@@ -3,6 +3,13 @@ import Observation
 
 // MARK: - Settings
 
+struct PriceAlertThreshold: Codable, Identifiable {
+    var id: UUID = UUID()
+    var ticker: String
+    var alertAbove: Double?
+    var alertBelow: Double?
+}
+
 struct STALKSettings: Codable {
     var theme: String = "indigo"
     var privacy: String = "public"
@@ -22,6 +29,8 @@ struct STALKSettings: Codable {
     var displayName: String = "Itamar B."
     var username: String = "@itamar"
     var bio: String = "Investor · STALK Pro"
+    var hasCompletedOnboarding: Bool = false
+    var alertThresholds: [PriceAlertThreshold] = []
 }
 
 enum AppTheme: String, CaseIterable {

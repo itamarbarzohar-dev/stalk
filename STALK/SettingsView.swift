@@ -280,7 +280,9 @@ struct SettingsView: View {
         SettingsSection(title: "🔔 Notifications") {
             SettingsToggleRow(icon: "📈", label: "Price Alerts", sub: "Notify when target price is hit",
                               isOn: appState.settings.priceAlerts) {
-                appState.settings.priceAlerts.toggle(); appState.saveSettings()
+                appState.settings.priceAlerts.toggle()
+                appState.saveSettings()
+                NotificationService.syncWithSettings(appState.settings)
             }
             SettingsDivider()
             SettingsToggleRow(icon: "📊", label: "Earnings Reminders", sub: "Alert before your stocks report",

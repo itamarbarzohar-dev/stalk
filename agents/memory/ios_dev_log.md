@@ -1,56 +1,64 @@
 # iOS Dev Log — Jordan
 
-## 2026-06-08 — Paywall + StoreKit Implementation (feature/paywall-storekit)
+## 2026-06-08 — App Store Readiness Sprint
 
-### Summary
-Implemented full monetisation system for STALK Pro. All gates live, StoreKit 2 wired, PremiumSheet rebuilt.
+### Completed
 
-### Changes
+**Fix A: iOS Deployment Target**
+- Changed `IPHONEOS_DEPLOYMENT_TARGET` from `26.5` to `17.0` in both Debug and Release target configs in `project.pbxproj`
+- Set `TARGETED_DEVICE_FAMILY = 1` (iPhone only, was `"1,2,7"`)
 
-**AppState.swift**
-- Added `isPro: Bool`, `aiMessagesUsed: Int`, `priceAlertCount: Int` to `STALKSettings`
-- Added `storeKitProducts: [Product]` to `AppState`
-- Implemented `loadStoreKitProducts()` — fetches monthly + annual products from StoreKit
-- Implemented `purchaseProduct(_ product: Product) async -> Bool` — StoreKit 2 purchase flow, sets `isPro = true` on verified success
-- Implemented `restorePurchases()` — checks `Transaction.currentEntitlements`, sets isPro accordingly
-- Implemented `listenForTransactions()` — real-time subscription status updates via `Transaction.updates`
+**Fix B: App Icon**
+- Created `STALK/Assets.xcassets/AppIcon.appiconset/AppIcon-1024.png` — 1024x1024 indigo (#5B5BD6) background with white block-letter "S"
+- Updated `Contents.json` to reference the PNG for all three iOS universal adaptive icon slots (light, dark, tinted)
+- Note: placeholder icon — production will need a designer pass
 
-**STALKApp.swift**
-- Added `.task` on launch: loads products, starts transaction listener, restores purchases
+**Fix C: Privacy Policy**
+- Created `docs/privacy.html` — ready for GitHub Pages at `https://itamarbarzohar-dev.github.io/stalk/privacy`
+- Policy states: zero data collection, all local, no analytics, no tracking
 
-**ForYouView.swift (PremiumSheet)**
-- Full rewrite: dark indigo/purple gradient header, STALK Pro branding
-- Feature list: 5 items with icons and descriptions
-- Annual/monthly plan selector (annual pre-selected, highlighted, "BEST VALUE" badge)
-- Prices pulled from StoreKit `Product.displayPrice`, fallback to hardcoded strings
-- CTA: "Start 7-Day Free Trial" with loading spinner during purchase
-- Error alert on purchase failure, success alert + auto-dismiss on success
-- Restore Purchases + "Maybe later" links
-- Trust signals: 256-bit encryption / App Store verified
-- Required App Store legal footer
+**Custom Info.plist**
+- Switched from `GENERATE_INFOPLIST_FILE = YES` to a custom `STALK/STALK-Info.plist`
+- Added `UIBackgroundModes: [fetch, processing]` and `BGTaskSchedulerPermittedIdentifiers: [com.stalk.portfolio.refresh]`
+- Required for BGTaskScheduler registration
 
-**AIFullChatView.swift**
-- Added `showPaywall: Bool` state
-- Added `proGateHint()` — subtle banner when `aiMessagesUsed == 2` ("1 free question remaining")
-- `sendMessage()` gated: free users get 3 lifetime messages, 4th attempt shows `PremiumSheet`
-- Sheet: `.sheet(isPresented: $showPaywall) { PremiumSheet() }`
+**Onboarding Flow (`OnboardingView.swift`)**
+- 4-screen `OnboardingFlowView` with spring page transitions
+- Screen 1: Welcome + name/username input, validation (2–30 chars / 3–20 chars), skip uses "Investor"/"@user"
+- Screen 2: Trending chips with live prices from QuoteService, popular picks (SPY/QQQ/IBIT), AddPositionSheet pre-fill via new `prefillTicker` param
+- Screen 3: Live portfolio value with animated counter (0→actual in 300ms), allocation bars, loading state
+- Screen 4: Notifications ask with value-framing examples, UNUserNotificationCenter auth request
+- `STALKSettings.hasCompletedOnboarding: Bool = false` added — set `true` on Screen 1 complete (never shows again)
+- `ContentView.swift` gates main UI behind `.fullScreenCover` when `!hasCompletedOnboarding`
+- `AddPositionSheet` gained optional `prefillTicker: String = ""` with `.onAppear` prefill
 
-**SettingsView.swift**
-- `appearanceSection()`: gold + midnight themes show lock icon and trigger paywall for free users
-- `aboutSection()`: dynamic display — Pro status row if subscribed, "Upgrade to Pro" button otherwise
+**Push Notifications (`NotificationService.swift`)**
+- `requestAuthorization()` — async, respects previously denied status
+- `scheduleMarketOpenNotification()` — `UNCalendarNotificationTrigger` repeating at 9:30 AM ET weekdays
+- `schedulePriceAlert()` — fires when position moves >5% (called during background refresh)
+- `scheduleThresholdAlert()` — fires when price crosses user-defined above/below thresholds
+- `checkPortfolioAlerts()` — called in BGAppRefreshTask handler in `STALKApp`
+- `syncWithSettings()` — called from Settings toggle to enable/disable market open alert
 
-**StoreKit.storekit**
-- New sandbox configuration file for local testing
-- Products: `com.itamar.stalk.pro.monthly` ($6.99/mo, 7-day trial) and `com.itamar.stalk.pro.annual` ($49.99/yr, 7-day trial)
-- Group: "STALK Pro"
-- To activate: Xcode → Edit Scheme → Run → StoreKit Configuration → StoreKit.storekit
+**AppState changes**
+- Added `PriceAlertThreshold: Codable, Identifiable` struct with `alertAbove: Double?` and `alertBelow: Double?`
+- Added `STALKSettings.alertThresholds: [PriceAlertThreshold] = []`
+
+**STALKApp changes**
+- `import BackgroundTasks`
+- BGTaskScheduler.shared.register for `com.stalk.portfolio.refresh` in `.task` modifier
+- `handleBackgroundRefresh()` fetches quotes and calls `NotificationService.checkPortfolioAlerts()`
+- `scheduleBackgroundRefresh()` submits next BGAppRefreshTaskRequest (15-min earliest)
 
 ### Build Status
-BUILD SUCCEEDED (2026-06-08). Pre-existing warnings in QuoteService.swift (Swift 6 actor isolation) — not introduced by this PR.
+`** BUILD SUCCEEDED **` — iOS Simulator, iPhone 17, iOS 26.5 SDK
 
-### Action Required — Itamar
-Create products in App Store Connect before TestFlight:
-- `com.itamar.stalk.pro.monthly` | Auto-renewable | $6.99/mo | Group: STALK Pro | 7-day free trial
-- `com.itamar.stalk.pro.annual` | Auto-renewable | $49.99/yr | Group: STALK Pro | 7-day free trial
+### PR
+https://github.com/itamarbarzohar-dev/stalk/pull/3
 
----
+### Known TODOs / Next Sprint
+- App icon needs professional design treatment (current is programmatic placeholder)
+- `AddPositionSheet` prefill doesn't focus the shares field — UX improvement
+- Notification permission denied state in onboarding Screen 4 should show "Go to Settings" instead of system dialog (can't re-prompt once denied)
+- BGAppRefreshTask interval is 15 min minimum but iOS throttles this heavily in practice
+- Alert thresholds UI not yet implemented — `PriceAlertThreshold` model is ready but no UI in PortfolioView to set them

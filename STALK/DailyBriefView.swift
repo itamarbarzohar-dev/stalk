@@ -193,11 +193,11 @@ struct DailyBriefView: View {
         let bg: Color
         let border: Color
         switch t {
-        case .good:    bg = Color(hex: "#ECFDF5"); border = Color(hex: "#6EE7B7")
-        case .warn:    bg = Color(hex: "#FFFBEB"); border = Color(hex: "#FCD34D")
-        case .danger:  bg = Color(hex: "#FEF2F2"); border = Color(hex: "#FCA5A5")
-        case .alert:   bg = Color(hex: "#EFF6FF"); border = Color(hex: "#93C5FD")
-        case .neutral: bg = Theme.card;            border = Theme.border
+        case .good:    bg = Theme.gain.opacity(0.10);   border = Theme.gain.opacity(0.35)
+        case .warn:    bg = Theme.gold.opacity(0.10);   border = Theme.gold.opacity(0.35)
+        case .danger:  bg = Theme.loss.opacity(0.10);   border = Theme.loss.opacity(0.35)
+        case .alert:   bg = Theme.accent.opacity(0.10); border = Theme.accent.opacity(0.35)
+        case .neutral: bg = Theme.card;                 border = Theme.border
         }
 
         return HStack(alignment: .top, spacing: 12) {
@@ -297,9 +297,9 @@ struct PositionBriefCard: View {
                 }
             }
             .padding(14)
-            .background(isUp ? Color(hex: "#ECFDF5") : Color(hex: "#FEF2F2"))
+            .background(isUp ? Theme.gain.opacity(0.10) : Theme.loss.opacity(0.10))
 
-            Divider().overlay(isUp ? Color(hex: "#6EE7B7") : Color(hex: "#FCA5A5"))
+            Divider().overlay(isUp ? Theme.gain.opacity(0.50) : Theme.loss.opacity(0.50))
 
             // Why it moved
             VStack(alignment: .leading, spacing: 6) {
@@ -317,7 +317,7 @@ struct PositionBriefCard: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(Theme.card)
 
-            Divider().overlay(isUp ? Color(hex: "#6EE7B7").opacity(0.3) : Color(hex: "#FCA5A5").opacity(0.3))
+            Divider().overlay(isUp ? Theme.gain.opacity(0.50).opacity(0.3) : Theme.loss.opacity(0.50).opacity(0.3))
 
             // AI suggestion
             VStack(alignment: .leading, spacing: 6) {
@@ -363,7 +363,7 @@ struct PositionBriefCard: View {
         .clipShape(RoundedRectangle(cornerRadius: 18))
         .overlay(
             RoundedRectangle(cornerRadius: 18)
-                .stroke(isUp ? Color(hex: "#6EE7B7") : Color(hex: "#FCA5A5"), lineWidth: 1)
+                .stroke(isUp ? Theme.gain.opacity(0.50) : Theme.loss.opacity(0.50), lineWidth: 1)
         )
         .shadow(color: .black.opacity(0.05), radius: 8, y: 2)
     }

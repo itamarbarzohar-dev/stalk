@@ -21,7 +21,7 @@ struct ForYouView: View {
                 HStack(spacing: 10) {
                     Text("🔔 3 of your stocks report earnings this week")
                         .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(Color(hex: "#92400E"))
+                        .foregroundStyle(Theme.gold)
                         .frame(maxWidth: .infinity, alignment: .leading)
                     Button("View") {}
                         .font(.system(size: 12, weight: .bold))
@@ -33,10 +33,8 @@ struct ForYouView: View {
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
-                .background(
-                    LinearGradient(colors: [Color(hex: "#FFFBEB"), Color(hex: "#FEF3C7")], startPoint: .topLeading, endPoint: .bottomTrailing)
-                )
-                .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color(hex: "#FDE68A"), lineWidth: 1))
+                .background(Theme.gold.opacity(0.10))
+                .overlay(RoundedRectangle(cornerRadius: 16).stroke(Theme.gold.opacity(0.30), lineWidth: 1))
                 .clipShape(RoundedRectangle(cornerRadius: 16))
                 .padding(.horizontal, 14)
                 .padding(.bottom, 10)

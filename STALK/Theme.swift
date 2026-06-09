@@ -1,32 +1,99 @@
 import SwiftUI
 
 enum Theme {
-    static let accent = Color(hex: "#5B5BD6")
-    static let accent2 = Color(hex: "#8B7CF6")
-    static let gain = Color(hex: "#059669")
-    static let loss = Color(hex: "#E5534B")
-    static let gainBg = Color(hex: "#ECFDF5")
-    static let lossBg = Color(hex: "#FEF2F2")
-    static let bg = Color(hex: "#F7F8FC")
-    static let bg2 = Color(hex: "#EEEEF5")
-    static let card = Color.white
-    static let text = Color(hex: "#18181B")
-    static let text2 = Color(hex: "#52525B")
-    static let text3 = Color(hex: "#A1A1AA")
-    static let border = Color(hex: "#EBEBF0")
-    static let gold = Color(hex: "#D97706")
-    static let goldBg = Color(hex: "#FFFBEB")
+    // MARK: - Backgrounds
+    static let bg          = Color(hex: "#0A0A0F")   // primary app bg
+    static let bg2         = Color(hex: "#0F0F17")   // secondary bg, inside cards
+    static let bg3         = Color(hex: "#141420")   // tertiary bg, nested containers
 
+    // MARK: - Cards
+    static let card        = Color(hex: "#111118")
+    static let cardRaised  = Color(hex: "#16161F")
+    static let border      = Color.white.opacity(0.06)
+    static let borderActive = Color.white.opacity(0.14)
+
+    // MARK: - Text
+    static let text        = Color(hex: "#F2F2F7")
+    static let text2       = Color(hex: "#A8A8B8")
+    static let text3       = Color(hex: "#5C5C72")
+    static let text4       = Color(hex: "#3A3A50")
+
+    // MARK: - Semantic
+    static let accent      = Color(hex: "#5B5BD6")
+    static let accent2     = Color(hex: "#7C7CF0")
+    static let gain        = Color(hex: "#00D26A")
+    static let loss        = Color(hex: "#FF4757")
+    static let gold        = Color(hex: "#F5A623")
+
+    // MARK: - Semantic dim fills
+    static var gainBg: Color   { gain.opacity(0.12) }
+    static var lossBg: Color   { loss.opacity(0.12) }
+    static var accentBg: Color { accent.opacity(0.12) }
+    static var goldBg: Color   { gold.opacity(0.15) }
+
+    // MARK: - Alloc bar
     static let allocColors: [Color] = [
-        Color(hex: "#5B5BD6"), Color(hex: "#8B7CF6"), Color(hex: "#C4B5FD"),
-        Color(hex: "#818CF8"), Color(hex: "#A5B4FC"), Color(hex: "#E0E7FF"),
+        Color(hex: "#5B5BD6"), Color(hex: "#7C7CF0"), Color(hex: "#A78BFA"),
+        Color(hex: "#818CF8"), Color(hex: "#60A5FA"), Color(hex: "#34D399"),
     ]
 
+    // MARK: - Gradients
     static let accentGradient = LinearGradient(
-        colors: [Color(hex: "#5B5BD6"), Color(hex: "#8B7CF6")],
+        colors: [Color(hex: "#5B5BD6"), Color(hex: "#7C7CF0")],
         startPoint: .topLeading, endPoint: .bottomTrailing
     )
+    static let gainGradient = LinearGradient(
+        colors: [Color(hex: "#00D26A"), Color(hex: "#00B85C")],
+        startPoint: .leading, endPoint: .trailing
+    )
+    static let lossGradient = LinearGradient(
+        colors: [Color(hex: "#FF4757"), Color(hex: "#E03040")],
+        startPoint: .leading, endPoint: .trailing
+    )
+    static let goldGradient = LinearGradient(
+        colors: [Color(hex: "#F5A623"), Color(hex: "#E8952A")],
+        startPoint: .leading, endPoint: .trailing
+    )
 }
+
+// MARK: - Card ViewModifiers
+
+struct STALKCard: ViewModifier {
+    var radius: CGFloat = 20
+    var padding: CGFloat = 16
+
+    func body(content: Content) -> some View {
+        content
+            .padding(padding)
+            .background(Theme.card)
+            .clipShape(RoundedRectangle(cornerRadius: radius))
+            .overlay(RoundedRectangle(cornerRadius: radius).stroke(Theme.border, lineWidth: 1))
+            .shadow(color: .black.opacity(0.40), radius: 8, x: 0, y: 2)
+    }
+}
+
+struct STALKCardRaised: ViewModifier {
+    var radius: CGFloat = 20
+
+    func body(content: Content) -> some View {
+        content
+            .background(Theme.cardRaised)
+            .clipShape(RoundedRectangle(cornerRadius: radius))
+            .overlay(RoundedRectangle(cornerRadius: radius).stroke(Theme.borderActive, lineWidth: 1.5))
+            .shadow(color: .black.opacity(0.55), radius: 16, x: 0, y: 6)
+    }
+}
+
+extension View {
+    func stalkCard(radius: CGFloat = 20, padding: CGFloat = 16) -> some View {
+        modifier(STALKCard(radius: radius, padding: padding))
+    }
+    func stalkCardRaised(radius: CGFloat = 20) -> some View {
+        modifier(STALKCardRaised(radius: radius))
+    }
+}
+
+// MARK: - Color Init
 
 extension Color {
     init(hex: String) {
@@ -39,6 +106,8 @@ extension Color {
         self.init(red: r, green: g, blue: b)
     }
 }
+
+// MARK: - Formatting
 
 extension Double {
     func fmtPrice() -> String { String(format: "$%.2f", self) }

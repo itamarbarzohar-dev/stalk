@@ -1,5 +1,6 @@
 import SwiftUI
 import Observation
+import StoreKit
 
 // MARK: - Settings
 
@@ -31,6 +32,9 @@ struct STALKSettings: Codable {
     var bio: String = "Investor · STALK Pro"
     var hasCompletedOnboarding: Bool = false
     var alertThresholds: [PriceAlertThreshold] = []
+    var isPro: Bool = false
+    var aiMessagesUsed: Int = 0
+    var priceAlertCount: Int = 0
 }
 
 enum AppTheme: String, CaseIterable {
@@ -283,6 +287,69 @@ class AppState {
     func deletePosition(_ p: Position) {
         positions.removeAll { $0.id == p.id }
         savePositions()
+    }
+
+    // MARK: - StoreKit
+
+    var storeKitProducts: [Product] = []
+
+    func loadStoreKitProducts() async {
+        do {
+            storeKitProducts = try await Product.products(for: [
+                "com.itamar.stalk.pro.monthly",
+                "com.itamar.stalk.pro.annual"
+            ])
+        } catch {
+            print("StoreKit load failed: \(error)")
+        }
+    }
+
+    func purchaseProduct(_ product: Product) async -> Bool {
+        do {
+            let result = try await product.purchase()
+            switch result {
+            case .success(let verification):
+                if case .verified(let transaction) = verification {
+                    await transaction.finish()
+                    settings.isPro = true
+                    saveSettings()
+                    return true
+                }
+                return false
+            case .userCancelled, .pending: return false
+            @unknown default: return false
+            }
+        } catch {
+            print("Purchase failed: \(error)")
+            return false
+        }
+    }
+
+    func restorePurchases() async {
+        for await result in Transaction.currentEntitlements {
+            if case .verified(let tx) = result,
+               (tx.productID == "com.itamar.stalk.pro.monthly" || tx.productID == "com.itamar.stalk.pro.annual"),
+               tx.revocationDate == nil {
+                settings.isPro = true
+                saveSettings()
+                return
+            }
+        }
+        settings.isPro = false
+        saveSettings()
+    }
+
+    func listenForTransactions() {
+        Task {
+            for await result in Transaction.updates {
+                if case .verified(let tx) = result {
+                    let active = tx.revocationDate == nil && (tx.expirationDate ?? .distantFuture) > Date()
+                    settings.isPro = active
+                    saveSettings()
+                    await tx.finish()
+                }
+            }
+        }
     }
 }
 

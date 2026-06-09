@@ -1,5 +1,6 @@
 import SwiftUI
 import StoreKit
+import Combine
 
 struct ForYouView: View {
     @Environment(AppState.self) var appState
@@ -38,6 +39,17 @@ struct ForYouView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 16))
                 .padding(.horizontal, 14)
                 .padding(.bottom, 10)
+
+                // AI Market Context Card
+                AIMarketContextCard(onOpenBrief: { appState.showDailyBrief = true })
+                    .padding(.horizontal, 14)
+                    .padding(.bottom, 10)
+
+                // Earnings Calendar Card
+                sectionLabel("📅 Earnings This Week")
+                EarningsCalendarCard(userTickers: Set(appState.positions.map(\.ticker)), onTicker: onTicker)
+                    .padding(.horizontal, 14)
+                    .padding(.bottom, 6)
 
                 hotOnSTALKSection()
                 missedOpportunitiesSection()
@@ -791,6 +803,227 @@ struct CopyPortfolioSheet: View {
                 }
             }
             await appState.refreshPortfolio()
+        }
+    }
+}
+
+// MARK: - AI Market Context Card
+
+struct AIMarketContextCard: View {
+    let onOpenBrief: () -> Void
+
+    private let insights: [String] = [
+        "**Fed held rates** at 5.25–5.50%. Powell signaled no cuts until inflation is sustainably below 3%. Growth stocks are pricing in higher-for-longer — watch your tech exposure.",
+        "**NVDA earnings beat** consensus by 18%. Analyst upgrades are flowing in. Semiconductor sector up 3.2% — if you own any AI/chip names, today is your day.",
+        "**CPI tomorrow at 8:30 AM ET.** Consensus: 3.1%. A surprise above 3.3% likely triggers a sell-off. Consensus below 2.9% could spike tech 2–3%. This is the week's key catalyst.",
+        "**Retail sentiment turning bearish.** Reddit WallStreetBets short interest in S&P ETFs up 34% this week. Contrarian signal: retail gets it wrong ~60% of the time. Could be a buy signal.",
+    ]
+
+    @State private var currentIndex: Int = 0
+    @State private var dragOffset: CGFloat = 0
+    let timer = Timer.publish(every: 5, on: .main, in: .common).autoconnect()
+
+    var body: some View {
+        ZStack {
+            // Background with indigo gradient border
+            RoundedRectangle(cornerRadius: 20)
+                .fill(Color(hex: "#0D0D1A"))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(
+                            LinearGradient(
+                                colors: [Color(hex: "#4B4ACF").opacity(0.7), Color(hex: "#7B6FEF").opacity(0.3)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1.5
+                        )
+                )
+
+            VStack(alignment: .leading, spacing: 0) {
+                // Header
+                HStack(spacing: 10) {
+                    Text("🤖")
+                        .font(.system(size: 18))
+                    Text("AI Market Context")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundStyle(Theme.text)
+                    Spacer()
+                    // LIVE pill
+                    HStack(spacing: 4) {
+                        Circle()
+                            .fill(Color(hex: "#00D26A"))
+                            .frame(width: 6, height: 6)
+                        Text("LIVE")
+                            .font(.system(size: 9, weight: .black))
+                            .foregroundStyle(Color(hex: "#00D26A"))
+                            .kerning(0.8)
+                    }
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color(hex: "#00D26A").opacity(0.12))
+                    .clipShape(Capsule())
+                }
+                .padding(.bottom, 14)
+
+                // Insight body — animated horizontal slide
+                GeometryReader { geo in
+                    let plainText = insights[currentIndex]
+                        .replacingOccurrences(of: "**", with: "")
+                    Text(plainText)
+                        .font(.system(size: 13))
+                        .foregroundStyle(Theme.text2)
+                        .lineSpacing(4)
+                        .frame(width: geo.size.width, alignment: .leading)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .offset(x: dragOffset)
+                        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: dragOffset)
+                        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: currentIndex)
+                }
+                .frame(height: 72)
+                .clipped()
+                .padding(.bottom, 14)
+
+                // Footer: dots + button
+                HStack {
+                    // Page dots
+                    HStack(spacing: 5) {
+                        ForEach(0..<insights.count, id: \.self) { i in
+                            Circle()
+                                .fill(i == currentIndex ? Color(hex: "#7B6FEF") : Color.white.opacity(0.2))
+                                .frame(width: i == currentIndex ? 8 : 5, height: i == currentIndex ? 8 : 5)
+                                .animation(.spring(response: 0.3), value: currentIndex)
+                        }
+                    }
+
+                    Spacer()
+
+                    Button {
+                        onOpenBrief()
+                    } label: {
+                        HStack(spacing: 4) {
+                            Text("Full Analysis")
+                                .font(.system(size: 12, weight: .bold))
+                            Image(systemName: "arrow.right")
+                                .font(.system(size: 10, weight: .bold))
+                        }
+                        .foregroundStyle(Color(hex: "#7B6FEF"))
+                    }
+                }
+            }
+            .padding(18)
+        }
+        .onReceive(timer) { _ in
+            advanceInsight()
+        }
+    }
+
+    func advanceInsight() {
+        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+            dragOffset = -20
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+            currentIndex = (currentIndex + 1) % insights.count
+            dragOffset = 20
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                dragOffset = 0
+            }
+        }
+    }
+}
+
+// MARK: - Earnings Calendar Card
+
+struct EarningsEvent: Identifiable {
+    let id = UUID()
+    let ticker: String
+    let company: String
+    let date: String
+    let timing: String
+    let epsEst: String
+    let epsPrev: String
+}
+
+private let upcomingEarnings: [EarningsEvent] = [
+    EarningsEvent(ticker: "AAPL", company: "Apple",     date: "Mon Jun 10", timing: "After Market",  epsEst: "$1.34 est", epsPrev: "$1.26 prev"),
+    EarningsEvent(ticker: "NVDA", company: "NVIDIA",    date: "Tue Jun 11", timing: "After Market",  epsEst: "$5.81 est", epsPrev: "$4.02 prev"),
+    EarningsEvent(ticker: "MSFT", company: "Microsoft", date: "Wed Jun 12", timing: "After Market",  epsEst: "$3.10 est", epsPrev: "$2.93 prev"),
+    EarningsEvent(ticker: "META", company: "Meta",      date: "Thu Jun 13", timing: "After Market",  epsEst: "$4.75 est", epsPrev: "$4.39 prev"),
+    EarningsEvent(ticker: "TSLA", company: "Tesla",     date: "Fri Jun 14", timing: "Before Market", epsEst: "$0.62 est", epsPrev: "$0.45 prev"),
+]
+
+struct EarningsCalendarCard: View {
+    let userTickers: Set<String>
+    let onTicker: (String) -> Void
+
+    var sortedEvents: [EarningsEvent] {
+        // User-owned positions first
+        upcomingEarnings.sorted { a, b in
+            let aOwned = userTickers.contains(a.ticker)
+            let bOwned = userTickers.contains(b.ticker)
+            if aOwned != bOwned { return aOwned }
+            return false
+        }
+    }
+
+    var body: some View {
+        VStack(spacing: 8) {
+            ForEach(sortedEvents) { event in
+                let isOwned = userTickers.contains(event.ticker)
+                Button { onTicker(event.ticker) } label: {
+                    HStack(spacing: 12) {
+                        // Ticker badge
+                        Text(event.ticker)
+                            .font(.system(size: 12, weight: .black))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 9)
+                            .padding(.vertical, 5)
+                            .background(isOwned ? Theme.gold : Theme.accent)
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                            .frame(minWidth: 50)
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            HStack(spacing: 6) {
+                                Text(event.company)
+                                    .font(.system(size: 13, weight: .bold))
+                                    .foregroundStyle(Theme.text)
+                                if isOwned {
+                                    Text("YOUR STOCK")
+                                        .font(.system(size: 8, weight: .black))
+                                        .foregroundStyle(Theme.gold)
+                                        .padding(.horizontal, 5)
+                                        .padding(.vertical, 2)
+                                        .background(Theme.gold.opacity(0.15))
+                                        .clipShape(RoundedRectangle(cornerRadius: 4))
+                                }
+                            }
+                            Text("\(event.date) · \(event.timing)")
+                                .font(.system(size: 10))
+                                .foregroundStyle(Theme.text3)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+
+                        VStack(alignment: .trailing, spacing: 2) {
+                            Text(event.epsEst)
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundStyle(Theme.text)
+                            Text(event.epsPrev)
+                                .font(.system(size: 10))
+                                .foregroundStyle(Theme.text3)
+                        }
+                    }
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 12)
+                    .background(isOwned ? Theme.gold.opacity(0.06) : Theme.card)
+                    .clipShape(RoundedRectangle(cornerRadius: 14))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 14)
+                            .stroke(isOwned ? Theme.gold.opacity(0.3) : Theme.border, lineWidth: isOwned ? 1.5 : 1)
+                    )
+                    .shadow(color: .black.opacity(0.04), radius: 3, y: 1)
+                }
+                .buttonStyle(.plain)
+            }
         }
     }
 }

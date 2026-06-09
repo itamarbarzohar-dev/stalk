@@ -1,5 +1,57 @@
 # iOS Dev Log — Jordan
 
+## 2026-06-09 — Perplexity Finance Features Sprint
+
+### Completed
+
+**Feature 1: Sector Heat Map (`MarketView.swift`)**
+- Added `SectorTile` struct and `heatMapSectors` data (11 S&P 500 sectors)
+- `SectorHeatMapView`: `LazyVGrid` 3-col, each tile 90pt tall, `RoundedRectangle(cornerRadius: 12)`
+- Color encoding: strong gain >2% → `#00D26A` full, mild gain 0.5–2% → 40% opacity, flat → `#141420`, mild loss → `#FF4757` 40%, strong loss → full red
+- Each tile: SF Symbol icon + name (10pt semibold) + change% (13pt bold), all white
+- Inserted in `MarketView.body` above Indices section with section label "🌡️ Sector Heat Map"
+
+**Feature 2: AI Market Context Card (`ForYouView.swift`)**
+- `AIMarketContextCard`: dark card with indigo gradient border via `LinearGradient` stroke
+- Header: "🤖 AI Market Context" + "LIVE" green pill
+- 4 hardcoded insights, auto-advances every 5s via `Timer.publish`
+- Slide animation: offset to -20 → swap index → offset from 20 → spring back to 0
+- Dots indicator (5 small / 8 active, `#7B6FEF`) + "Full Analysis →" button that calls `appState.showDailyBrief = true`
+- Inserted before `hotOnSTALKSection()` in the scroll
+
+**Feature 3: Earnings Calendar Card (`ForYouView.swift`)**
+- `EarningsEvent` struct + `upcomingEarnings` static data (5 events: AAPL/NVDA/MSFT/META/TSLA)
+- `EarningsCalendarCard(userTickers:onTicker:)`: sorts user-owned first via `Set<String>` intersection
+- Gold border + "YOUR STOCK" badge for user positions; accent border for others
+- Shows ticker, company, date, Before/After Market, est EPS + prev EPS per row
+- Inserted above `hotOnSTALKSection()` with section label "📅 Earnings This Week"
+
+**Feature 4: Trending Tickers Feed (`MarketView.swift`)**
+- `TrendingTicker` struct + `trendingTickersData` (6 tickers: NVDA/TSLA/PLTR/GME/AMD/ARM)
+- `TrendingTickersFeedView`: vertical list card, rank badge, ticker+name, reason pill (accent), change% + mention count
+- Formatted mentions as "2.4K mentions" for counts ≥1000
+- Inserted in `MarketView.body` above the classic Trending section with label "🔥 Trending · Social Buzz"
+
+**Feature 5: Portfolio Health Score (`PortfolioView.swift`)**
+- `PortfolioHealthCard`: base 60 score, adjustments:
+  - Concentration >50%: -20 pts; >40%: -10 pts
+  - 5+ positions: +10 pts
+  - Beating SPY YTD: +10 pts; down >10%: -15 pts
+  - Avg daily swing >3%: -10 pts
+- Labels: 80+ "Excellent" (green `#00D26A`), 50–79 "Good" (gold), <50 "Needs Attention" (red)
+- Visual: `Circle().trim` arc ring (90pt, 10pt stroke width) + score number (28pt heavy) + label
+- 3 insight bullets derived from actual `appState` data (real-time)
+- Inserted below `AIAgentCard` in `PortfolioView.body`
+
+**`import Combine` added**
+- `MarketView.swift` — needed for `Timer.publish` (unused but future-proof)
+- `ForYouView.swift` — needed for `AIMarketContextCard`'s `Timer.publish`
+
+### Build Status
+`** BUILD SUCCEEDED **` — iOS Simulator, no errors
+
+---
+
 ## 2026-06-08 — App Store Readiness Sprint
 
 ### Completed
@@ -120,3 +172,30 @@ https://github.com/itamarbarzohar-dev/stalk/pull/3
 
 ### Build Status
 `** BUILD SUCCEEDED **` — iOS Simulator, no errors (one pre-existing warning about Info.plist in Copy Bundle Resources)
+
+---
+
+## 2026-06-09 — Luna Animation Specs (portfolio_hero_v2, number_animations, card_stagger)
+
+### Task 1: `AnimatedComponents.swift` (new file)
+
+- `AnimatedPrice`: `Text` wrapper with `.contentTransition(.numericText())` + `.animation(.spring(response:0.4, dampingFraction:0.8), value:)` + `.monospacedDigit()`. Configurable `format`, `font`, `color`.
+- `AnimatedChangeLabel`: Same pattern, auto-selects `Theme.gain`/`Theme.loss` based on value sign.
+- `StaggerEntrance` ViewModifier: `.opacity` + `.offset(y:)` driven by `@State private var appeared`. Delay = `min(index * 0.06, 0.30)s`. Spring `response:0.45, dampingFraction:0.75`.
+- `View.staggerEntrance(index:)` convenience extension.
+
+### Task 2: PortfolioHero upgrades
+
+- **Radial glow**: Added `RadialGradient` in a `VStack` positioned ~120pt from top, using `Theme.accent.opacity(0.18)` → clear, 300×180 frame, `.blendMode(.screen)`.
+- **Value text**: Upgraded from 44pt `.heavy` to **48pt `.black`** with `.monospacedDigit()`, `.contentTransition(.numericText())`, `.animation` on `appState.totalValue`.
+- **P&L line**: Replaced single capsule with two-element `HStack` — 22pt bold dollar amount (bare, `pnlColor`) + 13pt bold percentage in colored `Capsule` at 15% opacity.
+- **ATH badge**: Replaced `pill()` call with inline HStack containing "🏆" + "NEW ATH" text. Added `@State private var athPulse = false`. Pulsing `.scaleEffect(athPulse ? 1.04 : 1.0)` with `.easeInOut(duration:0.9).repeatForever`.
+- **Streak badge**: Replaced `pill()` call with orange `LinearGradient` (#F97316 → #EA580C) `RoundedRectangle(cornerRadius:12)` badge with shadow glow.
+- **Market status pill**: Replaced plain `HStack` with glass pill — added `.background(.white.opacity(0.08))`, `.clipShape(Capsule())`, `.overlay(Capsule().stroke(.white.opacity(0.12), lineWidth:1))`. Replaced `·` separator with a `Rectangle` divider (1pt wide, 10pt tall, white at 25% opacity).
+
+### Task 3: `PositionsList` stagger entrance
+
+- Changed `ForEach(appState.positions)` to `ForEach(Array(appState.positions.enumerated()), id: \.element.id)` and applied `.staggerEntrance(index: index)` to each `PositionCard`.
+
+### Build Status
+`** BUILD SUCCEEDED **` — iOS Simulator, zero errors, one pre-existing Info.plist warning

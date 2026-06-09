@@ -1,5 +1,5 @@
 # STALK — Company State
-> Last updated: 2026-06-09
+> Last updated: 2026-06-09 (Session 2 update)
 > This file is the single source of truth. Every agent reads and writes here.
 
 ## 🎯 Mission
@@ -39,17 +39,33 @@ Build STALK into the most addictive and powerful personal stock portfolio tracki
 | Backend/API | ❌ Not started |
 | User auth | ❌ Not started |
 | Social features (real) | ❌ Not started |
-| Price alert threshold UI | ❌ Not started |
-| Real AI API (BYOK) | ❌ Not started |
+| Price alert threshold UI | ✅ Done |
+| Real AI API (BYOK) | ✅ Done |
+| Dark mode | ✅ Done (tab bar fix applied) |
 | Bundle ID change | ❌ Not started (ITAMARAZI.STALK → com.itamar.stalk) |
+| Sector Heat Map | 🔨 In Progress |
+| AI Market Context | 🔨 In Progress |
+| Portfolio Health Score | 🔨 In Progress |
+| Earnings Calendar | 🔨 In Progress |
+| Trending Tickers | 🔨 In Progress |
 
-## 🎯 Current Sprint Goals (2026-06-09)
-1. Wire real Claude API in AI chat (BYOK — Keychain) [Jordan — tasks/iOS_BYOK_AI_2026-06-09.md]
-2. Build price alert threshold UI per stock [Jordan — tasks/iOS_PRICE_ALERT_UI_2026-06-09.md]
-3. Full UX audit + futuristic design system — exact hex/px specs per screen [Luna — tasks/UX_FULL_AUDIT_2026-06-09.md]
-4. Business model deep-dive — analyze ALL monetization models, pick one [Rex — tasks/CRO_BUSINESS_MODEL_ANALYSIS_2026-06-09.md]
-5. Product perspective on business model [Sam — tasks/CPO_BUSINESS_MODEL_INPUT_2026-06-09.md]
-6. Backend architecture final decision [Maya — tasks/CTO_BACKEND_DECISION_2026-06-09.md]
+## 🎯 Current Sprint Goals (2026-06-09 — Session 2)
+
+### Completed from Session 1
+- ✅ Wire real Claude API in AI chat (BYOK — Keychain) [Jordan]
+- ✅ Build price alert threshold UI per stock [Jordan]
+- ✅ Full UX audit + design system [Luna]
+- ✅ Business model deep-dive [Rex + Sam — decision: freemium subscription + broker affiliate]
+- ✅ Backend architecture decision [Maya]
+- ✅ Dark mode fixed (tab bar invisible bug resolved) [Jordan]
+
+### Active Sprint (Session 2) — Perplexity Finance Feature Parity + Addictiveness Push
+1. Build Sector Heat Map — visual market overview, drives daily opens [Jordan]
+2. Build AI Market Context card — real-time AI commentary on portfolio vs. market [Jordan]
+3. Build Portfolio Health Score — gamified score (0-100), drives anxiety + improvement loop [Jordan]
+4. Build Earnings Calendar — "your stocks have earnings this week" hook [Jordan]
+5. Build Trending Tickers feed — social proof, FOMO engine [Jordan]
+6. Business model execution plan — broker affiliate integration strategy [Rex]
 7. Fix bundle ID to com.itamar.stalk [blocked until Apple Dev account confirmed]
 8. Wait for Itamar to enroll in Apple Developer Program ($99/yr)
 
@@ -75,9 +91,11 @@ Build STALK into the most addictive and powerful personal stock portfolio tracki
 ## 🚧 Blockers
 - App Store submission blocked until Itamar enrolls in Apple Developer Program
 - Real StoreKit purchases blocked until App Store Connect products created
-- Real AI API calls blocked until BYOK flow is implemented
+- Broker affiliate integration blocked until partnerships are established
 
 ## 📅 Last Agent Activity
+- 2026-06-09 (Session 2): CEO Alex opened Session 2 — dark mode confirmed fixed, BYOK AI ✅, price alert UI ✅. New sprint: 5 addictiveness features + Perplexity Finance parity. Business model locked: freemium + broker affiliate.
+- 2026-06-09: CEO Alex filed feature_backlog.md — prioritized full product roadmap for STALK
 - 2026-06-09: CEO Alex opened sprint — 6 tasks filed for Rex, Sam, Luna, Jordan (x2), Maya
 - 2026-06-09: CRO Rex completed full business model analysis (7 models) + revenue recommendation — see agents/memory/revenue/
 - 2026-06-09: Build fixed (isPro, aiMessagesUsed, StoreKit added to AppState) — app running in simulator

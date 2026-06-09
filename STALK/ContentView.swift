@@ -91,10 +91,13 @@ struct CustomTabBar: View {
         .padding(.horizontal, 8)
         .padding(.top, 12)
         .padding(.bottom, 8)
-        .background(.ultraThinMaterial)
+        .background(Color(hex: "#0D0D14").opacity(0.97))
+        .background(.ultraThinMaterial.opacity(0.3))
         .ignoresSafeArea(edges: .bottom)
         .overlay(alignment: .top) {
-            Divider()
+            Rectangle()
+                .fill(Color.white.opacity(0.07))
+                .frame(height: 1)
         }
     }
 }
@@ -114,10 +117,10 @@ struct TabBarButton: View {
             VStack(spacing: 3) {
                 Image(systemName: icon)
                     .font(.system(size: 18))
-                    .foregroundStyle(isActive ? Theme.accent : Theme.text3)
+                    .foregroundStyle(isActive ? Theme.accent : Color(hex: "#8A8A9A"))
                 Text(label)
                     .font(.system(size: 9, weight: .semibold))
-                    .foregroundStyle(isActive ? Theme.accent : Theme.text3)
+                    .foregroundStyle(isActive ? Theme.accent : Color(hex: "#8A8A9A"))
                     .textCase(.uppercase)
                     .kerning(0.4)
             }

@@ -17,6 +17,10 @@ struct PortfolioView: View {
                         .padding(.horizontal, 14)
                         .padding(.bottom, 8)
 
+                    PortfolioHealthCard()
+                        .padding(.horizontal, 14)
+                        .padding(.bottom, 8)
+
                     VsMarketCard()
                         .padding(.horizontal, 14)
                         .padding(.bottom, 8)
@@ -62,6 +66,7 @@ struct PortfolioView: View {
 struct PortfolioHero: View {
     @Environment(AppState.self) var appState
     @State private var now = Date()
+    @State private var athPulse = false
     let timer = Timer.publish(every: 30, on: .main, in: .common).autoconnect()
 
     var marketStatus: MarketStatus { MarketCalendar.status(at: now) }
@@ -71,6 +76,20 @@ struct PortfolioHero: View {
     var body: some View {
         ZStack(alignment: .top) {
             appState.heroGradient
+
+            // Radial glow behind the value number
+            VStack {
+                Spacer().frame(height: 120)
+                RadialGradient(
+                    colors: [Theme.accent.opacity(0.18), Color.clear],
+                    center: .center,
+                    startRadius: 0,
+                    endRadius: 180
+                )
+                .frame(width: 300, height: 180)
+                .blendMode(.screen)
+                Spacer()
+            }
 
             VStack(alignment: .leading, spacing: 0) {
 
@@ -98,7 +117,7 @@ struct PortfolioHero: View {
                 }
                 .padding(.bottom, 16)
 
-                // Market status pill
+                // Market status pill — glass treatment
                 HStack(spacing: 6) {
                     Circle().fill(marketStatus.dotColor).frame(width: 7, height: 7)
                         .overlay(
@@ -109,13 +128,18 @@ struct PortfolioHero: View {
                     Text(marketStatus.label)
                         .font(.system(size: 11, weight: .bold))
                         .foregroundStyle(.white.opacity(0.9))
-                    Text("·")
-                        .foregroundStyle(.white.opacity(0.4))
-                        .font(.system(size: 11))
+                    Rectangle()
+                        .fill(.white.opacity(0.25))
+                        .frame(width: 1, height: 10)
                     Text(marketStatus.subtitle)
                         .font(.system(size: 11))
                         .foregroundStyle(.white.opacity(0.65))
                 }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(.white.opacity(0.08))
+                .clipShape(Capsule())
+                .overlay(Capsule().stroke(.white.opacity(0.12), lineWidth: 1))
                 .padding(.bottom, 14)
 
                 // Value
@@ -124,18 +148,36 @@ struct PortfolioHero: View {
                     .foregroundStyle(.white.opacity(0.65))
                     .padding(.bottom, 4)
                 Text(appState.totalValue.fmtPrice())
-                    .font(.system(size: 44, weight: .heavy))
-                    .foregroundStyle(.white)
+                    .font(.system(size: 48, weight: .black))
+                    .foregroundStyle(Theme.text)
+                    .monospacedDigit()
+                    .contentTransition(.numericText())
+                    .animation(.spring(response: 0.4, dampingFraction: 0.8), value: appState.totalValue)
                     .minimumScaleFactor(0.5)
 
                 if appState.totalCost > 0 {
                     let isGain = appState.totalPnl >= 0
-                    Text("\(isGain ? "+" : "")\(appState.totalPnl.fmtPrice())  \(appState.totalPnlPct.fmtPct())")
-                        .font(.system(size: 14, weight: .bold)).foregroundStyle(.white)
-                        .padding(.horizontal, 14).padding(.vertical, 6)
-                        .background(isGain ? .white.opacity(0.2) : Color(hex: "#E5534B").opacity(0.35))
-                        .clipShape(Capsule())
-                        .padding(.top, 10)
+                    let pnlColor = isGain ? Theme.gain : Theme.loss
+                    let pnlSign = isGain ? "+" : ""
+
+                    // P&L line
+                    HStack(spacing: 8) {
+                        Text(pnlSign + appState.totalPnl.fmtPrice())
+                            .font(.system(size: 22, weight: .bold))
+                            .foregroundStyle(pnlColor)
+                            .monospacedDigit()
+                            .contentTransition(.numericText())
+                            .animation(.spring(response: 0.4, dampingFraction: 0.8), value: appState.totalPnl)
+
+                        Text(appState.totalPnlPct.fmtPct())
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundStyle(pnlColor)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 4)
+                            .background(pnlColor.opacity(0.15))
+                            .clipShape(Capsule())
+                    }
+                    .padding(.top, 10)
 
                     // Stat pills
                     HStack(spacing: 8) {
@@ -143,13 +185,56 @@ struct PortfolioHero: View {
                              accent: appState.todayPnl >= 0 ? .white.opacity(0.22) : Color(hex: "#E5534B").opacity(0.35))
 
                         if isATH {
-                            pill("🏆 NEW ATH!", "", accent: Color(hex: "#F59E0B").opacity(0.7))
+                            // ATH badge with pulse animation
+                            HStack(spacing: 5) {
+                                Text("🏆")
+                                    .font(.system(size: 12))
+                                Text("NEW ATH")
+                                    .font(.system(size: 11, weight: .black))
+                                    .foregroundStyle(Theme.gold)
+                                    .kerning(0.5)
+                                    .textCase(.uppercase)
+                            }
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(Theme.gold.opacity(0.15))
+                            .clipShape(Capsule())
+                            .overlay(Capsule().stroke(Theme.gold.opacity(0.4), lineWidth: 1))
+                            .scaleEffect(athPulse ? 1.04 : 1.0)
+                            .animation(
+                                .easeInOut(duration: 0.9).repeatForever(autoreverses: true),
+                                value: athPulse
+                            )
+                            .onAppear { athPulse = true }
                         } else if fromATH > 0 && appState.portfolioATH > 0 {
                             pill("From ATH", "-\(fromATH.fmtPrice())", accent: .white.opacity(0.15))
                         }
 
                         if appState.streak > 1 {
-                            pill("Streak", "🔥 \(appState.streak)d", accent: .white.opacity(0.15))
+                            // Streak badge — orange gradient
+                            HStack(spacing: 5) {
+                                Text("🔥")
+                                    .font(.system(size: 13))
+                                VStack(spacing: 0) {
+                                    Text("\(appState.streak)d")
+                                        .font(.system(size: 13, weight: .black))
+                                        .foregroundStyle(.white)
+                                    Text("Streak")
+                                        .font(.system(size: 9, weight: .semibold))
+                                        .foregroundStyle(.white.opacity(0.7))
+                                }
+                            }
+                            .padding(.horizontal, 13)
+                            .padding(.vertical, 7)
+                            .background(
+                                LinearGradient(
+                                    colors: [Color(hex: "#F97316"), Color(hex: "#EA580C")],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .shadow(color: Color(hex: "#F97316").opacity(0.35), radius: 8, y: 3)
                         }
                     }
                     .padding(.top, 10)
@@ -224,8 +309,9 @@ struct PositionsList: View {
             .frame(maxWidth: .infinity)
         } else {
             VStack(spacing: 10) {
-                ForEach(appState.positions) { position in
+                ForEach(Array(appState.positions.enumerated()), id: \.element.id) { index, position in
                     PositionCard(position: position, onTap: { onTicker(position.ticker) })
+                        .staggerEntrance(index: index)
                 }
 
                 Text("Long-press a card to delete")
@@ -1144,6 +1230,173 @@ struct LiveFeedCard: View {
         .clipShape(RoundedRectangle(cornerRadius: 24))
         .overlay(RoundedRectangle(cornerRadius: 24).stroke(Theme.border, lineWidth: 1))
         .shadow(color: .black.opacity(0.04), radius: 8, y: 2)
+    }
+}
+
+// MARK: - Portfolio Health Card
+
+struct PortfolioHealthCard: View {
+    @Environment(AppState.self) var appState
+
+    struct HealthResult {
+        let score: Int
+        let label: String
+        let insights: [String]
+    }
+
+    var health: HealthResult {
+        var score = 60
+
+        let positions = appState.positions
+        let totalValue = appState.totalValue
+        guard totalValue > 0 else {
+            return HealthResult(score: 60, label: "Good", insights: ["Add more positions to get a full health analysis."])
+        }
+
+        var insights: [String] = []
+
+        // --- Diversification ---
+        // Penalize if >40% in one stock
+        let maxSinglePct = positions.map { p -> Double in
+            let v = (appState.quotes[p.ticker]?.price ?? p.avgCost) * p.shares
+            return v / totalValue * 100
+        }.max() ?? 0
+
+        if maxSinglePct > 50 {
+            score -= 20
+            if let top = positions.max(by: { (appState.quotes[$0.ticker]?.price ?? $0.avgCost) * $0.shares < (appState.quotes[$1.ticker]?.price ?? $1.avgCost) * $1.shares }) {
+                insights.append("\(top.ticker) is \(String(format: "%.0f", maxSinglePct))% of your portfolio — extreme concentration risk.")
+            }
+        } else if maxSinglePct > 40 {
+            score -= 10
+            insights.append("Top position is \(String(format: "%.0f", maxSinglePct))% of portfolio. Consider trimming to reduce concentration.")
+        }
+
+        // Bonus for 5+ positions
+        if positions.count >= 5 {
+            score += 10
+        }
+
+        // --- Performance vs SPY YTD ---
+        let spyReturn = (appState.marketQuotes["SPY"]?.changePercent ?? 0) * 130 * 0.28
+        let myReturn = appState.totalPnlPct
+        if myReturn > spyReturn {
+            score += 10
+            insights.append("Outperforming the S&P 500 YTD — excellent work.")
+        } else if myReturn < -10 {
+            score -= 15
+            insights.append("Portfolio is down \(String(format: "%.1f", abs(myReturn)))% — review your holdings and thesis.")
+        }
+
+        // --- Volatility: avg daily swing ---
+        let avgSwing = positions.map { p -> Double in
+            abs(appState.quotes[p.ticker]?.changePercent ?? 0)
+        }.reduce(0, +) / Double(max(positions.count, 1))
+
+        if avgSwing > 3 {
+            score -= 10
+            insights.append("High volatility today: average \(String(format: "%.1f", avgSwing))% swing across positions. Consider hedging.")
+        }
+
+        // --- Position sizing: >50% in one ---
+        // Already handled above in concentration check
+
+        let clamped = max(0, min(100, score))
+        let label: String
+        if clamped >= 80 { label = "Excellent" }
+        else if clamped >= 50 { label = "Good" }
+        else { label = "Needs Attention" }
+
+        // Fill in a default insight if none triggered
+        if insights.isEmpty {
+            insights.append(positions.count >= 5
+                ? "Well diversified across \(positions.count) positions."
+                : "Add more positions to diversify your portfolio.")
+        }
+
+        return HealthResult(score: clamped, label: label, insights: insights)
+    }
+
+    var scoreColor: Color {
+        let s = health.score
+        if s >= 80 { return Color(hex: "#00D26A") }
+        if s >= 50 { return Color(hex: "#F5A623") }
+        return Color(hex: "#FF4757")
+    }
+
+    var body: some View {
+        let result = health
+        VStack(alignment: .leading, spacing: 0) {
+            // Header
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("💪 Portfolio Health")
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundStyle(Theme.text)
+                    Text("Personalized score based on your holdings")
+                        .font(.system(size: 11))
+                        .foregroundStyle(Theme.text3)
+                }
+                Spacer()
+            }
+            .padding(.bottom, 18)
+
+            HStack(spacing: 20) {
+                // Ring + Score
+                ZStack {
+                    // Background ring
+                    Circle()
+                        .stroke(Theme.bg2, lineWidth: 10)
+                        .frame(width: 90, height: 90)
+
+                    // Filled arc
+                    Circle()
+                        .trim(from: 0, to: CGFloat(result.score) / 100.0)
+                        .stroke(
+                            scoreColor,
+                            style: StrokeStyle(lineWidth: 10, lineCap: .round)
+                        )
+                        .frame(width: 90, height: 90)
+                        .rotationEffect(.degrees(-90))
+                        .animation(.spring(response: 0.8, dampingFraction: 0.7), value: result.score)
+
+                    // Score label
+                    VStack(spacing: 1) {
+                        Text("\(result.score)")
+                            .font(.system(size: 28, weight: .heavy))
+                            .foregroundStyle(scoreColor)
+                        Text(result.label)
+                            .font(.system(size: 8, weight: .bold))
+                            .foregroundStyle(Theme.text3)
+                            .textCase(.uppercase)
+                            .kerning(0.5)
+                    }
+                }
+
+                // Insights
+                VStack(alignment: .leading, spacing: 8) {
+                    ForEach(result.insights.prefix(3), id: \.self) { insight in
+                        HStack(alignment: .top, spacing: 6) {
+                            Circle()
+                                .fill(scoreColor)
+                                .frame(width: 5, height: 5)
+                                .padding(.top, 5)
+                            Text(insight)
+                                .font(.system(size: 11))
+                                .foregroundStyle(Theme.text2)
+                                .lineSpacing(2)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
+        .padding(18)
+        .background(Theme.card)
+        .clipShape(RoundedRectangle(cornerRadius: 24))
+        .overlay(RoundedRectangle(cornerRadius: 24).stroke(Theme.border, lineWidth: 1))
+        .shadow(color: scoreColor.opacity(0.08), radius: 12, y: 3)
     }
 }
 

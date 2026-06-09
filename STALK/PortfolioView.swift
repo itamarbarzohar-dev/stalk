@@ -244,6 +244,8 @@ struct PositionCard: View {
     let position: Position
     let onTap: () -> Void
     @State private var pressing = false
+    @State private var showAlertSheet = false
+    @State private var showDeleteConfirm = false
 
     var quote: Quote? { appState.quotes[position.ticker] }
     var price: Double { quote?.price ?? position.avgCost }
@@ -253,6 +255,9 @@ struct PositionCard: View {
     var pnlPct: Double { cost > 0 ? (pnl / cost) * 100 : 0 }
     var isUp: Bool { pnl >= 0 }
     var dayIsUp: Bool { (quote?.change ?? 0) >= 0 }
+    var hasAlert: Bool {
+        appState.settings.alertThresholds.contains { $0.ticker == position.ticker }
+    }
 
     var body: some View {
         HStack(spacing: 0) {
@@ -278,6 +283,12 @@ struct PositionCard: View {
                             .padding(.vertical, 2)
                             .background(Color(hex: "#F59E0B"))
                             .clipShape(RoundedRectangle(cornerRadius: 5))
+                    }
+
+                    if hasAlert {
+                        Image(systemName: "bell.fill")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundStyle(Color(hex: "#7B6FEF"))
                     }
                 }
 
@@ -323,8 +334,187 @@ struct PositionCard: View {
         .animation(.easeInOut(duration: 0.1), value: pressing)
         .onTapGesture { onTap() }
         .onLongPressGesture(minimumDuration: 0.6) {
-            appState.deletePosition(position)
+            showDeleteConfirm = true
         } onPressingChanged: { pressing = $0 }
+        .contextMenu {
+            Button {
+                showAlertSheet = true
+            } label: {
+                Label("Set Price Alert", systemImage: "bell")
+            }
+            Button(role: .destructive) {
+                appState.deletePosition(position)
+            } label: {
+                Label("Delete Position", systemImage: "trash")
+            }
+        }
+        .confirmationDialog("Delete \(position.ticker)?", isPresented: $showDeleteConfirm, titleVisibility: .visible) {
+            Button("Delete", role: .destructive) {
+                appState.deletePosition(position)
+            }
+            Button("Set Price Alert") {
+                showAlertSheet = true
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Long-press actions for \(position.ticker)")
+        }
+        .sheet(isPresented: $showAlertSheet) {
+            PriceAlertSheet(position: position)
+                .presentationDetents([.medium])
+                .presentationDragIndicator(.visible)
+        }
+    }
+}
+
+// MARK: - Price Alert Sheet
+
+struct PriceAlertSheet: View {
+    @Environment(AppState.self) var appState
+    @Environment(\.dismiss) var dismiss
+    let position: Position
+
+    @State private var aboveText = ""
+    @State private var belowText = ""
+
+    var existingThreshold: PriceAlertThreshold? {
+        appState.settings.alertThresholds.first { $0.ticker == position.ticker }
+    }
+
+    var currentPrice: Double {
+        appState.quotes[position.ticker]?.price ?? position.avgCost
+    }
+
+    var body: some View {
+        ZStack {
+            Theme.bg.ignoresSafeArea()
+
+            VStack(spacing: 0) {
+                // Handle
+                Capsule()
+                    .fill(Theme.border)
+                    .frame(width: 36, height: 4)
+                    .padding(.top, 12)
+                    .padding(.bottom, 20)
+
+                // Title
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Price Alerts")
+                            .font(.system(size: 20, weight: .black))
+                            .foregroundStyle(Theme.text)
+                        Text("\(position.ticker) · Current: \(currentPrice.fmtPrice())")
+                            .font(.system(size: 13))
+                            .foregroundStyle(Theme.text3)
+                    }
+                    Spacer()
+                    if existingThreshold != nil {
+                        Button {
+                            appState.settings.alertThresholds.removeAll { $0.ticker == position.ticker }
+                            appState.saveSettings()
+                            dismiss()
+                        } label: {
+                            Text("Clear")
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundStyle(Theme.loss)
+                        }
+                    }
+                }
+                .padding(.horizontal, 24)
+                .padding(.bottom, 28)
+
+                // Fields
+                VStack(spacing: 16) {
+                    alertField(
+                        icon: "arrow.up.circle.fill",
+                        iconColor: Theme.gain,
+                        label: "Alert me above",
+                        placeholder: "e.g. \(String(format: "%.2f", currentPrice * 1.1))",
+                        text: $aboveText
+                    )
+
+                    alertField(
+                        icon: "arrow.down.circle.fill",
+                        iconColor: Theme.loss,
+                        label: "Alert me below",
+                        placeholder: "e.g. \(String(format: "%.2f", currentPrice * 0.9))",
+                        text: $belowText
+                    )
+                }
+                .padding(.horizontal, 24)
+                .padding(.bottom, 32)
+
+                // Save button
+                Button {
+                    saveAlerts()
+                } label: {
+                    Text("Save Alerts")
+                        .font(.system(size: 16, weight: .black))
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 54)
+                        .background(Theme.accentGradient)
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                }
+                .padding(.horizontal, 24)
+
+                Spacer()
+            }
+        }
+        .onAppear {
+            if let t = existingThreshold {
+                aboveText = t.alertAbove.map { String(format: "%.2f", $0) } ?? ""
+                belowText = t.alertBelow.map { String(format: "%.2f", $0) } ?? ""
+            }
+        }
+    }
+
+    func alertField(icon: String, iconColor: Color, label: String, placeholder: String, text: Binding<String>) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 6) {
+                Image(systemName: icon)
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundStyle(iconColor)
+                Text(label)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(Theme.text2)
+            }
+
+            HStack(spacing: 10) {
+                Text("$")
+                    .font(.system(size: 17, weight: .bold))
+                    .foregroundStyle(Theme.text3)
+                TextField(placeholder, text: text)
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundStyle(Theme.text)
+                    .tint(Theme.accent)
+                    .keyboardType(.decimalPad)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 14)
+            .background(Theme.card)
+            .clipShape(RoundedRectangle(cornerRadius: 14))
+            .overlay(
+                RoundedRectangle(cornerRadius: 14)
+                    .stroke(Theme.border, lineWidth: 1)
+            )
+        }
+    }
+
+    func saveAlerts() {
+        let above = Double(aboveText.replacingOccurrences(of: ",", with: "."))
+        let below = Double(belowText.replacingOccurrences(of: ",", with: "."))
+
+        guard above != nil || below != nil else {
+            dismiss()
+            return
+        }
+
+        appState.settings.alertThresholds.removeAll { $0.ticker == position.ticker }
+        let threshold = PriceAlertThreshold(ticker: position.ticker, alertAbove: above, alertBelow: below)
+        appState.settings.alertThresholds.append(threshold)
+        appState.saveSettings()
+        dismiss()
     }
 }
 

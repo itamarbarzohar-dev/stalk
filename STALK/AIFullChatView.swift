@@ -1,6 +1,158 @@
 import SwiftUI
 import Combine
 
+// MARK: - API Error
+
+enum APIError: LocalizedError {
+    case requestFailed
+    case invalidKey
+    case rateLimited
+    case networkError(Error)
+
+    var errorDescription: String? {
+        switch self {
+        case .requestFailed:  return "Request failed. Please try again."
+        case .invalidKey:     return "Invalid API key. Check your Anthropic key."
+        case .rateLimited:    return "Rate limited. Please wait a moment and try again."
+        case .networkError:   return "Network error. Check your connection."
+        }
+    }
+}
+
+// MARK: - API Key Setup View
+
+struct APIKeySetupView: View {
+    @Environment(\.dismiss) var dismiss
+    @State private var keyInput = ""
+    @State private var isSaving = false
+    @FocusState private var fieldFocused: Bool
+    let onSaved: () -> Void
+
+    var body: some View {
+        ZStack {
+            Color(hex: "#0F0A1E").ignoresSafeArea()
+
+            VStack(spacing: 0) {
+                // Handle bar
+                Capsule()
+                    .fill(.white.opacity(0.2))
+                    .frame(width: 36, height: 4)
+                    .padding(.top, 12)
+                    .padding(.bottom, 28)
+
+                // Icon
+                ZStack {
+                    Circle()
+                        .fill(LinearGradient(
+                            colors: [Color(hex: "#7B6FEF"), Color(hex: "#5B5BD6")],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ))
+                        .frame(width: 72, height: 72)
+                    Text("🤖")
+                        .font(.system(size: 36))
+                }
+                .padding(.bottom, 24)
+
+                // Title + subtitle
+                Text("Connect Claude AI")
+                    .font(.system(size: 26, weight: .black))
+                    .foregroundStyle(.white)
+                    .padding(.bottom, 10)
+
+                Text("Enter your Anthropic API key to unlock\nunlimited AI portfolio analysis")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundStyle(.white.opacity(0.55))
+                    .multilineTextAlignment(.center)
+                    .padding(.bottom, 36)
+
+                // Key field
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Anthropic API Key")
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundStyle(.white.opacity(0.5))
+                        .textCase(.uppercase)
+                        .kerning(1)
+
+                    SecureField("sk-ant-...", text: $keyInput)
+                        .font(.system(size: 15, design: .monospaced))
+                        .foregroundStyle(.white)
+                        .tint(Color(hex: "#7B6FEF"))
+                        .focused($fieldFocused)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 14)
+                        .background(.white.opacity(0.07))
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 14)
+                                .stroke(fieldFocused ? Color(hex: "#7B6FEF") : Color.white.opacity(0.12), lineWidth: 1.5)
+                        )
+                }
+                .padding(.horizontal, 24)
+                .padding(.bottom, 16)
+
+                // Get key link
+                Button {
+                    if let url = URL(string: "https://console.anthropic.com") {
+                        UIApplication.shared.open(url)
+                    }
+                } label: {
+                    HStack(spacing: 6) {
+                        Text("Get API Key")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(Color(hex: "#7B6FEF"))
+                        Image(systemName: "arrow.up.right")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundStyle(Color(hex: "#7B6FEF"))
+                    }
+                }
+                .padding(.bottom, 32)
+
+                // Save button
+                Button {
+                    saveKey()
+                } label: {
+                    ZStack {
+                        if isSaving {
+                            ProgressView()
+                                .tint(.white)
+                        } else {
+                            Text("Save Key")
+                                .font(.system(size: 16, weight: .black))
+                                .foregroundStyle(.white)
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 54)
+                    .background(
+                        keyInput.hasPrefix("sk-ant-") && keyInput.count > 20
+                            ? LinearGradient(colors: [Color(hex: "#5B5BD6"), Color(hex: "#7B6FEF")], startPoint: .leading, endPoint: .trailing)
+                            : LinearGradient(colors: [Color.white.opacity(0.1), Color.white.opacity(0.1)], startPoint: .leading, endPoint: .trailing)
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                }
+                .disabled(!(keyInput.hasPrefix("sk-ant-") && keyInput.count > 20) || isSaving)
+                .padding(.horizontal, 24)
+
+                Spacer()
+            }
+        }
+        .onAppear { fieldFocused = true }
+    }
+
+    func saveKey() {
+        let trimmed = keyInput.trimmingCharacters(in: .whitespaces)
+        guard trimmed.hasPrefix("sk-ant-"), trimmed.count > 20 else { return }
+        isSaving = true
+        KeychainHelper.saveAPIKey(trimmed)
+        isSaving = false
+        onSaved()
+        dismiss()
+    }
+}
+
+// MARK: - AI Full Chat View
+
 struct AIFullChatView: View {
     @Environment(AppState.self) var appState
     @Environment(\.dismiss) var dismiss
@@ -9,6 +161,9 @@ struct AIFullChatView: View {
     @State private var isThinking = false
     @FocusState private var inputFocused: Bool
     @State private var showPaywall = false
+    @State private var showAPIKeySetup = false
+    @State private var inlineError: String? = nil
+    @State private var apiKey: String? = KeychainHelper.loadAPIKey()
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -16,6 +171,9 @@ struct AIFullChatView: View {
                 header()
                 chatArea()
                 proGateHint()
+                if let err = inlineError {
+                    errorBanner(err)
+                }
                 inputBar()
             }
         }
@@ -24,9 +182,47 @@ struct AIFullChatView: View {
         .sheet(isPresented: $showPaywall) {
             PremiumSheet()
         }
+        .sheet(isPresented: $showAPIKeySetup) {
+            APIKeySetupView {
+                apiKey = KeychainHelper.loadAPIKey()
+            }
+            .presentationDetents([.medium, .large])
+            .presentationDragIndicator(.hidden)
+        }
     }
 
-    // Subtle "1 question remaining" hint
+    // MARK: - Error Banner
+
+    func errorBanner(_ message: String) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.system(size: 12, weight: .bold))
+                .foregroundStyle(Color(hex: "#F59E0B"))
+            Text(message)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(.white.opacity(0.85))
+            Spacer()
+            Button {
+                inlineError = nil
+            } label: {
+                Image(systemName: "xmark")
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundStyle(.white.opacity(0.5))
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
+        .background(Color(hex: "#1E1040"))
+        .overlay(
+            Rectangle()
+                .fill(Color(hex: "#F59E0B").opacity(0.5))
+                .frame(height: 1),
+            alignment: .top
+        )
+    }
+
+    // MARK: - Pro Gate Hint
+
     @ViewBuilder
     func proGateHint() -> some View {
         if !appState.settings.isPro && appState.settings.aiMessagesUsed == 2 {
@@ -87,8 +283,10 @@ struct AIFullChatView: View {
                                     .clipShape(RoundedRectangle(cornerRadius: 6))
                             }
                             HStack(spacing: 4) {
-                                Circle().fill(Color(hex: "#34D399")).frame(width: 6, height: 6)
-                                Text("Online · Analyzing your portfolio")
+                                Circle()
+                                    .fill(apiKey != nil ? Color(hex: "#34D399") : Color(hex: "#F59E0B"))
+                                    .frame(width: 6, height: 6)
+                                Text(apiKey != nil ? "Connected · Claude Haiku" : "Mock mode · Tap key icon to connect")
                                     .font(.system(size: 11))
                                     .foregroundStyle(.white.opacity(0.6))
                             }
@@ -97,8 +295,21 @@ struct AIFullChatView: View {
 
                     Spacer()
 
+                    // API key button
+                    Button {
+                        showAPIKeySetup = true
+                    } label: {
+                        Image(systemName: apiKey != nil ? "key.fill" : "key")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundStyle(apiKey != nil ? Color(hex: "#34D399") : Color(hex: "#F59E0B"))
+                            .frame(width: 36, height: 36)
+                            .background(.white.opacity(0.1))
+                            .clipShape(Circle())
+                    }
+
                     Button {
                         messages = ChatMessage.initialMessages
+                        inlineError = nil
                     } label: {
                         Image(systemName: "arrow.counterclockwise")
                             .font(.system(size: 15, weight: .bold))
@@ -249,9 +460,11 @@ struct AIFullChatView: View {
     func sendMessage(_ text: String) {
         let trimmed = text.trimmingCharacters(in: .whitespaces)
         guard !trimmed.isEmpty, !isThinking else { return }
+        inlineError = nil
 
-        // Pro gate: 3 free messages lifetime
-        if !appState.settings.isPro {
+        // Pro gate: 3 free messages (unless Pro AND has API key)
+        let isUnlimited = appState.settings.isPro && apiKey != nil
+        if !isUnlimited {
             if appState.settings.aiMessagesUsed >= 3 {
                 showPaywall = true
                 return
@@ -263,13 +476,104 @@ struct AIFullChatView: View {
         messages.append(.init(role: .user, text: trimmed))
         input = ""
         isThinking = true
+
+        // Build conversation history for the API (skip the system welcome message)
+        let history: [[String: String]] = messages.dropFirst().map { msg in
+            ["role": msg.role == .user ? "user" : "assistant", "content": msg.text]
+        }
+
         Task {
-            try? await Task.sleep(for: .seconds(Double.random(in: 1.2...2.5)))
-            let reply = generateReply(to: trimmed, appState: appState)
-            messages.append(.init(role: .ai, text: reply))
+            do {
+                let reply: String
+                if let key = apiKey {
+                    reply = try await callClaudeAPI(messages: history, apiKey: key)
+                } else {
+                    // Fall back to mock if no key
+                    try? await Task.sleep(for: .seconds(Double.random(in: 1.2...2.5)))
+                    reply = generateReply(to: trimmed, appState: appState)
+                }
+                messages.append(.init(role: .ai, text: reply))
+            } catch APIError.invalidKey {
+                inlineError = "Invalid API key. Tap the key icon to update it."
+                // Don't consume the message credit
+                appState.settings.aiMessagesUsed = max(0, appState.settings.aiMessagesUsed - 1)
+                appState.saveSettings()
+            } catch APIError.rateLimited {
+                inlineError = "Rate limited. Please wait a moment and try again."
+                appState.settings.aiMessagesUsed = max(0, appState.settings.aiMessagesUsed - 1)
+                appState.saveSettings()
+            } catch {
+                inlineError = "Network error. Check your connection and try again."
+                appState.settings.aiMessagesUsed = max(0, appState.settings.aiMessagesUsed - 1)
+                appState.saveSettings()
+            }
             isThinking = false
         }
     }
+
+    // MARK: - Real Claude API
+
+    func callClaudeAPI(messages: [[String: String]], apiKey: String) async throws -> String {
+        let url = URL(string: "https://api.anthropic.com/v1/messages")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue(apiKey, forHTTPHeaderField: "x-api-key")
+        request.setValue("2023-06-01", forHTTPHeaderField: "anthropic-version")
+        request.setValue("application/json", forHTTPHeaderField: "content-type")
+
+        let body: [String: Any] = [
+            "model": "claude-haiku-4-5",
+            "max_tokens": 1024,
+            "system": buildSystemPrompt(),
+            "messages": messages
+        ]
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+
+        let (data, response): (Data, URLResponse)
+        do {
+            (data, response) = try await URLSession.shared.data(for: request)
+        } catch {
+            throw APIError.networkError(error)
+        }
+
+        guard let http = response as? HTTPURLResponse else {
+            throw APIError.requestFailed
+        }
+
+        switch http.statusCode {
+        case 200:
+            break
+        case 401:
+            throw APIError.invalidKey
+        case 429:
+            throw APIError.rateLimited
+        default:
+            throw APIError.requestFailed
+        }
+
+        struct ClaudeResponse: Decodable {
+            struct Content: Decodable { let text: String }
+            let content: [Content]
+        }
+        let decoded = try JSONDecoder().decode(ClaudeResponse.self, from: data)
+        return decoded.content.first?.text ?? ""
+    }
+
+    func buildSystemPrompt() -> String {
+        var prompt = "You are STALK AI, a personal financial assistant inside the STALK portfolio tracking app. Be concise, insightful, and actionable. Never give generic advice — always reference the user's actual portfolio.\n\n"
+        prompt += "User's portfolio:\n"
+        for p in appState.positions {
+            let q = appState.quotes[p.ticker]
+            prompt += "- \(p.ticker): \(p.shares) shares, avg cost $\(String(format: "%.2f", p.avgCost))"
+            if let q { prompt += ", current $\(String(format: "%.2f", q.price)), today \(String(format: "%+.1f", q.changePercent))%" }
+            prompt += "\n"
+        }
+        prompt += "\nTotal portfolio value: $\(String(format: "%.2f", appState.totalValue))\n"
+        prompt += "Today's P&L: \(appState.todayPnl >= 0 ? "+" : "")\(String(format: "%.2f", appState.todayPnl))"
+        return prompt
+    }
+
+    // MARK: - Mock Fallback
 
     func generateReply(to query: String, appState: AppState) -> String {
         let q = query.lowercased()
@@ -280,14 +584,14 @@ struct AIFullChatView: View {
 
         if q.contains("portfolio") || q.contains("doing") || q.contains("how") {
             if positions.isEmpty {
-                return "Your portfolio is empty. Add some positions and I'll analyze them for you! 📊"
+                return "Your portfolio is empty. Add some positions and I'll analyze them for you!"
             }
             let sign = pnl >= 0 ? "up" : "down"
-            return "Your portfolio is \(sign) \(String(format: "%.1f", abs(pnlPct)))% overall (\(pnl.fmtPrice())). You hold \(positions.count) position\(positions.count == 1 ? "" : "s") worth \(totalVal.fmtPrice()) total. \(pnl >= 0 ? "You're in profit — great job! 🚀" : "Market conditions are tough, but long-term investors stay patient. 💪")"
+            return "Your portfolio is \(sign) \(String(format: "%.1f", abs(pnlPct)))% overall (\(pnl.fmtPrice())). You hold \(positions.count) position\(positions.count == 1 ? "" : "s") worth \(totalVal.fmtPrice()) total. \(pnl >= 0 ? "You're in profit — great job!" : "Market conditions are tough, but long-term investors stay patient.")"
         }
 
         if q.contains("winner") || q.contains("best") && q.contains("stock") {
-            if positions.isEmpty { return "Add some positions first and I'll find your biggest winners! 🏆" }
+            if positions.isEmpty { return "Add some positions first and I'll find your biggest winners!" }
             let best = positions.max(by: { a, b in
                 let pa = appState.quotes[a.ticker]?.changePercent ?? 0
                 let pb = appState.quotes[b.ticker]?.changePercent ?? 0
@@ -295,37 +599,37 @@ struct AIFullChatView: View {
             })
             if let b = best {
                 let pct = appState.quotes[b.ticker]?.changePercent ?? 0
-                return "Your best performer today is **\(b.ticker)** with \(pct.fmtPct()) change. \(pct > 0 ? "Nice gain! 🔥" : "Hang in there, it'll bounce back.")"
+                return "Your best performer today is **\(b.ticker)** with \(pct.fmtPct()) change. \(pct > 0 ? "Nice gain!" : "Hang in there, it'll bounce back.")"
             }
         }
 
         if q.contains("diversif") {
-            if positions.isEmpty { return "You don't have any positions yet. Diversification starts when you add at least 5–10 different stocks across sectors! 🎯" }
+            if positions.isEmpty { return "You don't have any positions yet. Diversification starts when you add at least 5–10 different stocks across sectors!" }
             let count = positions.count
             if count < 3 {
-                return "With only \(count) position\(count == 1 ? "" : "s"), you're quite concentrated. Consider spreading across 5–10 different sectors to reduce risk. 📊"
+                return "With only \(count) position\(count == 1 ? "" : "s"), you're quite concentrated. Consider spreading across 5–10 different sectors to reduce risk."
             } else if count < 7 {
-                return "You have \(count) positions — decent start! For better diversification, aim for 8–15 positions across different sectors like tech, healthcare, finance, and energy. 💡"
+                return "You have \(count) positions — decent start! For better diversification, aim for 8–15 positions across different sectors like tech, healthcare, finance, and energy."
             } else {
-                return "With \(count) positions, you're well-diversified! Just make sure no single position exceeds 20% of your portfolio. ✅"
+                return "With \(count) positions, you're well-diversified! Just make sure no single position exceeds 20% of your portfolio."
             }
         }
 
         if q.contains("risk") {
-            if positions.isEmpty { return "No positions to analyze yet! Once you add stocks, I'll assess your risk profile. 🛡️" }
-            return "Key risks to watch: 1) Concentration risk if any stock > 20% of portfolio, 2) Sector overlap (holding too many stocks in the same industry), and 3) Macro risks like interest rate changes. I recommend reviewing your allocation monthly. 🎯"
+            if positions.isEmpty { return "No positions to analyze yet! Once you add stocks, I'll assess your risk profile." }
+            return "Key risks to watch: 1) Concentration risk if any stock > 20% of portfolio, 2) Sector overlap (holding too many stocks in the same industry), and 3) Macro risks like interest rate changes."
         }
 
         if q.contains("add") || q.contains("buy") {
-            return "Based on current market trends, strong picks include: **NVDA** (AI infrastructure boom), **BRK.B** (value/stability), **VTI** (broad market ETF). Always do your own research and never invest more than you can afford to lose. 📈"
+            return "Based on current market trends, strong picks include: **NVDA** (AI infrastructure boom), **BRK.B** (value/stability), **VTI** (broad market ETF). Always do your own research."
         }
 
         let replies = [
-            "That's a great question! Based on your portfolio data, I'd recommend reviewing your position sizes and ensuring no single stock exceeds 20% of your total value. 💼",
-            "I'm analyzing your portfolio patterns... Diversification looks key here. Consider adding exposure to different sectors. 📊",
-            "Great insight! The market is always full of opportunities for patient investors. Stay focused on fundamentals. 🎯",
-            "Based on current market conditions, maintaining a balanced approach between growth and value stocks is wise. 💡",
-            "Your portfolio health score depends on diversification, position sizing, and your investment timeline. Tell me more about your goals! 🚀"
+            "That's a great question! Based on your portfolio data, I'd recommend reviewing your position sizes and ensuring no single stock exceeds 20% of your total value.",
+            "I'm analyzing your portfolio patterns... Diversification looks key here. Consider adding exposure to different sectors.",
+            "Great insight! The market is always full of opportunities for patient investors. Stay focused on fundamentals.",
+            "Based on current market conditions, maintaining a balanced approach between growth and value stocks is wise.",
+            "Your portfolio health score depends on diversification, position sizing, and your investment timeline. Tell me more about your goals!"
         ]
         return replies.randomElement() ?? replies[0]
     }
@@ -342,7 +646,7 @@ struct ChatMessage: Identifiable {
     enum Role { case user, ai }
 
     static let initialMessages: [ChatMessage] = [
-        .init(role: .ai, text: "Hey! I'm STALK AI, your personal portfolio analyst. 👋\n\nI can help you understand your investments, spot risks, and find opportunities. What would you like to know?")
+        .init(role: .ai, text: "Hey! I'm STALK AI, your personal portfolio analyst.\n\nI can help you understand your investments, spot risks, and find opportunities. What would you like to know?")
     ]
 }
 

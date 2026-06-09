@@ -61,4 +61,62 @@ https://github.com/itamarbarzohar-dev/stalk/pull/3
 - `AddPositionSheet` prefill doesn't focus the shares field — UX improvement
 - Notification permission denied state in onboarding Screen 4 should show "Go to Settings" instead of system dialog (can't re-prompt once denied)
 - BGAppRefreshTask interval is 15 min minimum but iOS throttles this heavily in practice
-- Alert thresholds UI not yet implemented — `PriceAlertThreshold` model is ready but no UI in PortfolioView to set them
+
+---
+
+## 2026-06-09 — BYOK Claude API + Price Alert UI
+
+### Task 1: BYOK — Real Claude API in AIFullChatView
+
+**New file: `KeychainHelper.swift`**
+- `enum KeychainHelper` with `saveAPIKey`, `loadAPIKey`, `deleteAPIKey`
+- Uses `kSecClassGenericPassword` with service `com.itamar.stalk.anthropic`
+- Deletes before re-saving to avoid duplicates
+
+**New view: `APIKeySetupView`**
+- Sheet shown when user taps the key icon in the AI chat header
+- Fields: SecureField for `sk-ant-...` input, "Get API Key →" button opens `https://console.anthropic.com` in Safari
+- Save button activates only when key starts with `sk-ant-` and is >20 chars
+- Saves to Keychain on tap, calls `onSaved()` callback so parent re-reads the key
+- `presentationDetents([.medium, .large])` — dark themed to match chat
+
+**Real API call: `callClaudeAPI(messages:apiKey:)` in `AIFullChatView`**
+- `POST https://api.anthropic.com/v1/messages` with `x-api-key`, `anthropic-version: 2023-06-01`
+- Model: `claude-haiku-4-5`, `max_tokens: 1024`
+- `buildSystemPrompt()` injects user's full portfolio (tickers, shares, avg cost, current price, today %, total value, today P&L)
+- Conversation history passed from `messages` array (skipping initial system greeting)
+- Error handling: 401 → `APIError.invalidKey`, 429 → `APIError.rateLimited`, network failure → `APIError.networkError`
+
+**Error states**
+- `inlineError: String?` state drives an `errorBanner()` view between chat and input bar
+- On API errors the message credit is refunded (`aiMessagesUsed -= 1`)
+- Banner has dismiss "×" button
+
+**Pro gate logic**
+- Free users: 3 messages lifetime (unchanged)
+- Pro users WITH API key: unlimited (bypass gate)
+- Pro users WITHOUT API key: still gated at 3 (paywall prompts them to also set a key)
+- Mock fallback still works if no key is set (old `generateReply()` preserved)
+
+**Header changes**
+- Key icon (🔑) shows green when connected, amber when no key — tapping opens `APIKeySetupView`
+- Status dot + subtitle changes: "Connected · Claude Haiku" vs "Mock mode · Tap key icon to connect"
+
+### Task 2: Price Alert UI
+
+**`PositionCard` changes (PortfolioView.swift)**
+- Bell badge: `Image(systemName: "bell.fill")` in ticker row when `appState.settings.alertThresholds` has an entry for this ticker
+- Long-press now shows a `confirmationDialog` with three options: "Delete", "Set Price Alert", "Cancel" (replaces the immediate delete)
+- `.contextMenu` added with "Set Price Alert" and "Delete Position" actions
+- `.sheet(isPresented: $showAlertSheet)` presents `PriceAlertSheet`
+
+**New view: `PriceAlertSheet`**
+- `presentationDetents([.medium])`, drag indicator visible
+- Shows current price from `appState.quotes`
+- Two `alertField` rows: "Alert me above $___" and "Alert me below $___" with `keyboardType(.decimalPad)`
+- "Clear" button top-right when an alert already exists
+- `saveAlerts()` upserts into `appState.settings.alertThresholds` and calls `appState.saveSettings()`
+- Placeholder values default to ±10% from current price as a helpful hint
+
+### Build Status
+`** BUILD SUCCEEDED **` — iOS Simulator, no errors (one pre-existing warning about Info.plist in Copy Bundle Resources)

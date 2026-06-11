@@ -91,12 +91,12 @@ struct CustomTabBar: View {
         .padding(.horizontal, 8)
         .padding(.top, 12)
         .padding(.bottom, 8)
-        .background(Color(hex: "#0D0D14").opacity(0.97))
+        .background(Theme.tabBar)
         .background(.ultraThinMaterial.opacity(0.3))
         .ignoresSafeArea(edges: .bottom)
         .overlay(alignment: .top) {
             Rectangle()
-                .fill(Color.white.opacity(0.07))
+                .fill(Theme.border)
                 .frame(height: 1)
         }
     }

@@ -10,7 +10,7 @@ struct PortfolioView: View {
         ScrollView {
             VStack(spacing: 0) {
                 PortfolioHero()
-                    .padding(.bottom, 12)
+                    .padding(.bottom, 8)
 
                 if !appState.positions.isEmpty {
                     AIAgentCard()
@@ -74,198 +74,194 @@ struct PortfolioHero: View {
     var fromATH: Double { appState.portfolioATH - appState.totalValue }
 
     var body: some View {
-        ZStack(alignment: .top) {
-            appState.heroGradient
+        VStack(alignment: .leading, spacing: 0) {
 
-            // Radial glow behind the value number
-            VStack {
-                Spacer().frame(height: 120)
-                RadialGradient(
-                    colors: [Theme.accent.opacity(0.18), Color.clear],
-                    center: .center,
-                    startRadius: 0,
-                    endRadius: 180
-                )
-                .frame(width: 300, height: 180)
-                .blendMode(.screen)
+            // Top utility bar — settings + daily brief
+            HStack(spacing: 10) {
+                Text("PORTFOLIO")
+                    .font(.system(size: 11, weight: .black))
+                    .foregroundStyle(Theme.text3)
+                    .kerning(2)
                 Spacer()
+                Button { appState.showDailyBrief = true } label: {
+                    HStack(spacing: 5) {
+                        Text("📋").font(.system(size: 12))
+                        Text("Brief").font(.system(size: 12, weight: .bold)).foregroundStyle(Theme.text2)
+                    }
+                    .padding(.horizontal, 12).padding(.vertical, 6)
+                    .background(Theme.card)
+                    .clipShape(Capsule())
+                    .overlay(Capsule().stroke(Theme.border, lineWidth: 1))
+                }
+                Button { appState.showSettings = true } label: {
+                    Image(systemName: "gearshape.fill").font(.system(size: 15))
+                        .foregroundStyle(Theme.text3)
+                        .frame(width: 34, height: 34)
+                        .background(Theme.card)
+                        .clipShape(Circle())
+                        .overlay(Circle().stroke(Theme.border, lineWidth: 1))
+                }
             }
+            .padding(.horizontal, 20)
+            .padding(.top, 52)
+            .padding(.bottom, 20)
 
-            VStack(alignment: .leading, spacing: 0) {
-
-                // Top bar
-                HStack(spacing: 10) {
-                    Text("STALK")
-                        .font(.system(size: 13, weight: .black))
-                        .foregroundStyle(.white.opacity(0.9))
-                        .kerning(5)
-                    Spacer()
-                    Button { appState.showDailyBrief = true } label: {
-                        HStack(spacing: 5) {
-                            Text("📋").font(.system(size: 13))
-                            Text("Daily Brief").font(.system(size: 12, weight: .bold)).foregroundStyle(.white)
-                        }
-                        .padding(.horizontal, 13).padding(.vertical, 7)
-                        .background(.white.opacity(0.18)).clipShape(Capsule())
-                    }
-                    Button { appState.showSettings = true } label: {
-                        Image(systemName: "gearshape.fill").font(.system(size: 15))
-                            .foregroundStyle(.white.opacity(0.85))
-                            .frame(width: 34, height: 34)
-                            .background(.white.opacity(0.18)).clipShape(Circle())
-                    }
-                }
-                .padding(.bottom, 16)
-
-                // Market status pill — glass treatment
-                HStack(spacing: 6) {
-                    Circle().fill(marketStatus.dotColor).frame(width: 7, height: 7)
-                        .overlay(
-                            Circle().fill(marketStatus.dotColor.opacity(0.3))
-                                .frame(width: 13, height: 13)
-                                .opacity(marketStatus.isLive ? 1 : 0)
-                        )
-                    Text(marketStatus.label)
-                        .font(.system(size: 11, weight: .bold))
-                        .foregroundStyle(.white.opacity(0.9))
-                    Rectangle()
-                        .fill(.white.opacity(0.25))
-                        .frame(width: 1, height: 10)
-                    Text(marketStatus.subtitle)
-                        .font(.system(size: 11))
-                        .foregroundStyle(.white.opacity(0.65))
-                }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(.white.opacity(0.08))
-                .clipShape(Capsule())
-                .overlay(Capsule().stroke(.white.opacity(0.12), lineWidth: 1))
-                .padding(.bottom, 14)
-
-                // Value
-                Text("Total Portfolio Value")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(.white.opacity(0.65))
-                    .padding(.bottom, 4)
+            // Portfolio value — clean, no gradient box
+            VStack(alignment: .leading, spacing: 2) {
                 Text(appState.totalValue.fmtPrice())
-                    .font(.system(size: 48, weight: .black))
+                    .font(.system(size: 44, weight: .black))
                     .foregroundStyle(Theme.text)
                     .monospacedDigit()
                     .contentTransition(.numericText())
                     .animation(.spring(response: 0.4, dampingFraction: 0.8), value: appState.totalValue)
-                    .minimumScaleFactor(0.5)
+                    .minimumScaleFactor(0.45)
+                    .lineLimit(1)
 
+                // P&L + market status on one line
                 if appState.totalCost > 0 {
                     let isGain = appState.totalPnl >= 0
                     let pnlColor = isGain ? Theme.gain : Theme.loss
                     let pnlSign = isGain ? "+" : ""
 
-                    // P&L line
-                    HStack(spacing: 8) {
-                        Text(pnlSign + appState.totalPnl.fmtPrice())
-                            .font(.system(size: 22, weight: .bold))
+                    HStack(spacing: 10) {
+                        Text("\(pnlSign)\(appState.totalPnl.fmtPrice()) (\(appState.totalPnlPct.fmtPct())) All-time")
+                            .font(.system(size: 14, weight: .semibold))
                             .foregroundStyle(pnlColor)
                             .monospacedDigit()
                             .contentTransition(.numericText())
                             .animation(.spring(response: 0.4, dampingFraction: 0.8), value: appState.totalPnl)
 
-                        Text(appState.totalPnlPct.fmtPct())
-                            .font(.system(size: 13, weight: .bold))
-                            .foregroundStyle(pnlColor)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 4)
-                            .background(pnlColor.opacity(0.15))
-                            .clipShape(Capsule())
+                        // Market status pill inline
+                        HStack(spacing: 5) {
+                            Circle().fill(marketStatus.dotColor).frame(width: 6, height: 6)
+                                .overlay(
+                                    Circle().fill(marketStatus.dotColor.opacity(0.3))
+                                        .frame(width: 11, height: 11)
+                                        .opacity(marketStatus.isLive ? 1 : 0)
+                                )
+                            Text(marketStatus.label)
+                                .font(.system(size: 10, weight: .bold))
+                                .foregroundStyle(Theme.text3)
+                        }
+                        .padding(.horizontal, 9)
+                        .padding(.vertical, 4)
+                        .background(Theme.card)
+                        .clipShape(Capsule())
+                        .overlay(Capsule().stroke(Theme.border, lineWidth: 1))
                     }
-                    .padding(.top, 10)
+                    .padding(.top, 4)
 
-                    // Stat pills
+                    // Today P&L + badges
                     HStack(spacing: 8) {
-                        pill("Today", appState.todayPnlPct.fmtPct(),
-                             accent: appState.todayPnl >= 0 ? .white.opacity(0.22) : Color(hex: "#E5534B").opacity(0.35))
+                        let todayIsGain = appState.todayPnl >= 0
+                        let todayColor = todayIsGain ? Theme.gain : Theme.loss
+                        HStack(spacing: 4) {
+                            Text("Today")
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundStyle(Theme.text3)
+                            Text(appState.todayPnlPct.fmtPct())
+                                .font(.system(size: 12, weight: .black))
+                                .foregroundStyle(todayColor)
+                        }
+                        .padding(.horizontal, 10).padding(.vertical, 5)
+                        .background(todayColor.opacity(0.10))
+                        .clipShape(Capsule())
 
                         if isATH {
-                            // ATH badge with pulse animation
-                            HStack(spacing: 5) {
+                            HStack(spacing: 4) {
                                 Text("🏆")
-                                    .font(.system(size: 12))
+                                    .font(.system(size: 11))
                                 Text("NEW ATH")
-                                    .font(.system(size: 11, weight: .black))
+                                    .font(.system(size: 10, weight: .black))
                                     .foregroundStyle(Theme.gold)
                                     .kerning(0.5)
-                                    .textCase(.uppercase)
                             }
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(Theme.gold.opacity(0.15))
+                            .padding(.horizontal, 10).padding(.vertical, 5)
+                            .background(Theme.gold.opacity(0.12))
                             .clipShape(Capsule())
-                            .overlay(Capsule().stroke(Theme.gold.opacity(0.4), lineWidth: 1))
+                            .overlay(Capsule().stroke(Theme.gold.opacity(0.3), lineWidth: 1))
                             .scaleEffect(athPulse ? 1.04 : 1.0)
-                            .animation(
-                                .easeInOut(duration: 0.9).repeatForever(autoreverses: true),
-                                value: athPulse
-                            )
+                            .animation(.easeInOut(duration: 0.9).repeatForever(autoreverses: true), value: athPulse)
                             .onAppear { athPulse = true }
                         } else if fromATH > 0 && appState.portfolioATH > 0 {
-                            pill("From ATH", "-\(fromATH.fmtPrice())", accent: .white.opacity(0.15))
+                            HStack(spacing: 4) {
+                                Text("From ATH")
+                                    .font(.system(size: 10, weight: .semibold))
+                                    .foregroundStyle(Theme.text3)
+                                Text("-\(fromATH.fmtPrice())")
+                                    .font(.system(size: 11, weight: .bold))
+                                    .foregroundStyle(Theme.text2)
+                            }
+                            .padding(.horizontal, 10).padding(.vertical, 5)
+                            .background(Theme.card)
+                            .clipShape(Capsule())
                         }
 
                         if appState.streak > 1 {
-                            // Streak badge — orange gradient
-                            HStack(spacing: 5) {
-                                Text("🔥")
-                                    .font(.system(size: 13))
-                                VStack(spacing: 0) {
-                                    Text("\(appState.streak)d")
-                                        .font(.system(size: 13, weight: .black))
-                                        .foregroundStyle(.white)
-                                    Text("Streak")
-                                        .font(.system(size: 9, weight: .semibold))
-                                        .foregroundStyle(.white.opacity(0.7))
-                                }
+                            HStack(spacing: 4) {
+                                Text("🔥").font(.system(size: 12))
+                                Text("\(appState.streak)d").font(.system(size: 12, weight: .black)).foregroundStyle(.white)
                             }
-                            .padding(.horizontal, 13)
-                            .padding(.vertical, 7)
-                            .background(
-                                LinearGradient(
-                                    colors: [Color(hex: "#F97316"), Color(hex: "#EA580C")],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
-                            .shadow(color: Color(hex: "#F97316").opacity(0.35), radius: 8, y: 3)
+                            .padding(.horizontal, 10).padding(.vertical, 5)
+                            .background(LinearGradient(colors: [Color(hex: "#F97316"), Color(hex: "#EA580C")], startPoint: .leading, endPoint: .trailing))
+                            .clipShape(Capsule())
                         }
                     }
-                    .padding(.top, 10)
-                }
-
-                if !appState.positions.isEmpty {
-                    AllocBar().padding(.top, 16)
+                    .padding(.top, 8)
                 }
             }
             .padding(.horizontal, 20)
-            .padding(.top, 52)
-            .padding(.bottom, 28)
-        }
-        .overlay(alignment: .bottom) {
-            RoundedRectangle(cornerRadius: 36).fill(Theme.bg).frame(height: 36).offset(y: 18)
-        }
-        .onReceive(timer) { now = $0 }
-    }
+            .padding(.bottom, 14)
 
-    func pill(_ label: String, _ value: String, accent: Color) -> some View {
-        VStack(spacing: 1) {
-            if value.isEmpty {
-                Text(label).font(.system(size: 12, weight: .bold)).foregroundStyle(.white)
-            } else {
-                Text(value).font(.system(size: 13, weight: .bold)).foregroundStyle(.white)
-                Text(label).font(.system(size: 10, weight: .semibold)).foregroundStyle(.white.opacity(0.65))
+            if !appState.positions.isEmpty {
+                AllocBar()
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 6)
             }
         }
-        .padding(.horizontal, 13).padding(.vertical, 7)
-        .background(accent).clipShape(RoundedRectangle(cornerRadius: 12))
+        .background(Theme.bg)
+        .onReceive(timer) { now = $0 }
     }
+}
+
+// MARK: - Mini Sparkline
+
+struct MiniSparkline: View {
+    let points: [Double]  // normalized 0-1 values
+    let color: Color
+
+    var body: some View {
+        Canvas { ctx, size in
+            guard points.count > 1 else { return }
+            let step = size.width / CGFloat(points.count - 1)
+            var path = Path()
+            path.move(to: CGPoint(x: 0, y: size.height * (1 - points[0])))
+            for i in 1..<points.count {
+                path.addLine(to: CGPoint(x: CGFloat(i) * step, y: size.height * (1 - points[i])))
+            }
+            ctx.stroke(path, with: .color(color), lineWidth: 1.5)
+        }
+        .frame(width: 44, height: 22)
+    }
+}
+
+// Returns a deterministic pseudo-random sparkline seeded from the ticker string
+private func sparklinePoints(ticker: String, trending: Bool) -> [Double] {
+    var seed = ticker.unicodeScalars.reduce(0) { $0 &+ Int($1.value) }
+    func nextRand() -> Double {
+        seed = seed &* 1664525 &+ 1013904223
+        return Double(seed & 0x7FFFFFFF) / Double(0x7FFFFFFF)
+    }
+    var vals: [Double] = [nextRand()]
+    for _ in 1..<8 {
+        let delta = (nextRand() - 0.5) * 0.25
+        vals.append(max(0.05, min(0.95, vals.last! + delta)))
+    }
+    // Normalize to 0-1
+    let lo = vals.min()!
+    let hi = vals.max()!
+    let range = max(hi - lo, 0.001)
+    return vals.map { ($0 - lo) / range }
 }
 
 // MARK: - Alloc Bar
@@ -346,6 +342,9 @@ struct PositionCard: View {
     }
 
     var body: some View {
+        let sparkColor = isUp ? Theme.gain : Theme.loss
+        let sparkPoints = sparklinePoints(ticker: position.ticker, trending: isUp)
+
         HStack(spacing: 0) {
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 8) {
@@ -391,19 +390,26 @@ struct PositionCard: View {
 
             Spacer()
 
-            VStack(alignment: .trailing, spacing: 3) {
-                Text(value.fmtPrice())
-                    .font(.system(size: 15, weight: .bold))
-                    .foregroundStyle(Theme.text)
+            // Sparkline + price stack
+            ZStack(alignment: .trailing) {
+                // Subtle sparkline behind numbers
+                MiniSparkline(points: sparkPoints, color: sparkColor.opacity(0.55))
+                    .offset(x: 0, y: -2)
 
-                Text(pnl.fmtChange())
-                    .font(.system(size: 12, weight: .bold))
-                    .foregroundStyle(isUp ? Theme.gain : Theme.loss)
+                VStack(alignment: .trailing, spacing: 3) {
+                    Text(value.fmtPrice())
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundStyle(Theme.text)
 
-                if let q = quote {
-                    Text("Today \(q.changePercent.fmtPct())")
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(dayIsUp ? Theme.gain : Theme.loss)
+                    Text(pnl.fmtChange())
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundStyle(isUp ? Theme.gain : Theme.loss)
+
+                    if let q = quote {
+                        Text("Today \(q.changePercent.fmtPct())")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(dayIsUp ? Theme.gain : Theme.loss)
+                    }
                 }
             }
         }

@@ -1,5 +1,36 @@
 # iOS Dev Log — Jordan
 
+## 2026-06-11 — FeedView Premium Redesign
+
+### Completed
+
+**FeedView.swift — Full Social Finance Overhaul**
+- Replaced old profile bar header with two-line nav: "Feed" 28pt bold + bell icon (right), pill segmented `["Friends", "Trending", "Following"]` control below
+- Added `@State private var feedTab = "Trending"` with `feedTraders` computed property filtering/sorting by tab
+- `StoriesRow` moved below new header with 4pt top padding; contrast intact on dark bg
+- Added `TraderPostCardV2` — gradient avatar circle, PRO badge capsule, today-return badge, post body (`take` field), horizontal-scrollable ticker chips with daily pct, `ReactionBar` at bottom, `RoundedRectangle(cornerRadius: 20)` card with 0.35 opacity shadow
+- Replaced old `VStack` of `TraderPostCard` with `VStack(spacing: 12)` of `TraderPostCardV2` + `.staggerEntrance(index:)` animations; no dividers between cards
+- Added floating compose FAB: 52pt circle, `Theme.accentGradient`, `.overlay(alignment: .bottomTrailing)`, shadow
+- Kept all existing sections (streak banner, achievements, my performance, holdings strip, leaderboard)
+- Empty state shown for "Following" tab when no traders followed
+- Old `TraderPostCard` preserved as legacy struct (not shown in main feed)
+
+**Models.swift — Data Model Extensions**
+- Added `TraderHolding` struct (`ticker: String`, `pct: Double`, `Identifiable`)
+- Added `isPro: Bool = false` and `take: String = ""` to `Trader` (default-valued, backward-compatible)
+- Added `holdingDetails: [TraderHolding]` computed property: derives ticker chips from `holdings: [String]` + `perf.day` spread with fixed offsets
+- Populated all 8 traders with `isPro` and realistic `take` text
+- Struct field ordering: `weekPct` before `isPro`/`take` to preserve memberwise init compatibility
+
+### Build
+- `BUILD SUCCEEDED` — zero errors, one pre-existing Info.plist warning (not our code)
+
+### Architecture Notes
+- `holdingDetails` is pure computed — no migration, no stored state
+- Dark mode forced app-wide; no light-mode fallbacks needed
+
+---
+
 ## 2026-06-09 — Perplexity Finance Features Sprint
 
 ### Completed
@@ -249,3 +280,99 @@ https://github.com/itamarbarzohar-dev/stalk/pull/3
 
 ### Build Status
 `** BUILD SUCCEEDED **` — no errors, only pre-existing QuoteService actor-isolation warnings (not our code)
+
+---
+
+## 2026-06-11 — Robinhood/Bloomberg/TikTok Redesign Sprint
+
+### Overview
+Dark mode forced app-wide (`.preferredColorScheme(.dark)` in `STALKApp`). Redesigned three core screens for maximum visual impact and addictiveness, inspired by Robinhood (Portfolio), Bloomberg Terminal (Market), and TikTok (For You).
+
+---
+
+### PortfolioView.swift — Robinhood-style Hero
+
+**Removed:** Large gradient hero block (`appState.heroGradient`, radial glow `ZStack`), colored gradient box
+**Added:** Clean minimal header on `Theme.bg` — no box, no gradient container
+
+**`PortfolioHero` changes:**
+- Top bar: "PORTFOLIO" label in 11pt uppercase with kerning (instead of "STALK"), buttons use `Theme.card` background instead of `.white.opacity(0.18)` — matches dark bg
+- Value: `44pt .black`, plain `Theme.text` on `Theme.bg`, no container
+- P&L line: `"±$X.XX (±Y.YY%) All-time"` in one clean 14pt string with market status pill inline
+- Today P&L + badge row replaces the old stat pills — colored capsule for today, ATH badge, streak badge
+- `AllocBar` moved below (still present), no `.overlay(alignment: .bottom)` bottom-round trick needed
+
+**`MiniSparkline` added** — new struct using `Canvas` drawing:
+- 8-point pseudo-random line, seeded deterministically from ticker hash (consistent across renders)
+- 44×22pt, 1.5pt stroke, `gain`/`loss` colored at 55% opacity
+- `sparklinePoints(ticker:trending:)` free function — LCG seeded from ticker Unicode scalars
+- Placed in `PositionCard` right side as a `ZStack` behind the price/pnl/today text
+
+**Padding:** `.padding(.bottom, 12)` → `.padding(.bottom, 8)` on hero in parent
+
+---
+
+### MarketView.swift — Bloomberg Terminal Feel
+
+**Removed:** Large text header block, old `Indices` VStack of rounded `MarketRow` cards
+**Added:**
+- `private let INDEX_ICONS: [String: String]` dict (`SPY/QQQ/DIA/IWM`)
+- `@State private var now` + `Timer` (60s) for live market status
+- Bloomberg nav bar: "MARKETS" 22pt black + market status pill (colored dot + label + colored background)
+
+**`IndexCompactList` — new struct:**
+- Replaces old `MarketRow` cards for indices
+- Compact rows: icon (16pt) + name/ticker left, price + % right
+- 1pt separator (`Rectangle().fill(Theme.border)`) between rows, `padding(.leading: 56)` — left-indented
+- All inside single `Theme.card` rounded container (18pt radius) with `overlay` border
+- Skeleton shimmer rows when quotes are loading
+
+**`TopMoversGrid` — new struct:**
+- `let topMovers` data (8 entries: NVDA/GME/TSLA/AAPL/META/PLTR/AMD/AMZN)
+- `LazyVGrid` 2-column, each cell 70pt height: icon circle (gain/loss tinted bg) + ticker (14pt black) + % change
+- Cell border tinted gain/loss at 15% opacity
+- Inserted between Indices and Sector Chips sections
+
+**`SectorHeatMapView` tile height:** 90pt → **100pt**, added ETF symbol label (9pt bold, 50% opacity white)
+
+**Layout order:** Indices compact → Top Movers → Sector Chips → Heat Map → Trending Feed → Classic Trending
+
+---
+
+### ForYouView.swift — TikTok-style Segmented Header
+
+**Removed:** `"For You ✨"` plain text header
+
+**Added: `ForYouTab` enum** + segmented control header:
+- Three tabs: "For You" | "Markets" | "News"
+- TikTok-style underline indicator: `Rectangle().fill(Theme.accent).frame(height: 2)` under active tab
+- Spring animation `response: 0.3, dampingFraction: 0.75` on tab switch
+- Tab bar sits at 52pt from top, underlined with a full-width `Theme.border` separator
+
+**"For You" tab:** All existing content preserved, but with `TodaySummaryCard` inserted first
+
+**`TodaySummaryCard` — new struct:**
+- Dark `#0D0D1A` card with indigo gradient border (same visual language as `AIMarketContextCard`)
+- "TODAY'S SUMMARY" small caps label + "AI" green pill
+- If user has positions: references their portfolio and today P&L by name
+- If no positions: generic market summary (2 sentences)
+- "Full Daily Brief →" button calls `appState.showDailyBrief = true`
+
+**"Markets" tab — `marketsContent()`:**
+- Index snapshot compact list (4 indices, live quotes with fallback to mock change values)
+- `TrendingTickersFeedView` (reused from `MarketView`)
+- `TopMoversGrid` (reused from `MarketView` — same module, same file)
+
+**"News" tab — `newsContent()`:**
+- `MockNewsItem` struct + `mockNewsHeadlines` array (8 items)
+- Each card: ticker tags (accent colored), time ago, headline (14pt semibold), source (11pt text3)
+- Tapping navigates to first ticker via `onTicker`
+
+**`hotOnSTALKSection` cards:** 130pt → **160pt** height, `148pt` width
+- Added `ZStack` with `LinearGradient` overlay (gain/loss tinted, top-to-bottom)
+- Ticker enlarged to 24pt black, adds counter in 16pt bold accent
+- % change in 15pt black capsule (top right), icon in tinted 40×40pt rounded square
+- Border tinted gain/loss at 20% opacity
+
+### Build Status
+`** BUILD SUCCEEDED **` — zero errors, pre-existing QuoteService actor-isolation warnings only (not our code)

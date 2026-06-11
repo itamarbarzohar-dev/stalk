@@ -29,6 +29,12 @@ struct ChartPoint: Identifiable {
 
 // MARK: - Social / Feed
 
+struct TraderHolding: Identifiable {
+    let ticker: String
+    let pct: Double
+    var id: String { ticker }
+}
+
 struct Trader: Identifiable {
     let id: Int
     let name: String
@@ -43,10 +49,23 @@ struct Trader: Identifiable {
     let time: String
     let likes: Int
     // Leaderboard / stories fields
-    var todayPct: Double { perf.day }
     var weekPct: Double
+    // New social fields
+    var isPro: Bool = false
+    var take: String = ""
+    // Computed
+    var todayPct: Double { perf.day }
     var allTimeReturn: Double { perf.allTime }
     var topHolding: String { holdings.first ?? "" }
+
+    /// Rich holding chips — ticker + mock daily pct spread for display
+    var holdingDetails: [TraderHolding] {
+        let base = perf.day
+        let offsets: [Double] = [0.0, 0.4, -0.3, 0.7, -0.5, 0.2]
+        return holdings.enumerated().map { i, ticker in
+            TraderHolding(ticker: ticker, pct: base + offsets[i % offsets.count])
+        }
+    }
 }
 
 struct TraderPerf {
@@ -64,25 +83,29 @@ let TRADERS: [Trader] = [
            perf: TraderPerf(day: 1.2, sixMonth: 18.4, ytd: 22.1, allTime: 61.3),
            holdings: ["NVDA", "AAPL", "MSFT", "GOOGL"],
            text: "Loaded up on NVDA again — AI infrastructure is just getting started 🚀",
-           time: "2h ago", likes: 47, weekPct: 4.7),
+           time: "2h ago", likes: 47, weekPct: 4.7,
+           isPro: true, take: "AI infrastructure spend is accelerating — every hyperscaler is doubling capex. NVDA is the toll booth. I'm adding on every dip."),
     Trader(id: 2, name: "Sara Kim", handle: "@saratrades", initial: "S", color: Color(hex: "#F472B6"),
            followers: 8903, following: 94,
            perf: TraderPerf(day: -0.3, sixMonth: 9.7, ytd: 14.2, allTime: 38.5),
            holdings: ["TSLA", "META", "AMZN"],
            text: "Trimmed my Tesla position after the run-up. Taking profits at $250 🎯",
-           time: "4h ago", likes: 123, weekPct: 2.1),
+           time: "4h ago", likes: 123, weekPct: 2.1,
+           isPro: true, take: "Trimmed TSLA at $250 — that's a 40% gain from my cost basis. Cash is a position too. Waiting for re-entry around $210."),
     Trader(id: 3, name: "Mike R.", handle: "@mikevalue", initial: "M", color: Color(hex: "#FBBF24"),
            followers: 1204, following: 312,
            perf: TraderPerf(day: 0.8, sixMonth: 5.1, ytd: 7.3, allTime: 29.1),
            holdings: ["BRK-B", "JPM", "V", "KO"],
            text: "Old school value investing still works. Berkshire + JPM = sleep well at night 💤",
-           time: "6h ago", likes: 34, weekPct: 1.3),
+           time: "6h ago", likes: 34, weekPct: 1.3,
+           isPro: false, take: "Everyone chasing AI hype. Meanwhile I'm sleeping soundly with BRK-B, JPM, V, KO. Boring wins long-term."),
     Trader(id: 4, name: "Lena V.", handle: "@lena_invest", initial: "L", color: Color(hex: "#6EE7B7"),
            followers: 4512, following: 201,
            perf: TraderPerf(day: 2.1, sixMonth: 31.2, ytd: 41.5, allTime: 89.2),
            holdings: ["NVDA", "AMD", "SMCI", "AVGO"],
            text: "Semis are on fire this week. My portfolio is up 2% just today 🔥",
-           time: "8h ago", likes: 211, weekPct: 9.4),
+           time: "8h ago", likes: 211, weekPct: 9.4,
+           isPro: true, take: "Semis up 2% just today. SMCI broke out of its consolidation. If you're not in semis right now you're missing the decade trade."),
 ]
 
 // Extended trader list for feed stories & leaderboard
@@ -92,25 +115,29 @@ let FEED_TRADERS: [Trader] = TRADERS + [
            perf: TraderPerf(day: -1.4, sixMonth: 6.2, ytd: 11.0, allTime: 44.8),
            holdings: ["AMZN", "GOOGL", "NFLX"],
            text: "Cloud names still my favourite long. Holding AMZN through earnings 🤞",
-           time: "9h ago", likes: 61, weekPct: -2.1),
+           time: "9h ago", likes: 61, weekPct: -2.1,
+           isPro: false, take: "Cloud hyperscalers reporting next week. I'm holding AMZN, GOOGL through earnings. Risk/reward still favourable at current multiples."),
     Trader(id: 6, name: "Priya N.", handle: "@priyainvests", initial: "P", color: Color(hex: "#F87171"),
            followers: 5890, following: 130,
            perf: TraderPerf(day: 3.2, sixMonth: 22.8, ytd: 35.0, allTime: 102.4),
            holdings: ["NVDA", "TSM", "AVGO"],
            text: "Semis ATH incoming. TSM just broke out of a 6-month base 🚀",
-           time: "11h ago", likes: 188, weekPct: 11.2),
+           time: "11h ago", likes: 188, weekPct: 11.2,
+           isPro: true, take: "TSM just broke out of a 6-month base on massive volume. This is textbook. Target $220. AVGO earnings next week = catalyst."),
     Trader(id: 7, name: "David K.", handle: "@davek", initial: "D", color: Color(hex: "#34D399"),
            followers: 920, following: 88,
            perf: TraderPerf(day: 0.4, sixMonth: 3.8, ytd: 5.2, allTime: 18.7),
            holdings: ["SPY", "VTI", "SCHD"],
            text: "Dollar-cost averaging into index funds every week. Boring but it works.",
-           time: "12h ago", likes: 22, weekPct: 0.8),
+           time: "12h ago", likes: 22, weekPct: 0.8,
+           isPro: false, take: "Week 312 of DCA into VTI. Market timing is a loser's game. Time in the market beats timing the market — always."),
     Trader(id: 8, name: "Nina H.", handle: "@ninahedge", initial: "N", color: Color(hex: "#A78BFA"),
            followers: 7400, following: 310,
            perf: TraderPerf(day: -2.3, sixMonth: -4.1, ytd: 2.0, allTime: 55.9),
            holdings: ["GLD", "TLT", "BRK-B"],
            text: "Rotating into defensives. Market looks extended to me right now 🤔",
-           time: "1d ago", likes: 95, weekPct: -3.8),
+           time: "1d ago", likes: 95, weekPct: -3.8,
+           isPro: true, take: "Reducing equity exposure to 50%. Rotating into GLD and TLT. Breadth is terrible — only mega-caps holding the indices up. Be careful."),
 ]
 
 // MARK: - Market / Sectors

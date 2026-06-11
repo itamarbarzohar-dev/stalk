@@ -1,29 +1,64 @@
 import SwiftUI
 import Combine
 
+private let INDEX_ICONS: [String: String] = [
+    "SPY": "🇺🇸", "QQQ": "💻", "DIA": "🏦", "IWM": "🏗️",
+]
+
 struct MarketView: View {
     @Environment(AppState.self) var appState
     let onTicker: (String) -> Void
+    @State private var now = Date()
+    let timer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
+
+    var marketStatus: MarketStatus { MarketCalendar.status(at: now) }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
-                Text("Market")
-                    .font(.system(size: 26, weight: .bold))
-                    .foregroundStyle(Theme.text)
-                    .padding(.horizontal, 16)
-                    .padding(.top, 52)
-                    .padding(.bottom, 14)
 
-                // Sectors
-                Text("Sectors")
-                    .font(.system(size: 10, weight: .bold))
-                    .foregroundStyle(Theme.text3)
-                    .textCase(.uppercase)
-                    .kerning(1.3)
+                // Bloomberg-style nav bar header
+                HStack(spacing: 10) {
+                    Text("MARKETS")
+                        .font(.system(size: 22, weight: .black))
+                        .foregroundStyle(Theme.text)
+                        .kerning(0.5)
+                    Spacer()
+                    HStack(spacing: 6) {
+                        Circle().fill(marketStatus.dotColor).frame(width: 7, height: 7)
+                            .overlay(
+                                Circle().fill(marketStatus.dotColor.opacity(0.3))
+                                    .frame(width: 13, height: 13)
+                                    .opacity(marketStatus.isLive ? 1 : 0)
+                            )
+                        Text(marketStatus.label)
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundStyle(marketStatus.dotColor)
+                    }
+                    .padding(.horizontal, 11)
+                    .padding(.vertical, 6)
+                    .background(marketStatus.dotColor.opacity(0.10))
+                    .clipShape(Capsule())
+                    .overlay(Capsule().stroke(marketStatus.dotColor.opacity(0.25), lineWidth: 1))
+                }
+                .padding(.horizontal, 16)
+                .padding(.top, 52)
+                .padding(.bottom, 16)
+
+                // Indices — compact Bloomberg rows
+                marketSectionLabel("📊 Indices")
+                IndexCompactList(appState: appState, onTicker: onTicker)
                     .padding(.horizontal, 14)
-                    .padding(.bottom, 9)
+                    .padding(.bottom, 20)
 
+                // Top Movers grid
+                marketSectionLabel("⚡ Top Movers")
+                TopMoversGrid(onTicker: onTicker)
+                    .padding(.horizontal, 14)
+                    .padding(.bottom, 20)
+
+                // Sector Chips (horizontal scroll)
+                marketSectionLabel("🗂 Sectors")
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 7) {
                         ForEach(SECTORS, id: \.etf) { sector in
@@ -32,28 +67,13 @@ struct MarketView: View {
                     }
                     .padding(.horizontal, 14)
                 }
-                .padding(.bottom, 14)
+                .padding(.bottom, 20)
 
-                // Sector Heat Map
+                // Sector Heat Map — taller tiles
                 marketSectionLabel("🌡️ Sector Heat Map")
                 SectorHeatMapView()
                     .padding(.horizontal, 14)
                     .padding(.bottom, 20)
-
-                // Indices
-                marketSectionLabel("Indices")
-
-                VStack(spacing: 8) {
-                    ForEach(INDEX_TICKERS, id: \.self) { ticker in
-                        if let q = appState.marketQuotes[ticker] {
-                            MarketRow(name: INDEX_NAMES[ticker] ?? ticker, subtitle: ticker, quote: q, onTap: { onTicker(ticker) })
-                        } else {
-                            MarketRowSkeleton()
-                        }
-                    }
-                }
-                .padding(.horizontal, 14)
-                .padding(.bottom, 14)
 
                 // Trending Tickers Feed
                 marketSectionLabel("🔥 Trending · Social Buzz")
@@ -63,7 +83,6 @@ struct MarketView: View {
 
                 // Classic Trending
                 marketSectionLabel("Trending")
-
                 VStack(spacing: 8) {
                     ForEach(TRENDING_TICKERS, id: \.self) { ticker in
                         if let q = appState.marketQuotes[ticker] {
@@ -81,6 +100,7 @@ struct MarketView: View {
         .background(Theme.bg)
         .task { await appState.refreshMarket() }
         .refreshable { await appState.refreshMarket() }
+        .onReceive(timer) { now = $0 }
     }
 
     func marketSectionLabel(_ text: String) -> some View {
@@ -91,6 +111,114 @@ struct MarketView: View {
             .kerning(1.3)
             .padding(.horizontal, 14)
             .padding(.bottom, 9)
+    }
+}
+
+// MARK: - Index Compact List (Bloomberg rows)
+
+struct IndexCompactList: View {
+    let appState: AppState
+    let onTicker: (String) -> Void
+
+    var body: some View {
+        VStack(spacing: 0) {
+            ForEach(Array(INDEX_TICKERS.enumerated()), id: \.element) { i, ticker in
+                Button { onTicker(ticker) } label: {
+                    HStack(spacing: 12) {
+                        // Icon + name
+                        Text(INDEX_ICONS[ticker] ?? "📈")
+                            .font(.system(size: 16))
+                            .frame(width: 28)
+                        VStack(alignment: .leading, spacing: 1) {
+                            Text(INDEX_NAMES[ticker] ?? ticker)
+                                .font(.system(size: 13, weight: .bold))
+                                .foregroundStyle(Theme.text)
+                            Text(ticker)
+                                .font(.system(size: 10, weight: .semibold))
+                                .foregroundStyle(Theme.text3)
+                        }
+                        Spacer()
+                        if let q = appState.marketQuotes[ticker] {
+                            VStack(alignment: .trailing, spacing: 1) {
+                                Text(q.price.fmtPrice())
+                                    .font(.system(size: 14, weight: .bold))
+                                    .foregroundStyle(Theme.text)
+                                    .monospacedDigit()
+                                Text(q.changePercent.fmtPct())
+                                    .font(.system(size: 12, weight: .black))
+                                    .foregroundStyle(q.isUp ? Theme.gain : Theme.loss)
+                            }
+                        } else {
+                            VStack(alignment: .trailing, spacing: 4) {
+                                RoundedRectangle(cornerRadius: 3).fill(Theme.bg2).frame(width: 54, height: 12)
+                                RoundedRectangle(cornerRadius: 3).fill(Theme.bg2).frame(width: 36, height: 10)
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 13)
+                }
+                .buttonStyle(.plain)
+
+                if i < INDEX_TICKERS.count - 1 {
+                    Rectangle()
+                        .fill(Theme.border)
+                        .frame(height: 1)
+                        .padding(.leading, 56)
+                }
+            }
+        }
+        .background(Theme.card)
+        .clipShape(RoundedRectangle(cornerRadius: 18))
+        .overlay(RoundedRectangle(cornerRadius: 18).stroke(Theme.border, lineWidth: 1))
+    }
+}
+
+// MARK: - Top Movers Grid
+
+private let topMovers: [(ticker: String, change: Double, icon: String)] = [
+    ("NVDA", 4.2, "🤖"), ("GME", 8.1, "🎮"), ("TSLA", -2.8, "⚡"), ("AAPL", 1.2, "🍎"),
+    ("META", 2.1, "📱"), ("PLTR", 5.3, "🤖"), ("AMD", 1.8, "💻"), ("AMZN", -0.9, "📦"),
+]
+
+struct TopMoversGrid: View {
+    let onTicker: (String) -> Void
+    let columns = [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)]
+
+    var body: some View {
+        LazyVGrid(columns: columns, spacing: 10) {
+            ForEach(topMovers, id: \.ticker) { mover in
+                Button { onTicker(mover.ticker) } label: {
+                    HStack(spacing: 10) {
+                        Text(mover.icon)
+                            .font(.system(size: 20))
+                            .frame(width: 32, height: 32)
+                            .background(mover.change >= 0 ? Theme.gainBg : Theme.lossBg)
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(mover.ticker)
+                                .font(.system(size: 14, weight: .black))
+                                .foregroundStyle(Theme.text)
+                            Text(mover.change >= 0 ? "+\(String(format: "%.1f", mover.change))%" : "\(String(format: "%.1f", mover.change))%")
+                                .font(.system(size: 13, weight: .bold))
+                                .foregroundStyle(mover.change >= 0 ? Theme.gain : Theme.loss)
+                        }
+                        Spacer()
+                    }
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 14)
+                    .frame(height: 70)
+                    .background(Theme.card)
+                    .clipShape(RoundedRectangle(cornerRadius: 14))
+                    .overlay(RoundedRectangle(cornerRadius: 14).stroke(
+                        mover.change >= 0 ? Theme.gain.opacity(0.15) : Theme.loss.opacity(0.15),
+                        lineWidth: 1
+                    ))
+                }
+                .buttonStyle(.plain)
+            }
+        }
     }
 }
 
@@ -245,9 +373,9 @@ struct SectorHeatMapView: View {
                                 .stroke(Color.white.opacity(0.08), lineWidth: 1)
                         )
 
-                    VStack(spacing: 5) {
+                    VStack(spacing: 4) {
                         Image(systemName: tile.icon)
-                            .font(.system(size: 16, weight: .semibold))
+                            .font(.system(size: 17, weight: .semibold))
                             .foregroundStyle(.white.opacity(0.85))
 
                         Text(tile.name)
@@ -257,14 +385,18 @@ struct SectorHeatMapView: View {
                             .lineLimit(2)
                             .minimumScaleFactor(0.8)
 
+                        Text(tile.symbol)
+                            .font(.system(size: 9, weight: .bold))
+                            .foregroundStyle(.white.opacity(0.5))
+
                         Text(tile.change.fmtPct())
-                            .font(.system(size: 13, weight: .bold))
+                            .font(.system(size: 14, weight: .black))
                             .foregroundStyle(.white)
                     }
                     .padding(.horizontal, 6)
-                    .padding(.vertical, 12)
+                    .padding(.vertical, 10)
                 }
-                .frame(height: 90)
+                .frame(height: 100)
             }
         }
     }

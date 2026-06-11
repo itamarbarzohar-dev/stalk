@@ -9,6 +9,7 @@ struct STALKApp: App {
         WindowGroup {
             ContentView()
                 .environment(appState)
+                .preferredColorScheme(.dark)
                 .task {
                     BGTaskScheduler.shared.register(
                         forTaskWithIdentifier: "com.stalk.portfolio.refresh",

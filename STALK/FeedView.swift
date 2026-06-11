@@ -7,6 +7,7 @@ struct FeedView: View {
     let onTicker: (String) -> Void
     @State private var profileTrader: Trader? = nil
     @State private var storyTrader: Trader? = nil
+    @State private var feedTab = "Trending"
 
     var totalValue: Double { appState.totalValue }
     var totalCost: Double { appState.totalCost }
@@ -26,159 +27,172 @@ struct FeedView: View {
         ]
     }
 
+    var feedTraders: [Trader] {
+        switch feedTab {
+        case "Following":
+            return FEED_TRADERS.filter { appState.followed.contains($0.id) }
+        case "Friends":
+            return Array(FEED_TRADERS.prefix(4))
+        default: // Trending
+            return FEED_TRADERS.sorted { $0.todayPct > $1.todayPct }
+        }
+    }
+
     var body: some View {
-        ScrollView {
-            VStack(spacing: 0) {
+        ZStack(alignment: .bottomTrailing) {
+            ScrollView {
+                VStack(spacing: 0) {
 
-                // ── FEATURE 1: Stories Row ──────────────────────────────
-                StoriesRow(
-                    appState: appState,
-                    onStoryTap: { trader in storyTrader = trader }
-                )
+                    // ── Navigation Header ───────────────────────────────────
+                    feedHeader
 
-                // ── My Profile bar ──────────────────────────────────────
-                HStack(spacing: 14) {
-                    Circle()
-                        .fill(Theme.accentGradient)
-                        .frame(width: 58, height: 58)
-                        .overlay(
-                            Text("I")
-                                .font(.system(size: 22, weight: .black))
-                                .foregroundStyle(.white)
-                        )
-                        .shadow(color: Theme.accent.opacity(0.28), radius: 8, y: 4)
+                    // ── Stories Row ─────────────────────────────────────────
+                    StoriesRow(
+                        appState: appState,
+                        onStoryTap: { trader in storyTrader = trader }
+                    )
+                    .padding(.top, 4)
 
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text("Itamar B.")
-                            .font(.system(size: 17, weight: .bold))
-                            .foregroundStyle(Theme.text)
-                        HStack(spacing: 4) {
-                            Text("@itamar ·")
-                                .foregroundStyle(Theme.text3)
-                            Text("PRO")
-                                .foregroundStyle(Theme.accent)
-                                .fontWeight(.bold)
+                    // ── Streak Banner ───────────────────────────────────────
+                    if appState.streak >= 1 {
+                        HStack(spacing: 10) {
+                            Text("🔥")
+                                .font(.system(size: 28))
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("\(appState.streak)-day streak")
+                                    .font(.system(size: 15, weight: .black))
+                                    .foregroundStyle(Theme.text)
+                                Text("You've checked STALK \(appState.streak) days in a row. Keep it up!")
+                                    .font(.system(size: 11))
+                                    .foregroundStyle(Theme.text2)
+                            }
+                            Spacer()
+                            Text("+\(appState.streak * 5) XP")
+                                .font(.system(size: 12, weight: .bold))
+                                .foregroundStyle(Theme.gold)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 4)
+                                .background(Theme.gold.opacity(0.15))
+                                .clipShape(Capsule())
                         }
-                        .font(.system(size: 13))
-
-                        HStack(spacing: 24) {
-                            statItem("\(12 + appState.followed.count)", "Followers")
-                            statItem("\(7 + appState.followed.count)", "Following")
-                            statItem("1", "Posts")
-                        }
-                        .padding(.top, 10)
-                    }
-                }
-                .padding(.horizontal, 18)
-                .padding(.top, 52)
-                .padding(.bottom, 18)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .overlay(alignment: .bottom) { Divider() }
-
-                // ── FEATURE 4: Streak Banner ────────────────────────────
-                if appState.streak >= 1 {
-                    HStack(spacing: 10) {
-                        Text("🔥")
-                            .font(.system(size: 28))
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("\(appState.streak)-day streak")
-                                .font(.system(size: 15, weight: .black))
-                                .foregroundStyle(Theme.text)
-                            Text("You've checked STALK \(appState.streak) days in a row. Keep it up!")
-                                .font(.system(size: 11))
-                                .foregroundStyle(Theme.text2)
-                        }
-                        Spacer()
-                        Text("+\(appState.streak * 5) XP")
-                            .font(.system(size: 12, weight: .bold))
-                            .foregroundStyle(Theme.gold)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 4)
-                            .background(Theme.gold.opacity(0.15))
-                            .clipShape(Capsule())
-                    }
-                    .padding(14)
-                    .background(LinearGradient(
-                        colors: [Color(hex: "#F97316").opacity(0.12), Color(hex: "#EA580C").opacity(0.06)],
-                        startPoint: .leading, endPoint: .trailing
-                    ))
-                    .clipShape(RoundedRectangle(cornerRadius: 16))
-                    .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color(hex: "#F97316").opacity(0.25), lineWidth: 1))
-                    .padding(.horizontal, 14)
-                    .padding(.top, 12)
-                }
-
-                // ── FEATURE 5: Achievement Badges ───────────────────────
-                AchievementsRow(badges: achievements)
-                    .padding(.top, 10)
-                    .padding(.bottom, 4)
-
-                // ── My performance ──────────────────────────────────────
-                VStack(alignment: .leading, spacing: 0) {
-                    Text("My Performance")
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundStyle(Theme.text3)
-                        .textCase(.uppercase)
-                        .kerning(1.3)
-                        .padding(.bottom, 12)
-
-                    let sixM = allTimeRet * 0.6
-                    let ytd = allTimeRet * 0.8
-                    let dayPct = appState.todayPnlPct
-
-                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 9) {
-                        perfItem("Today", dayPct)
-                        perfItem("6 Months", sixM)
-                        perfItem("YTD", ytd)
-                        perfItem("All Time", allTimeRet)
-                    }
-                }
-                .padding(16)
-                .background(Theme.card)
-                .clipShape(RoundedRectangle(cornerRadius: 22))
-                .overlay(RoundedRectangle(cornerRadius: 22).stroke(Theme.border, lineWidth: 1))
-                .shadow(color: .black.opacity(0.05), radius: 6, y: 2)
-                .padding(.horizontal, 14)
-                .padding(.vertical, 12)
-
-                // Holdings
-                if !appState.positions.isEmpty {
-                    holdingsStrip()
+                        .padding(14)
+                        .background(LinearGradient(
+                            colors: [Color(hex: "#F97316").opacity(0.12), Color(hex: "#EA580C").opacity(0.06)],
+                            startPoint: .leading, endPoint: .trailing
+                        ))
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color(hex: "#F97316").opacity(0.25), lineWidth: 1))
                         .padding(.horizontal, 14)
-                        .padding(.bottom, 12)
-                }
+                        .padding(.top, 12)
+                    }
 
-                Divider().padding(.vertical, 4)
+                    // ── Achievement Badges ──────────────────────────────────
+                    AchievementsRow(badges: achievements)
+                        .padding(.top, 10)
+                        .padding(.bottom, 4)
 
-                // ── FEATURE 3: Leaderboard ──────────────────────────────
-                LeaderboardSection()
+                    // ── My Performance ──────────────────────────────────────
+                    VStack(alignment: .leading, spacing: 0) {
+                        Text("My Performance")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundStyle(Theme.text3)
+                            .textCase(.uppercase)
+                            .kerning(1.3)
+                            .padding(.bottom, 12)
+
+                        let sixM = allTimeRet * 0.6
+                        let ytd = allTimeRet * 0.8
+                        let dayPct = appState.todayPnlPct
+
+                        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 9) {
+                            perfItem("Today", dayPct)
+                            perfItem("6 Months", sixM)
+                            perfItem("YTD", ytd)
+                            perfItem("All Time", allTimeRet)
+                        }
+                    }
+                    .padding(16)
+                    .background(Theme.card)
+                    .clipShape(RoundedRectangle(cornerRadius: 22))
+                    .overlay(RoundedRectangle(cornerRadius: 22).stroke(Theme.border, lineWidth: 1))
+                    .shadow(color: .black.opacity(0.05), radius: 6, y: 2)
                     .padding(.horizontal, 14)
-                    .padding(.bottom, 16)
+                    .padding(.vertical, 12)
 
-                Divider().padding(.vertical, 4)
+                    // ── Holdings Strip ──────────────────────────────────────
+                    if !appState.positions.isEmpty {
+                        holdingsStrip()
+                            .padding(.horizontal, 14)
+                            .padding(.bottom, 12)
+                    }
 
-                // Following label
-                Text("Following")
-                    .font(.system(size: 10, weight: .bold))
-                    .foregroundStyle(Theme.text3)
-                    .textCase(.uppercase)
-                    .kerning(1.3)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                    Divider().padding(.vertical, 4)
+
+                    // ── Leaderboard ─────────────────────────────────────────
+                    LeaderboardSection()
+                        .padding(.horizontal, 14)
+                        .padding(.bottom, 16)
+
+                    Divider().padding(.vertical, 4)
+
+                    // ── Feed section label ──────────────────────────────────
+                    HStack {
+                        Text(feedTab)
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundStyle(Theme.text3)
+                            .textCase(.uppercase)
+                            .kerning(1.3)
+                        Spacer()
+                        Text("\(feedTraders.count) posts")
+                            .font(.system(size: 10))
+                            .foregroundStyle(Theme.text4)
+                    }
                     .padding(.horizontal, 14)
                     .padding(.bottom, 10)
 
-                // Posts
-                VStack(spacing: 10) {
-                    ForEach(TRADERS) { trader in
-                        TraderPostCard(trader: trader, onProfile: { profileTrader = trader }, onTicker: onTicker)
+                    // ── Post Cards V2 ───────────────────────────────────────
+                    if feedTraders.isEmpty {
+                        VStack(spacing: 12) {
+                            Text("👀")
+                                .font(.system(size: 40))
+                            Text("No posts yet")
+                                .font(.system(size: 15, weight: .semibold))
+                                .foregroundStyle(Theme.text2)
+                            Text("Follow some traders to see their posts here.")
+                                .font(.system(size: 13))
+                                .foregroundStyle(Theme.text3)
+                                .multilineTextAlignment(.center)
+                        }
+                        .padding(.vertical, 48)
+                        .frame(maxWidth: .infinity)
+                    } else {
+                        VStack(spacing: 12) {
+                            ForEach(Array(feedTraders.enumerated()), id: \.element.id) { i, trader in
+                                TraderPostCardV2(trader: trader, onTicker: onTicker)
+                                    .staggerEntrance(index: i)
+                            }
+                        }
+                        .padding(.horizontal, 14)
                     }
-                }
-                .padding(.horizontal, 14)
 
-                Color.clear.frame(height: 100)
+                    Color.clear.frame(height: 100)
+                }
             }
+            .background(Theme.bg)
+
+            // ── Floating Compose FAB ────────────────────────────────────
+            Button { } label: {
+                Image(systemName: "square.and.pencil")
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .frame(width: 52, height: 52)
+                    .background(Theme.accentGradient)
+                    .clipShape(Circle())
+                    .shadow(color: Theme.accent.opacity(0.4), radius: 12, y: 4)
+            }
+            .padding(.trailing, 20)
+            .padding(.bottom, 16)
         }
-        .background(Theme.bg)
         .sheet(item: $profileTrader) { trader in
             TraderProfileView(trader: trader, onTicker: onTicker)
         }
@@ -187,18 +201,55 @@ struct FeedView: View {
         }
     }
 
-    func statItem(_ value: String, _ label: String) -> some View {
-        VStack(spacing: 1) {
-            Text(value)
-                .font(.system(size: 17, weight: .bold))
-                .foregroundStyle(Theme.text)
-            Text(label)
-                .font(.system(size: 9, weight: .semibold))
-                .foregroundStyle(Theme.text3)
-                .textCase(.uppercase)
-                .kerning(0.5)
+    // MARK: - Navigation Header
+
+    var feedHeader: some View {
+        VStack(spacing: 12) {
+            // Line 1: Title + Bell
+            HStack {
+                Text("Feed")
+                    .font(.system(size: 28, weight: .bold))
+                    .foregroundStyle(Theme.text)
+                Spacer()
+                Button { } label: {
+                    Image(systemName: "bell")
+                        .font(.system(size: 20, weight: .semibold))
+                        .foregroundStyle(Theme.text2)
+                        .frame(width: 40, height: 40)
+                        .background(Theme.bg3)
+                        .clipShape(Circle())
+                }
+                .buttonStyle(.plain)
+            }
+
+            // Line 2: Pill segmented control
+            HStack(spacing: 0) {
+                ForEach(["Friends", "Trending", "Following"], id: \.self) { tab in
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.2)) { feedTab = tab }
+                    } label: {
+                        Text(tab)
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(feedTab == tab ? .white : Theme.text3)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 8)
+                            .background(feedTab == tab ? Theme.accent : Color.clear)
+                            .clipShape(Capsule())
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(3)
+            .background(Theme.bg3)
+            .clipShape(Capsule())
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
+        .padding(.horizontal, 18)
+        .padding(.top, 56)
+        .padding(.bottom, 14)
     }
+
+    // MARK: - Helper Views
 
     func perfItem(_ label: String, _ value: Double) -> some View {
         VStack(alignment: .leading, spacing: 5) {
@@ -260,6 +311,126 @@ struct FeedView: View {
         .clipShape(RoundedRectangle(cornerRadius: 22))
         .overlay(RoundedRectangle(cornerRadius: 22).stroke(Theme.border, lineWidth: 1))
         .shadow(color: .black.opacity(0.05), radius: 6, y: 2)
+    }
+}
+
+// MARK: - TraderPostCardV2
+
+struct TraderPostCardV2: View {
+    let trader: Trader
+    let onTicker: (String) -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+
+            // Header row
+            HStack(spacing: 10) {
+                Circle()
+                    .fill(LinearGradient(
+                        colors: [Theme.accent.opacity(0.8), Theme.accent2.opacity(0.6)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ))
+                    .frame(width: 40, height: 40)
+                    .overlay(
+                        Text(String(trader.name.prefix(1)))
+                            .font(.system(size: 16, weight: .black))
+                            .foregroundStyle(.white)
+                    )
+
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack(spacing: 6) {
+                        Text(trader.name)
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundStyle(Theme.text)
+                        if trader.isPro {
+                            Text("PRO")
+                                .font(.system(size: 9, weight: .black))
+                                .foregroundStyle(Theme.accent)
+                                .padding(.horizontal, 5)
+                                .padding(.vertical, 2)
+                                .background(Theme.accent.opacity(0.15))
+                                .clipShape(Capsule())
+                        }
+                    }
+                    HStack(spacing: 4) {
+                        Text(trader.handle)
+                            .font(.system(size: 12))
+                            .foregroundStyle(Theme.text3)
+                        Text("·")
+                            .foregroundStyle(Theme.text3)
+                        Text(trader.time)
+                            .font(.system(size: 12))
+                            .foregroundStyle(Theme.text3)
+                    }
+                }
+
+                Spacer()
+
+                // Today's return badge
+                VStack(alignment: .trailing, spacing: 1) {
+                    Text(trader.todayPct.fmtPct())
+                        .font(.system(size: 14, weight: .black))
+                        .foregroundStyle(trader.todayPct >= 0 ? Theme.gain : Theme.loss)
+                    Text("today")
+                        .font(.system(size: 9))
+                        .foregroundStyle(Theme.text3)
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 14)
+
+            // Post body — the "take"
+            let postText = trader.take.isEmpty ? trader.text : trader.take
+            Text(postText)
+                .font(.system(size: 14))
+                .foregroundStyle(Theme.text)
+                .lineSpacing(4)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 10)
+
+            // Holdings preview — tappable ticker chips with pct
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 6) {
+                    ForEach(trader.holdingDetails.prefix(4)) { h in
+                        Button { onTicker(h.ticker) } label: {
+                            HStack(spacing: 4) {
+                                Text(h.ticker)
+                                    .font(.system(size: 11, weight: .bold))
+                                    .foregroundStyle(Theme.text)
+                                Text("\(h.pct >= 0 ? "+" : "")\(String(format: "%.1f", h.pct))%")
+                                    .font(.system(size: 10, weight: .semibold))
+                                    .foregroundStyle(h.pct >= 0 ? Theme.gain : Theme.loss)
+                            }
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 5)
+                            .background(Theme.bg3)
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Theme.border, lineWidth: 1)
+                            )
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(.horizontal, 16)
+            }
+            .padding(.bottom, 10)
+
+            // Divider + reaction bar
+            Divider().overlay(Theme.border)
+            ReactionBar()
+                .padding(.horizontal, 16)
+                .padding(.vertical, 10)
+        }
+        .background(Theme.card)
+        .clipShape(RoundedRectangle(cornerRadius: 20))
+        .overlay(
+            RoundedRectangle(cornerRadius: 20)
+                .stroke(Theme.border, lineWidth: 1)
+        )
+        .shadow(color: .black.opacity(0.35), radius: 10, y: 4)
     }
 }
 
@@ -586,7 +757,7 @@ struct BadgeTile: View {
     }
 }
 
-// MARK: - Trader Post Card
+// MARK: - Trader Post Card (legacy — kept for TraderProfileView usage)
 
 struct TraderPostCard: View {
     @Environment(AppState.self) var appState
@@ -663,14 +834,14 @@ struct TraderPostCard: View {
                             .foregroundStyle(Theme.accent)
                             .padding(.horizontal, 10)
                             .padding(.vertical, 4)
-                            .background(Color(hex: "#EDEDFF"))
+                            .background(Theme.accent.opacity(0.12))
                             .clipShape(RoundedRectangle(cornerRadius: 8))
                     }
                 }
             }
             .padding(.bottom, 12)
 
-            // Feature 2: Reaction Bar
+            // Reaction Bar
             ReactionBar()
                 .padding(.bottom, 10)
 

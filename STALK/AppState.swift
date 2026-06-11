@@ -14,7 +14,7 @@ struct PriceAlertThreshold: Codable, Identifiable {
 struct STALKSettings: Codable {
     var theme: String = "indigo"
     var privacy: String = "public"
-    var darkMode: Bool = false
+    var darkMode: Bool = true
     var largeText: Bool = false
     var showValue: Bool = true
     var priceAlerts: Bool = true

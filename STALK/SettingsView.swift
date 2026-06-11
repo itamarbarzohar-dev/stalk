@@ -245,7 +245,7 @@ struct SettingsView: View {
             .padding(.vertical, 4)
 
             SettingsDivider()
-            SettingsToggleRow(icon: "🌙", label: "Dark Mode", sub: "Switch to dark background",
+            SettingsToggleRow(icon: "🌙", label: "Dark Mode", sub: "Recommended — STALK is designed for dark",
                               isOn: appState.settings.darkMode) {
                 appState.settings.darkMode.toggle()
                 appState.saveSettings()

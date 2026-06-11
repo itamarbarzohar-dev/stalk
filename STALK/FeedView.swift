@@ -1,18 +1,42 @@
 import SwiftUI
 
+// MARK: - FeedView
+
 struct FeedView: View {
     @Environment(AppState.self) var appState
     let onTicker: (String) -> Void
     @State private var profileTrader: Trader? = nil
+    @State private var storyTrader: Trader? = nil
 
     var totalValue: Double { appState.totalValue }
     var totalCost: Double { appState.totalCost }
     var allTimeRet: Double { totalCost > 0 ? ((totalValue - totalCost) / totalCost) * 100 : 0 }
 
+    // MARK: Achievements
+
+    var achievements: [AchievementBadge] {
+        [
+            AchievementBadge(icon: "📈", title: "First Gain",    unlocked: appState.totalValue > appState.totalCost),
+            AchievementBadge(icon: "💼", title: "5 Stocks",      unlocked: appState.positions.count >= 5),
+            AchievementBadge(icon: "🔥", title: "7-Day Streak",  unlocked: appState.streak >= 7),
+            AchievementBadge(icon: "🏆", title: "New ATH",       unlocked: appState.totalValue >= appState.portfolioATH && appState.portfolioATH > 0),
+            AchievementBadge(icon: "💎", title: "Diamond Hands", unlocked: appState.positions.contains { $0.avgCost > 0 }),
+            AchievementBadge(icon: "🤖", title: "AI User",       unlocked: appState.settings.aiMessagesUsed > 0),
+            AchievementBadge(icon: "⭐", title: "STALK Pro",     unlocked: appState.settings.isPro),
+        ]
+    }
+
     var body: some View {
         ScrollView {
             VStack(spacing: 0) {
-                // My Profile bar
+
+                // ── FEATURE 1: Stories Row ──────────────────────────────
+                StoriesRow(
+                    appState: appState,
+                    onStoryTap: { trader in storyTrader = trader }
+                )
+
+                // ── My Profile bar ──────────────────────────────────────
                 HStack(spacing: 14) {
                     Circle()
                         .fill(Theme.accentGradient)
@@ -51,7 +75,45 @@ struct FeedView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .overlay(alignment: .bottom) { Divider() }
 
-                // My performance
+                // ── FEATURE 4: Streak Banner ────────────────────────────
+                if appState.streak >= 1 {
+                    HStack(spacing: 10) {
+                        Text("🔥")
+                            .font(.system(size: 28))
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("\(appState.streak)-day streak")
+                                .font(.system(size: 15, weight: .black))
+                                .foregroundStyle(Theme.text)
+                            Text("You've checked STALK \(appState.streak) days in a row. Keep it up!")
+                                .font(.system(size: 11))
+                                .foregroundStyle(Theme.text2)
+                        }
+                        Spacer()
+                        Text("+\(appState.streak * 5) XP")
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundStyle(Theme.gold)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 4)
+                            .background(Theme.gold.opacity(0.15))
+                            .clipShape(Capsule())
+                    }
+                    .padding(14)
+                    .background(LinearGradient(
+                        colors: [Color(hex: "#F97316").opacity(0.12), Color(hex: "#EA580C").opacity(0.06)],
+                        startPoint: .leading, endPoint: .trailing
+                    ))
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                    .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color(hex: "#F97316").opacity(0.25), lineWidth: 1))
+                    .padding(.horizontal, 14)
+                    .padding(.top, 12)
+                }
+
+                // ── FEATURE 5: Achievement Badges ───────────────────────
+                AchievementsRow(badges: achievements)
+                    .padding(.top, 10)
+                    .padding(.bottom, 4)
+
+                // ── My performance ──────────────────────────────────────
                 VStack(alignment: .leading, spacing: 0) {
                     Text("My Performance")
                         .font(.system(size: 10, weight: .bold))
@@ -88,6 +150,13 @@ struct FeedView: View {
 
                 Divider().padding(.vertical, 4)
 
+                // ── FEATURE 3: Leaderboard ──────────────────────────────
+                LeaderboardSection()
+                    .padding(.horizontal, 14)
+                    .padding(.bottom, 16)
+
+                Divider().padding(.vertical, 4)
+
                 // Following label
                 Text("Following")
                     .font(.system(size: 10, weight: .bold))
@@ -111,6 +180,9 @@ struct FeedView: View {
         }
         .background(Theme.bg)
         .sheet(item: $profileTrader) { trader in
+            TraderProfileView(trader: trader, onTicker: onTicker)
+        }
+        .sheet(item: $storyTrader) { trader in
             TraderProfileView(trader: trader, onTicker: onTicker)
         }
     }
@@ -188,6 +260,329 @@ struct FeedView: View {
         .clipShape(RoundedRectangle(cornerRadius: 22))
         .overlay(RoundedRectangle(cornerRadius: 22).stroke(Theme.border, lineWidth: 1))
         .shadow(color: .black.opacity(0.05), radius: 6, y: 2)
+    }
+}
+
+// MARK: - Feature 1: Stories Row
+
+struct StoriesRow: View {
+    let appState: AppState
+    let onStoryTap: (Trader) -> Void
+
+    var body: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 16) {
+                // "Your Story" — the user's own
+                StoryRing(
+                    initial: "I",
+                    name: "You",
+                    ringColor: appState.todayPnlPct >= 0 ? Theme.gain : Theme.loss,
+                    pct: appState.todayPnlPct,
+                    isOwn: true,
+                    onTap: {}
+                )
+                // Other traders
+                ForEach(FEED_TRADERS.prefix(8)) { trader in
+                    StoryRing(
+                        initial: String(trader.name.prefix(1)),
+                        name: trader.name.components(separatedBy: " ").first ?? trader.name,
+                        ringColor: trader.todayPct >= 0 ? Theme.gain : Theme.loss,
+                        pct: trader.todayPct,
+                        isOwn: false,
+                        onTap: { onStoryTap(trader) }
+                    )
+                }
+            }
+            .padding(.horizontal, 18)
+            .padding(.vertical, 14)
+        }
+    }
+}
+
+struct StoryRing: View {
+    let initial: String
+    let name: String
+    let ringColor: Color
+    let pct: Double
+    let isOwn: Bool
+    let onTap: () -> Void
+    @State private var appeared = false
+
+    var body: some View {
+        Button(action: onTap) {
+            VStack(spacing: 5) {
+                ZStack {
+                    Circle()
+                        .stroke(ringColor, lineWidth: 3)
+                        .frame(width: 64, height: 64)
+                    Circle()
+                        .fill(
+                            LinearGradient(
+                                colors: [Theme.accent.opacity(0.6), Theme.accent2.opacity(0.4)],
+                                startPoint: .topLeading, endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 56, height: 56)
+                    Text(initial)
+                        .font(.system(size: 22, weight: .black))
+                        .foregroundStyle(.white)
+                }
+                Text(name)
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundStyle(Theme.text2)
+                    .lineLimit(1)
+                Text(pct.fmtPct())
+                    .font(.system(size: 9, weight: .bold))
+                    .foregroundStyle(pct >= 0 ? Theme.gain : Theme.loss)
+            }
+            .frame(width: 68)
+            .opacity(appeared ? 1 : 0)
+            .scaleEffect(appeared ? 1 : 0.8)
+        }
+        .buttonStyle(.plain)
+        .onAppear {
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) { appeared = true }
+        }
+    }
+}
+
+// MARK: - Feature 2: Reaction Bar
+
+struct ReactionBar: View {
+    @State private var reactions: [String: Int] = ["🔥": 24, "📈": 18, "💎": 31, "😱": 7]
+    @State private var tapped: String? = nil
+
+    let emojis = ["🔥", "📈", "💎", "😱"]
+
+    var body: some View {
+        HStack(spacing: 8) {
+            ForEach(emojis, id: \.self) { emoji in
+                Button {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.5)) {
+                        if tapped == emoji {
+                            tapped = nil
+                            reactions[emoji, default: 0] -= 1
+                        } else {
+                            if let prev = tapped { reactions[prev, default: 1] -= 1 }
+                            tapped = emoji
+                            reactions[emoji, default: 0] += 1
+                        }
+                    }
+                } label: {
+                    HStack(spacing: 4) {
+                        Text(emoji).font(.system(size: 14))
+                        Text("\(reactions[emoji, default: 0])")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(tapped == emoji ? Theme.accent : Theme.text3)
+                    }
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .background(tapped == emoji ? Theme.accent.opacity(0.15) : Theme.bg3)
+                    .clipShape(Capsule())
+                    .overlay(Capsule().stroke(tapped == emoji ? Theme.accent.opacity(0.4) : Color.clear, lineWidth: 1))
+                    .scaleEffect(tapped == emoji ? 1.05 : 1.0)
+                }
+                .buttonStyle(.plain)
+            }
+            Spacer()
+        }
+    }
+}
+
+// MARK: - Feature 3: Leaderboard
+
+struct LeaderboardSection: View {
+    @State private var period: LeaderboardPeriod = .today
+    @Environment(AppState.self) var appState
+
+    enum LeaderboardPeriod: String, CaseIterable {
+        case today = "Today"
+        case week = "This Week"
+        case allTime = "All Time"
+    }
+
+    var traders: [Trader] {
+        switch period {
+        case .today:
+            return FEED_TRADERS.sorted { $0.todayPct > $1.todayPct }
+        case .week:
+            return FEED_TRADERS.sorted { $0.weekPct > $1.weekPct }
+        case .allTime:
+            return FEED_TRADERS.sorted { $0.allTimeReturn > $1.allTimeReturn }
+        }
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Leaderboard")
+                .font(.system(size: 10, weight: .bold))
+                .foregroundStyle(Theme.text3)
+                .textCase(.uppercase)
+                .kerning(1.3)
+
+            // Period picker
+            HStack(spacing: 0) {
+                ForEach(LeaderboardPeriod.allCases, id: \.self) { p in
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.2)) { period = p }
+                    } label: {
+                        Text(p.rawValue)
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundStyle(period == p ? .white : Theme.text3)
+                            .padding(.vertical, 8)
+                            .frame(maxWidth: .infinity)
+                            .background(period == p ? Theme.accent : Color.clear)
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(4)
+            .background(Theme.bg3)
+            .clipShape(RoundedRectangle(cornerRadius: 14))
+
+            // Leaderboard rows
+            ForEach(Array(traders.prefix(10).enumerated()), id: \.offset) { i, trader in
+                LeaderboardRow(rank: i + 1, trader: trader, period: period)
+                    .staggerEntrance(index: i)
+            }
+        }
+        .padding(16)
+        .background(Theme.card)
+        .clipShape(RoundedRectangle(cornerRadius: 20))
+        .overlay(RoundedRectangle(cornerRadius: 20).stroke(Theme.border, lineWidth: 1))
+    }
+}
+
+struct LeaderboardRow: View {
+    let rank: Int
+    let trader: Trader
+    let period: LeaderboardSection.LeaderboardPeriod
+
+    var returnPct: Double {
+        switch period {
+        case .today: return trader.todayPct
+        case .week: return trader.weekPct
+        case .allTime: return trader.allTimeReturn
+        }
+    }
+
+    var rankColor: Color {
+        switch rank {
+        case 1: return Theme.gold
+        case 2: return Color(hex: "#C0C0C0")
+        case 3: return Color(hex: "#CD7F32")
+        default: return Theme.text3
+        }
+    }
+
+    var body: some View {
+        HStack(spacing: 12) {
+            // Rank
+            Text(rank <= 3 ? ["🥇", "🥈", "🥉"][rank - 1] : "\(rank)")
+                .font(.system(size: rank <= 3 ? 18 : 13, weight: .bold))
+                .foregroundStyle(rankColor)
+                .frame(width: 28)
+
+            // Avatar
+            Circle()
+                .fill(LinearGradient(
+                    colors: [Theme.accent.opacity(0.7), Theme.accent2.opacity(0.5)],
+                    startPoint: .topLeading, endPoint: .bottomTrailing
+                ))
+                .frame(width: 36, height: 36)
+                .overlay(
+                    Text(String(trader.name.prefix(1)))
+                        .font(.system(size: 14, weight: .black))
+                        .foregroundStyle(.white)
+                )
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(trader.name)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(Theme.text)
+                Text(trader.topHolding)
+                    .font(.system(size: 11))
+                    .foregroundStyle(Theme.text3)
+            }
+
+            Spacer()
+
+            Text(returnPct.fmtPct())
+                .font(.system(size: 15, weight: .black))
+                .foregroundStyle(returnPct >= 0 ? Theme.gain : Theme.loss)
+                .monospacedDigit()
+        }
+    }
+}
+
+// MARK: - Feature 5: Achievement Badges
+
+struct AchievementBadge: Identifiable {
+    let id = UUID()
+    let icon: String
+    let title: String
+    let unlocked: Bool
+}
+
+struct AchievementsRow: View {
+    let badges: [AchievementBadge]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Achievements")
+                .font(.system(size: 10, weight: .bold))
+                .foregroundStyle(Theme.text3)
+                .textCase(.uppercase)
+                .kerning(1.3)
+                .padding(.horizontal, 14)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 10) {
+                    ForEach(badges) { badge in
+                        BadgeTile(badge: badge)
+                    }
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 4)
+            }
+        }
+    }
+}
+
+struct BadgeTile: View {
+    let badge: AchievementBadge
+    @State private var appeared = false
+
+    var body: some View {
+        VStack(spacing: 6) {
+            ZStack {
+                Circle()
+                    .fill(badge.unlocked ? Theme.accentBg : Theme.bg3)
+                    .frame(width: 48, height: 48)
+                Text(badge.icon)
+                    .font(.system(size: 22))
+                    .opacity(badge.unlocked ? 1.0 : 0.35)
+                if !badge.unlocked {
+                    Image(systemName: "lock.fill")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundStyle(Theme.text4)
+                        .offset(x: 14, y: 14)
+                }
+            }
+            Text(badge.title)
+                .font(.system(size: 9, weight: .semibold))
+                .foregroundStyle(badge.unlocked ? Theme.text2 : Theme.text4)
+                .lineLimit(1)
+                .frame(width: 56)
+                .multilineTextAlignment(.center)
+        }
+        .frame(width: 60)
+        .opacity(appeared ? 1 : 0)
+        .scaleEffect(appeared ? 1 : 0.85)
+        .onAppear {
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.7).delay(0.05)) { appeared = true }
+        }
     }
 }
 
@@ -274,6 +669,10 @@ struct TraderPostCard: View {
                 }
             }
             .padding(.bottom, 12)
+
+            // Feature 2: Reaction Bar
+            ReactionBar()
+                .padding(.bottom, 10)
 
             // Actions
             Divider()
@@ -413,7 +812,7 @@ struct TraderProfileView: View {
                         } label: {
                             Text(isFollowed ? "Following" : "Follow")
                                 .font(.system(size: 15, weight: .bold))
-                                .foregroundStyle(isFollowed ? .white : .white)
+                                .foregroundStyle(.white)
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 12)
                                 .background(Theme.accentGradient)

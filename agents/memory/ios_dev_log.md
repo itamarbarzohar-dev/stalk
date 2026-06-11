@@ -199,3 +199,53 @@ https://github.com/itamarbarzohar-dev/stalk/pull/3
 
 ### Build Status
 `** BUILD SUCCEEDED **` — iOS Simulator, zero errors, one pre-existing Info.plist warning
+
+---
+
+## 2026-06-11 — Social Feed Features Sprint (Instagram/TikTok vibes)
+
+### Features Delivered
+
+**Feature 1: Stories Row (`FeedView.swift`)**
+- `StoriesRow` struct — horizontal `ScrollView` above the profile bar
+- `StoryRing` component: 64pt outer ring (gain green / loss red), 56pt avatar circle with accent gradient fill, name + pct% label below
+- "You" ring uses `appState.todayPnlPct` ring color; trader rings use `trader.todayPct`
+- Spring pop-in entrance animation on each ring (`appeared` state, 0.8→1.0 scale)
+- Tapping trader ring opens `TraderProfileView` as a sheet via `storyTrader` state on `FeedView`
+
+**Feature 2: Reaction Bar (`FeedView.swift`)**
+- `ReactionBar` struct: 🔥 📈 💎 😱 emojis, each with initial mock counts
+- Tap to select/deselect: increments/decrements count, mutually exclusive (previous selection cleared)
+- Selected state: `Theme.accent.opacity(0.15)` fill + accent border + 1.05 scaleEffect
+- `.spring(response: 0.3, dampingFraction: 0.5)` animation on toggle
+- Added to bottom of each `TraderPostCard`, above the Divider/action row
+
+**Feature 3: Leaderboard Section (`FeedView.swift`)**
+- `LeaderboardSection` struct with `LeaderboardPeriod` enum: Today / This Week / All Time
+- Custom segmented picker: accent-filled active segment, `Theme.bg3` pill container
+- Animated period switch via `.easeInOut(duration: 0.2)` + state mutation
+- `LeaderboardRow`: 🥇🥈🥉 medals for top 3, gradient avatar circle, trader name + topHolding, return% right-aligned in gain/loss color
+- Rows use `.staggerEntrance(index:)` for staggered entrance on period change
+- Sorted live from `FEED_TRADERS` by chosen period metric
+- Inserted between Holdings strip and Following section in `FeedView`
+
+**Feature 4: Daily Streak Banner (`FeedView.swift`)**
+- `if appState.streak >= 1` conditional banner below the profile header
+- Orange `LinearGradient` tinted background with matching border stroke
+- Shows streak count, motivational copy, "+N XP" capsule badge using `Theme.gold`
+- Added `.padding(.top, 12)` above achievements row
+
+**Feature 5: Achievement Badges Row (`FeedView.swift`)**
+- `AchievementBadge` struct with `icon`, `title`, `unlocked`
+- `AchievementsRow`: horizontal `ScrollView` of `BadgeTile` views
+- Unlocked: full opacity + `Theme.accentBg` circle fill; locked: 35% opacity + `lock.fill` SF symbol overlay
+- 7 achievements computed from live `appState` data: First Gain, 5 Stocks, 7-Day Streak, New ATH, Diamond Hands, AI User, STALK Pro
+- Spring scale entrance animation per badge
+
+**Models.swift additions**
+- `Trader` struct: added `weekPct: Double` stored property, `todayPct` / `allTimeReturn` / `topHolding` computed properties
+- Updated all 4 existing `TRADERS` entries with `weekPct` values
+- Added `FEED_TRADERS`: extends `TRADERS` with 4 more traders (James T., Priya N., David K., Nina H.) — 8 total for stories and leaderboard
+
+### Build Status
+`** BUILD SUCCEEDED **` — no errors, only pre-existing QuoteService actor-isolation warnings (not our code)

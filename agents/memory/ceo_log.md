@@ -70,3 +70,77 @@ Once this sprint's tasks come back:
 4. If Itamar has enrolled in Apple Developer: file App Store submission checklist task
 
 ---
+
+## Session: 2026-06-09 (Session 2)
+
+### Opening state
+
+Good progress from Session 1. Jordan shipped BYOK AI and price alert UI. Luna completed the UX audit. Rex and Sam converged on a business model: **freemium subscription + broker affiliate**. Dark mode was broken (tab bar invisible) — Jordan fixed it. App is in a strong state heading into this session.
+
+What Session 1 built:
+- Real Claude AI wired via BYOK + Keychain
+- Price alert threshold UI per stock
+- Full UX design system with exact hex/animation specs from Luna
+- Business model locked: freemium sub + broker affiliate referrals
+- Dark mode: tab bar now visible in dark mode (Jordan's fix)
+
+### Directives received from Itamar
+
+1. Fix dark mode (tab bar invisible) — confirmed fixed by Jordan
+2. Make the app more addictive
+3. Add all features available in Perplexity Finance
+4. Agents should work on the business model
+
+### What I did this session
+
+**1. Updated COMPANY_STATE.md**
+- Marked BYOK AI, price alert UI, and dark mode as Done
+- Added 5 in-progress features: Sector Heat Map, AI Market Context, Portfolio Health Score, Earnings Calendar, Trending Tickers
+- Updated sprint goals to reflect Perplexity Finance integration directive
+- Cleaned up blockers (BYOK blocker resolved)
+- Updated last agent activity log
+
+**2. Created feature_backlog.md**
+Full prioritized product roadmap filed at `agents/memory/product/feature_backlog.md`.
+
+Key decisions embedded in the backlog:
+- **42 features** cataloged across P0/P1/P2
+- **P0 (12 features):** All done or in progress — this is the launch-ready core
+- **P1 (16 features):** The addictiveness engine. Targets daily habit formation through variable reward, progress loops, social proof, and anticipation.
+- **P2 (14 features):** Moat-builders. Social graph, broker integrations, options data, tax tools.
+
+**Perplexity Finance parity:** Mapped all Perplexity Finance features to STALK equivalents. We match everything they do (all planned or in progress) and have 5 structural advantages they cannot replicate: portfolio-aware AI, gamification layer, native iOS UX, freemium model, and broker affiliate monetization.
+
+**Addictiveness design principles documented** — 7 psychological mechanisms that drive daily opens: variable reward, progress/score, loss aversion, social proof, anticipation loops, morning ritual anchoring, AI as companion.
+
+### Decisions made this session
+
+- **Business model is locked:** Freemium subscription + broker affiliate. No further analysis needed. Rex should now focus on execution — identify which brokers to partner with first (Robinhood, IBKR, Tastytrade), draft referral CTA copy, spec the in-app placement.
+- **Sprint 2 focus is addictiveness:** The 5 in-progress features (Heat Map, AI Context, Health Score, Earnings Calendar, Trending) are the right first wave. Each one targets a distinct retention mechanism.
+- **No new backend work this sprint:** Maya's backend decision stands. We build on local-first for now; social features and cross-device sync wait until post-launch signal justifies the infra cost.
+
+### What I'm watching
+
+1. **Portfolio Health Score** — highest leverage of the 5 new features. A score users can improve is a game. A game users play daily. Jordan needs to get the scoring algorithm right — it cannot feel arbitrary. Penalize concentration, reward diversification, reward long-term holding. Make the maximum score feel achievable but require work.
+
+2. **Earnings Calendar accuracy** — if we show wrong earnings dates, users will uninstall. This needs a reliable data source. Jordan needs to flag the data provider decision before building.
+
+3. **Rex on broker affiliate** — the business model is decided but the execution is not. Who do we partner with first? What's the referral fee structure? Where does the CTA live in the app? This is revenue-path-critical and I want a concrete plan this sprint.
+
+4. **Feature creep risk** — Perplexity Finance has a lot of features. We should not build all 42 features before launch. The goal is: launch with P0 complete + the 5 current P1 features shipping. That's a strong v1. Everything else is post-launch.
+
+### What needs Itamar's input (no action from agents)
+
+- Apple Developer Program enrollment — still blocked. This is the single longest-lead-time item for launch.
+- Which broker affiliate partners to pursue first — Itamar may have preferences or existing relationships
+- App icon — Luna has the spec, but execution (design tool, hire, or AI generation) is a founder call
+- Launch timing — do we launch with this feature set or wait for more P1 features?
+
+### Next session priorities
+
+1. Review Jordan's 5 in-progress features — ship them, verify quality
+2. Get Rex's broker affiliate execution plan — concrete partner targets and CTA spec
+3. Surface a launch readiness checklist to Itamar once the 5 features are done
+4. Begin App Store listing preparation (screenshots, copy) so it's ready the moment Apple Dev account is active
+
+---

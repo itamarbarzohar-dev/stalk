@@ -10,10 +10,14 @@ struct PortfolioView: View {
         ScrollView {
             VStack(spacing: 0) {
                 PortfolioHero()
-                    .padding(.bottom, 12)
+                    .padding(.bottom, 8)
 
                 if !appState.positions.isEmpty {
                     AIAgentCard()
+                        .padding(.horizontal, 14)
+                        .padding(.bottom, 8)
+
+                    PortfolioHealthCard()
                         .padding(.horizontal, 14)
                         .padding(.bottom, 8)
 
@@ -62,6 +66,7 @@ struct PortfolioView: View {
 struct PortfolioHero: View {
     @Environment(AppState.self) var appState
     @State private var now = Date()
+    @State private var athPulse = false
     let timer = Timer.publish(every: 30, on: .main, in: .common).autoconnect()
 
     var marketStatus: MarketStatus { MarketCalendar.status(at: now) }
@@ -69,118 +74,194 @@ struct PortfolioHero: View {
     var fromATH: Double { appState.portfolioATH - appState.totalValue }
 
     var body: some View {
-        ZStack(alignment: .top) {
-            appState.heroGradient
+        VStack(alignment: .leading, spacing: 0) {
 
-            VStack(alignment: .leading, spacing: 0) {
-
-                // Top bar
-                HStack(spacing: 10) {
-                    Text("STALK")
-                        .font(.system(size: 13, weight: .black))
-                        .foregroundStyle(.white.opacity(0.9))
-                        .kerning(5)
-                    Spacer()
-                    Button { appState.showDailyBrief = true } label: {
-                        HStack(spacing: 5) {
-                            Text("📋").font(.system(size: 13))
-                            Text("Daily Brief").font(.system(size: 12, weight: .bold)).foregroundStyle(.white)
-                        }
-                        .padding(.horizontal, 13).padding(.vertical, 7)
-                        .background(.white.opacity(0.18)).clipShape(Capsule())
+            // Top utility bar — settings + daily brief
+            HStack(spacing: 10) {
+                Text("PORTFOLIO")
+                    .font(.system(size: 11, weight: .black))
+                    .foregroundStyle(Theme.text3)
+                    .kerning(2)
+                Spacer()
+                Button { appState.showDailyBrief = true } label: {
+                    HStack(spacing: 5) {
+                        Text("📋").font(.system(size: 12))
+                        Text("Brief").font(.system(size: 12, weight: .bold)).foregroundStyle(Theme.text2)
                     }
-                    Button { appState.showSettings = true } label: {
-                        Image(systemName: "gearshape.fill").font(.system(size: 15))
-                            .foregroundStyle(.white.opacity(0.85))
-                            .frame(width: 34, height: 34)
-                            .background(.white.opacity(0.18)).clipShape(Circle())
-                    }
+                    .padding(.horizontal, 12).padding(.vertical, 6)
+                    .background(Theme.card)
+                    .clipShape(Capsule())
+                    .overlay(Capsule().stroke(Theme.border, lineWidth: 1))
                 }
-                .padding(.bottom, 16)
-
-                // Market status pill
-                HStack(spacing: 6) {
-                    Circle().fill(marketStatus.dotColor).frame(width: 7, height: 7)
-                        .overlay(
-                            Circle().fill(marketStatus.dotColor.opacity(0.3))
-                                .frame(width: 13, height: 13)
-                                .opacity(marketStatus.isLive ? 1 : 0)
-                        )
-                    Text(marketStatus.label)
-                        .font(.system(size: 11, weight: .bold))
-                        .foregroundStyle(.white.opacity(0.9))
-                    Text("·")
-                        .foregroundStyle(.white.opacity(0.4))
-                        .font(.system(size: 11))
-                    Text(marketStatus.subtitle)
-                        .font(.system(size: 11))
-                        .foregroundStyle(.white.opacity(0.65))
-                }
-                .padding(.bottom, 14)
-
-                // Value
-                Text("Total Portfolio Value")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(.white.opacity(0.65))
-                    .padding(.bottom, 4)
-                Text(appState.totalValue.fmtPrice())
-                    .font(.system(size: 44, weight: .heavy))
-                    .foregroundStyle(.white)
-                    .minimumScaleFactor(0.5)
-
-                if appState.totalCost > 0 {
-                    let isGain = appState.totalPnl >= 0
-                    Text("\(isGain ? "+" : "")\(appState.totalPnl.fmtPrice())  \(appState.totalPnlPct.fmtPct())")
-                        .font(.system(size: 14, weight: .bold)).foregroundStyle(.white)
-                        .padding(.horizontal, 14).padding(.vertical, 6)
-                        .background(isGain ? .white.opacity(0.2) : Color(hex: "#E5534B").opacity(0.35))
-                        .clipShape(Capsule())
-                        .padding(.top, 10)
-
-                    // Stat pills
-                    HStack(spacing: 8) {
-                        pill("Today", appState.todayPnlPct.fmtPct(),
-                             accent: appState.todayPnl >= 0 ? .white.opacity(0.22) : Color(hex: "#E5534B").opacity(0.35))
-
-                        if isATH {
-                            pill("🏆 NEW ATH!", "", accent: Color(hex: "#F59E0B").opacity(0.7))
-                        } else if fromATH > 0 && appState.portfolioATH > 0 {
-                            pill("From ATH", "-\(fromATH.fmtPrice())", accent: .white.opacity(0.15))
-                        }
-
-                        if appState.streak > 1 {
-                            pill("Streak", "🔥 \(appState.streak)d", accent: .white.opacity(0.15))
-                        }
-                    }
-                    .padding(.top, 10)
-                }
-
-                if !appState.positions.isEmpty {
-                    AllocBar().padding(.top, 16)
+                Button { appState.showSettings = true } label: {
+                    Image(systemName: "gearshape.fill").font(.system(size: 15))
+                        .foregroundStyle(Theme.text3)
+                        .frame(width: 34, height: 34)
+                        .background(Theme.card)
+                        .clipShape(Circle())
+                        .overlay(Circle().stroke(Theme.border, lineWidth: 1))
                 }
             }
             .padding(.horizontal, 20)
             .padding(.top, 52)
-            .padding(.bottom, 28)
-        }
-        .overlay(alignment: .bottom) {
-            RoundedRectangle(cornerRadius: 36).fill(Theme.bg).frame(height: 36).offset(y: 18)
-        }
-        .onReceive(timer) { now = $0 }
-    }
+            .padding(.bottom, 20)
 
-    func pill(_ label: String, _ value: String, accent: Color) -> some View {
-        VStack(spacing: 1) {
-            if value.isEmpty {
-                Text(label).font(.system(size: 12, weight: .bold)).foregroundStyle(.white)
-            } else {
-                Text(value).font(.system(size: 13, weight: .bold)).foregroundStyle(.white)
-                Text(label).font(.system(size: 10, weight: .semibold)).foregroundStyle(.white.opacity(0.65))
+            // Portfolio value — clean, no gradient box
+            VStack(alignment: .leading, spacing: 2) {
+                Text(appState.totalValue.fmtPrice())
+                    .font(.system(size: 44, weight: .black))
+                    .foregroundStyle(Theme.text)
+                    .monospacedDigit()
+                    .contentTransition(.numericText())
+                    .animation(.spring(response: 0.4, dampingFraction: 0.8), value: appState.totalValue)
+                    .minimumScaleFactor(0.45)
+                    .lineLimit(1)
+
+                // P&L + market status on one line
+                if appState.totalCost > 0 {
+                    let isGain = appState.totalPnl >= 0
+                    let pnlColor = isGain ? Theme.gain : Theme.loss
+                    let pnlSign = isGain ? "+" : ""
+
+                    HStack(spacing: 10) {
+                        Text("\(pnlSign)\(appState.totalPnl.fmtPrice()) (\(appState.totalPnlPct.fmtPct())) All-time")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(pnlColor)
+                            .monospacedDigit()
+                            .contentTransition(.numericText())
+                            .animation(.spring(response: 0.4, dampingFraction: 0.8), value: appState.totalPnl)
+
+                        // Market status pill inline
+                        HStack(spacing: 5) {
+                            Circle().fill(marketStatus.dotColor).frame(width: 6, height: 6)
+                                .overlay(
+                                    Circle().fill(marketStatus.dotColor.opacity(0.3))
+                                        .frame(width: 11, height: 11)
+                                        .opacity(marketStatus.isLive ? 1 : 0)
+                                )
+                            Text(marketStatus.label)
+                                .font(.system(size: 10, weight: .bold))
+                                .foregroundStyle(Theme.text3)
+                        }
+                        .padding(.horizontal, 9)
+                        .padding(.vertical, 4)
+                        .background(Theme.card)
+                        .clipShape(Capsule())
+                        .overlay(Capsule().stroke(Theme.border, lineWidth: 1))
+                    }
+                    .padding(.top, 4)
+
+                    // Today P&L + badges
+                    HStack(spacing: 8) {
+                        let todayIsGain = appState.todayPnl >= 0
+                        let todayColor = todayIsGain ? Theme.gain : Theme.loss
+                        HStack(spacing: 4) {
+                            Text("Today")
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundStyle(Theme.text3)
+                            Text(appState.todayPnlPct.fmtPct())
+                                .font(.system(size: 12, weight: .black))
+                                .foregroundStyle(todayColor)
+                        }
+                        .padding(.horizontal, 10).padding(.vertical, 5)
+                        .background(todayColor.opacity(0.10))
+                        .clipShape(Capsule())
+
+                        if isATH {
+                            HStack(spacing: 4) {
+                                Text("🏆")
+                                    .font(.system(size: 11))
+                                Text("NEW ATH")
+                                    .font(.system(size: 10, weight: .black))
+                                    .foregroundStyle(Theme.gold)
+                                    .kerning(0.5)
+                            }
+                            .padding(.horizontal, 10).padding(.vertical, 5)
+                            .background(Theme.gold.opacity(0.12))
+                            .clipShape(Capsule())
+                            .overlay(Capsule().stroke(Theme.gold.opacity(0.3), lineWidth: 1))
+                            .scaleEffect(athPulse ? 1.04 : 1.0)
+                            .animation(.easeInOut(duration: 0.9).repeatForever(autoreverses: true), value: athPulse)
+                            .onAppear { athPulse = true }
+                        } else if fromATH > 0 && appState.portfolioATH > 0 {
+                            HStack(spacing: 4) {
+                                Text("From ATH")
+                                    .font(.system(size: 10, weight: .semibold))
+                                    .foregroundStyle(Theme.text3)
+                                Text("-\(fromATH.fmtPrice())")
+                                    .font(.system(size: 11, weight: .bold))
+                                    .foregroundStyle(Theme.text2)
+                            }
+                            .padding(.horizontal, 10).padding(.vertical, 5)
+                            .background(Theme.card)
+                            .clipShape(Capsule())
+                        }
+
+                        if appState.streak > 1 {
+                            HStack(spacing: 4) {
+                                Text("🔥").font(.system(size: 12))
+                                Text("\(appState.streak)d").font(.system(size: 12, weight: .black)).foregroundStyle(.white)
+                            }
+                            .padding(.horizontal, 10).padding(.vertical, 5)
+                            .background(LinearGradient(colors: [Color(hex: "#F97316"), Color(hex: "#EA580C")], startPoint: .leading, endPoint: .trailing))
+                            .clipShape(Capsule())
+                        }
+                    }
+                    .padding(.top, 8)
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.bottom, 14)
+
+            if !appState.positions.isEmpty {
+                AllocBar()
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 6)
             }
         }
-        .padding(.horizontal, 13).padding(.vertical, 7)
-        .background(accent).clipShape(RoundedRectangle(cornerRadius: 12))
+        .background(Theme.bg)
+        .onReceive(timer) { now = $0 }
     }
+}
+
+// MARK: - Mini Sparkline
+
+struct MiniSparkline: View {
+    let points: [Double]  // normalized 0-1 values
+    let color: Color
+
+    var body: some View {
+        Canvas { ctx, size in
+            guard points.count > 1 else { return }
+            let step = size.width / CGFloat(points.count - 1)
+            var path = Path()
+            path.move(to: CGPoint(x: 0, y: size.height * (1 - points[0])))
+            for i in 1..<points.count {
+                path.addLine(to: CGPoint(x: CGFloat(i) * step, y: size.height * (1 - points[i])))
+            }
+            ctx.stroke(path, with: .color(color), lineWidth: 1.5)
+        }
+        .frame(width: 44, height: 22)
+    }
+}
+
+// Returns a deterministic pseudo-random sparkline seeded from the ticker string
+private func sparklinePoints(ticker: String, trending: Bool) -> [Double] {
+    var seed = ticker.unicodeScalars.reduce(0) { $0 &+ Int($1.value) }
+    func nextRand() -> Double {
+        seed = seed &* 1664525 &+ 1013904223
+        return Double(seed & 0x7FFFFFFF) / Double(0x7FFFFFFF)
+    }
+    var vals: [Double] = [nextRand()]
+    for _ in 1..<8 {
+        let delta = (nextRand() - 0.5) * 0.25
+        vals.append(max(0.05, min(0.95, vals.last! + delta)))
+    }
+    // Normalize to 0-1
+    let lo = vals.min()!
+    let hi = vals.max()!
+    let range = max(hi - lo, 0.001)
+    return vals.map { ($0 - lo) / range }
 }
 
 // MARK: - Alloc Bar
@@ -224,8 +305,9 @@ struct PositionsList: View {
             .frame(maxWidth: .infinity)
         } else {
             VStack(spacing: 10) {
-                ForEach(appState.positions) { position in
+                ForEach(Array(appState.positions.enumerated()), id: \.element.id) { index, position in
                     PositionCard(position: position, onTap: { onTicker(position.ticker) })
+                        .staggerEntrance(index: index)
                 }
 
                 Text("Long-press a card to delete")
@@ -260,6 +342,9 @@ struct PositionCard: View {
     }
 
     var body: some View {
+        let sparkColor = isUp ? Theme.gain : Theme.loss
+        let sparkPoints = sparklinePoints(ticker: position.ticker, trending: isUp)
+
         HStack(spacing: 0) {
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 8) {
@@ -305,19 +390,26 @@ struct PositionCard: View {
 
             Spacer()
 
-            VStack(alignment: .trailing, spacing: 3) {
-                Text(value.fmtPrice())
-                    .font(.system(size: 15, weight: .bold))
-                    .foregroundStyle(Theme.text)
+            // Sparkline + price stack
+            ZStack(alignment: .trailing) {
+                // Subtle sparkline behind numbers
+                MiniSparkline(points: sparkPoints, color: sparkColor.opacity(0.55))
+                    .offset(x: 0, y: -2)
 
-                Text(pnl.fmtChange())
-                    .font(.system(size: 12, weight: .bold))
-                    .foregroundStyle(isUp ? Theme.gain : Theme.loss)
+                VStack(alignment: .trailing, spacing: 3) {
+                    Text(value.fmtPrice())
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundStyle(Theme.text)
 
-                if let q = quote {
-                    Text("Today \(q.changePercent.fmtPct())")
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(dayIsUp ? Theme.gain : Theme.loss)
+                    Text(pnl.fmtChange())
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundStyle(isUp ? Theme.gain : Theme.loss)
+
+                    if let q = quote {
+                        Text("Today \(q.changePercent.fmtPct())")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(dayIsUp ? Theme.gain : Theme.loss)
+                    }
                 }
             }
         }
@@ -1144,6 +1236,173 @@ struct LiveFeedCard: View {
         .clipShape(RoundedRectangle(cornerRadius: 24))
         .overlay(RoundedRectangle(cornerRadius: 24).stroke(Theme.border, lineWidth: 1))
         .shadow(color: .black.opacity(0.04), radius: 8, y: 2)
+    }
+}
+
+// MARK: - Portfolio Health Card
+
+struct PortfolioHealthCard: View {
+    @Environment(AppState.self) var appState
+
+    struct HealthResult {
+        let score: Int
+        let label: String
+        let insights: [String]
+    }
+
+    var health: HealthResult {
+        var score = 60
+
+        let positions = appState.positions
+        let totalValue = appState.totalValue
+        guard totalValue > 0 else {
+            return HealthResult(score: 60, label: "Good", insights: ["Add more positions to get a full health analysis."])
+        }
+
+        var insights: [String] = []
+
+        // --- Diversification ---
+        // Penalize if >40% in one stock
+        let maxSinglePct = positions.map { p -> Double in
+            let v = (appState.quotes[p.ticker]?.price ?? p.avgCost) * p.shares
+            return v / totalValue * 100
+        }.max() ?? 0
+
+        if maxSinglePct > 50 {
+            score -= 20
+            if let top = positions.max(by: { (appState.quotes[$0.ticker]?.price ?? $0.avgCost) * $0.shares < (appState.quotes[$1.ticker]?.price ?? $1.avgCost) * $1.shares }) {
+                insights.append("\(top.ticker) is \(String(format: "%.0f", maxSinglePct))% of your portfolio — extreme concentration risk.")
+            }
+        } else if maxSinglePct > 40 {
+            score -= 10
+            insights.append("Top position is \(String(format: "%.0f", maxSinglePct))% of portfolio. Consider trimming to reduce concentration.")
+        }
+
+        // Bonus for 5+ positions
+        if positions.count >= 5 {
+            score += 10
+        }
+
+        // --- Performance vs SPY YTD ---
+        let spyReturn = (appState.marketQuotes["SPY"]?.changePercent ?? 0) * 130 * 0.28
+        let myReturn = appState.totalPnlPct
+        if myReturn > spyReturn {
+            score += 10
+            insights.append("Outperforming the S&P 500 YTD — excellent work.")
+        } else if myReturn < -10 {
+            score -= 15
+            insights.append("Portfolio is down \(String(format: "%.1f", abs(myReturn)))% — review your holdings and thesis.")
+        }
+
+        // --- Volatility: avg daily swing ---
+        let avgSwing = positions.map { p -> Double in
+            abs(appState.quotes[p.ticker]?.changePercent ?? 0)
+        }.reduce(0, +) / Double(max(positions.count, 1))
+
+        if avgSwing > 3 {
+            score -= 10
+            insights.append("High volatility today: average \(String(format: "%.1f", avgSwing))% swing across positions. Consider hedging.")
+        }
+
+        // --- Position sizing: >50% in one ---
+        // Already handled above in concentration check
+
+        let clamped = max(0, min(100, score))
+        let label: String
+        if clamped >= 80 { label = "Excellent" }
+        else if clamped >= 50 { label = "Good" }
+        else { label = "Needs Attention" }
+
+        // Fill in a default insight if none triggered
+        if insights.isEmpty {
+            insights.append(positions.count >= 5
+                ? "Well diversified across \(positions.count) positions."
+                : "Add more positions to diversify your portfolio.")
+        }
+
+        return HealthResult(score: clamped, label: label, insights: insights)
+    }
+
+    var scoreColor: Color {
+        let s = health.score
+        if s >= 80 { return Color(hex: "#00D26A") }
+        if s >= 50 { return Color(hex: "#F5A623") }
+        return Color(hex: "#FF4757")
+    }
+
+    var body: some View {
+        let result = health
+        VStack(alignment: .leading, spacing: 0) {
+            // Header
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("💪 Portfolio Health")
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundStyle(Theme.text)
+                    Text("Personalized score based on your holdings")
+                        .font(.system(size: 11))
+                        .foregroundStyle(Theme.text3)
+                }
+                Spacer()
+            }
+            .padding(.bottom, 18)
+
+            HStack(spacing: 20) {
+                // Ring + Score
+                ZStack {
+                    // Background ring
+                    Circle()
+                        .stroke(Theme.bg2, lineWidth: 10)
+                        .frame(width: 90, height: 90)
+
+                    // Filled arc
+                    Circle()
+                        .trim(from: 0, to: CGFloat(result.score) / 100.0)
+                        .stroke(
+                            scoreColor,
+                            style: StrokeStyle(lineWidth: 10, lineCap: .round)
+                        )
+                        .frame(width: 90, height: 90)
+                        .rotationEffect(.degrees(-90))
+                        .animation(.spring(response: 0.8, dampingFraction: 0.7), value: result.score)
+
+                    // Score label
+                    VStack(spacing: 1) {
+                        Text("\(result.score)")
+                            .font(.system(size: 28, weight: .heavy))
+                            .foregroundStyle(scoreColor)
+                        Text(result.label)
+                            .font(.system(size: 8, weight: .bold))
+                            .foregroundStyle(Theme.text3)
+                            .textCase(.uppercase)
+                            .kerning(0.5)
+                    }
+                }
+
+                // Insights
+                VStack(alignment: .leading, spacing: 8) {
+                    ForEach(result.insights.prefix(3), id: \.self) { insight in
+                        HStack(alignment: .top, spacing: 6) {
+                            Circle()
+                                .fill(scoreColor)
+                                .frame(width: 5, height: 5)
+                                .padding(.top, 5)
+                            Text(insight)
+                                .font(.system(size: 11))
+                                .foregroundStyle(Theme.text2)
+                                .lineSpacing(2)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
+        .padding(18)
+        .background(Theme.card)
+        .clipShape(RoundedRectangle(cornerRadius: 24))
+        .overlay(RoundedRectangle(cornerRadius: 24).stroke(Theme.border, lineWidth: 1))
+        .shadow(color: scoreColor.opacity(0.08), radius: 12, y: 3)
     }
 }
 

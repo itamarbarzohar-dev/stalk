@@ -1,35 +1,78 @@
 import SwiftUI
+import UIKit
 
 enum Theme {
     // MARK: - Backgrounds
-    static let bg          = Color(hex: "#0A0A0F")   // primary app bg
-    static let bg2         = Color(hex: "#0F0F17")   // secondary bg, inside cards
-    static let bg3         = Color(hex: "#141420")   // tertiary bg, nested containers
+    static var bg: Color {
+        Color(UIColor { t in t.userInterfaceStyle == .dark
+            ? UIColor(hex: "#0A0A0F") : UIColor(hex: "#F2F2F7") })
+    }
+    static var bg2: Color {
+        Color(UIColor { t in t.userInterfaceStyle == .dark
+            ? UIColor(hex: "#0F0F17") : UIColor(hex: "#FFFFFF") })
+    }
+    static var bg3: Color {
+        Color(UIColor { t in t.userInterfaceStyle == .dark
+            ? UIColor(hex: "#141420") : UIColor(hex: "#E8E8EE") })
+    }
 
     // MARK: - Cards
-    static let card        = Color(hex: "#111118")
-    static let cardRaised  = Color(hex: "#16161F")
-    static let border      = Color.white.opacity(0.06)
-    static let borderActive = Color.white.opacity(0.14)
+    static var card: Color {
+        Color(UIColor { t in t.userInterfaceStyle == .dark
+            ? UIColor(hex: "#111118") : UIColor(hex: "#FFFFFF") })
+    }
+    static var cardRaised: Color {
+        Color(UIColor { t in t.userInterfaceStyle == .dark
+            ? UIColor(hex: "#16161F") : UIColor(hex: "#F5F5FA") })
+    }
+    static var border: Color {
+        Color(UIColor { t in t.userInterfaceStyle == .dark
+            ? UIColor.white.withAlphaComponent(0.06)
+            : UIColor.black.withAlphaComponent(0.08) })
+    }
+    static var borderActive: Color {
+        Color(UIColor { t in t.userInterfaceStyle == .dark
+            ? UIColor.white.withAlphaComponent(0.14)
+            : UIColor.black.withAlphaComponent(0.15) })
+    }
+
+    // MARK: - Tab bar
+    static var tabBar: Color {
+        Color(UIColor { t in t.userInterfaceStyle == .dark
+            ? UIColor(hex: "#0D0D14").withAlphaComponent(0.97)
+            : UIColor(hex: "#F8F8FE").withAlphaComponent(0.97) })
+    }
 
     // MARK: - Text
-    static let text        = Color(hex: "#F2F2F7")
-    static let text2       = Color(hex: "#A8A8B8")
-    static let text3       = Color(hex: "#5C5C72")
-    static let text4       = Color(hex: "#3A3A50")
+    static var text: Color {
+        Color(UIColor { t in t.userInterfaceStyle == .dark
+            ? UIColor(hex: "#F2F2F7") : UIColor(hex: "#1C1C1E") })
+    }
+    static var text2: Color {
+        Color(UIColor { t in t.userInterfaceStyle == .dark
+            ? UIColor(hex: "#A8A8B8") : UIColor(hex: "#636366") })
+    }
+    static var text3: Color {
+        Color(UIColor { t in t.userInterfaceStyle == .dark
+            ? UIColor(hex: "#5C5C72") : UIColor(hex: "#AEAEB2") })
+    }
+    static var text4: Color {
+        Color(UIColor { t in t.userInterfaceStyle == .dark
+            ? UIColor(hex: "#3A3A50") : UIColor(hex: "#C7C7CC") })
+    }
 
-    // MARK: - Semantic
-    static let accent      = Color(hex: "#5B5BD6")
-    static let accent2     = Color(hex: "#7C7CF0")
-    static let gain        = Color(hex: "#00D26A")
-    static let loss        = Color(hex: "#FF4757")
-    static let gold        = Color(hex: "#F5A623")
+    // MARK: - Semantic (work on both modes)
+    static let accent  = Color(hex: "#5B5BD6")
+    static let accent2 = Color(hex: "#7C7CF0")
+    static let gain    = Color(hex: "#00D26A")
+    static let loss    = Color(hex: "#FF4757")
+    static let gold    = Color(hex: "#F5A623")
 
     // MARK: - Semantic dim fills
-    static var gainBg: Color   { gain.opacity(0.12) }
-    static var lossBg: Color   { loss.opacity(0.12) }
+    static var gainBg:   Color { gain.opacity(0.12) }
+    static var lossBg:   Color { loss.opacity(0.12) }
     static var accentBg: Color { accent.opacity(0.12) }
-    static var goldBg: Color   { gold.opacity(0.15) }
+    static var goldBg:   Color { gold.opacity(0.15) }
 
     // MARK: - Alloc bar
     static let allocColors: [Color] = [
@@ -59,6 +102,7 @@ enum Theme {
 // MARK: - Card ViewModifiers
 
 struct STALKCard: ViewModifier {
+    @Environment(\.colorScheme) var colorScheme
     var radius: CGFloat = 20
     var padding: CGFloat = 16
 
@@ -68,11 +112,12 @@ struct STALKCard: ViewModifier {
             .background(Theme.card)
             .clipShape(RoundedRectangle(cornerRadius: radius))
             .overlay(RoundedRectangle(cornerRadius: radius).stroke(Theme.border, lineWidth: 1))
-            .shadow(color: .black.opacity(0.40), radius: 8, x: 0, y: 2)
+            .shadow(color: .black.opacity(colorScheme == .dark ? 0.40 : 0.08), radius: 8, x: 0, y: 2)
     }
 }
 
 struct STALKCardRaised: ViewModifier {
+    @Environment(\.colorScheme) var colorScheme
     var radius: CGFloat = 20
 
     func body(content: Content) -> some View {
@@ -80,7 +125,7 @@ struct STALKCardRaised: ViewModifier {
             .background(Theme.cardRaised)
             .clipShape(RoundedRectangle(cornerRadius: radius))
             .overlay(RoundedRectangle(cornerRadius: radius).stroke(Theme.borderActive, lineWidth: 1.5))
-            .shadow(color: .black.opacity(0.55), radius: 16, x: 0, y: 6)
+            .shadow(color: .black.opacity(colorScheme == .dark ? 0.55 : 0.10), radius: 16, x: 0, y: 6)
     }
 }
 
@@ -104,6 +149,18 @@ extension Color {
         let g = Double((rgb >> 8) & 0xFF) / 255
         let b = Double(rgb & 0xFF) / 255
         self.init(red: r, green: g, blue: b)
+    }
+}
+
+extension UIColor {
+    convenience init(hex: String) {
+        let h = hex.trimmingCharacters(in: CharacterSet(charactersIn: "#"))
+        var rgb: UInt64 = 0
+        Scanner(string: h).scanHexInt64(&rgb)
+        let r = CGFloat((rgb >> 16) & 0xFF) / 255
+        let g = CGFloat((rgb >> 8) & 0xFF) / 255
+        let b = CGFloat(rgb & 0xFF) / 255
+        self.init(red: r, green: g, blue: b, alpha: 1)
     }
 }
 

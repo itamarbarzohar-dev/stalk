@@ -27,6 +27,16 @@ struct ChartPoint: Identifiable {
     var label: String
 }
 
+// MARK: - User Posts
+
+struct UserPost: Identifiable, Codable {
+    var id: UUID = UUID()
+    var text: String
+    var tickers: [String]
+    var sentiment: String   // "Bullish" / "Bearish" / "Neutral"
+    var timestamp: Date = Date()
+}
+
 // MARK: - Social / Feed
 
 struct TraderHolding: Identifiable {

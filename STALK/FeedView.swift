@@ -8,6 +8,7 @@ struct FeedView: View {
     @State private var profileTrader: Trader? = nil
     @State private var storyTrader: Trader? = nil
     @State private var feedTab = "Trending"
+    @State private var showCreatePost = false
 
     var totalValue: Double { appState.totalValue }
     var totalCost: Double { appState.totalCost }
@@ -143,15 +144,26 @@ struct FeedView: View {
                             .textCase(.uppercase)
                             .kerning(1.3)
                         Spacer()
-                        Text("\(feedTraders.count) posts")
+                        Text("\(appState.userPosts.count + feedTraders.count) posts")
                             .font(.system(size: 10))
                             .foregroundStyle(Theme.text4)
                     }
                     .padding(.horizontal, 14)
                     .padding(.bottom, 10)
 
+                    // ── My Posts ─────────────────────────────────────────────
+                    if !appState.userPosts.isEmpty {
+                        VStack(spacing: 12) {
+                            ForEach(appState.userPosts) { post in
+                                MyPostCard(post: post, appState: appState, onTicker: onTicker)
+                            }
+                        }
+                        .padding(.horizontal, 14)
+                        .padding(.bottom, 12)
+                    }
+
                     // ── Post Cards V2 ───────────────────────────────────────
-                    if feedTraders.isEmpty {
+                    if feedTraders.isEmpty && appState.userPosts.isEmpty {
                         VStack(spacing: 12) {
                             Text("👀")
                                 .font(.system(size: 40))
@@ -181,7 +193,7 @@ struct FeedView: View {
             .background(Theme.bg)
 
             // ── Floating Compose FAB ────────────────────────────────────
-            Button { } label: {
+            Button { showCreatePost = true } label: {
                 Image(systemName: "square.and.pencil")
                     .font(.system(size: 20, weight: .semibold))
                     .foregroundStyle(.white)
@@ -192,6 +204,9 @@ struct FeedView: View {
             }
             .padding(.trailing, 20)
             .padding(.bottom, 16)
+        }
+        .sheet(isPresented: $showCreatePost) {
+            CreatePostView().environment(appState)
         }
         .sheet(item: $profileTrader) { trader in
             TraderProfileView(trader: trader, onTicker: onTicker)
@@ -1060,5 +1075,125 @@ struct TraderProfileView: View {
         .padding(13)
         .background(Theme.bg)
         .clipShape(RoundedRectangle(cornerRadius: 14))
+    }
+}
+
+// MARK: - My Post Card
+
+struct MyPostCard: View {
+    let post: UserPost
+    let appState: AppState
+    let onTicker: (String) -> Void
+
+    private var timeAgo: String {
+        let diff = Date().timeIntervalSince(post.timestamp)
+        if diff < 60 { return "Just now" }
+        if diff < 3600 { return "\(Int(diff / 60))m ago" }
+        if diff < 86400 { return "\(Int(diff / 3600))h ago" }
+        return "\(Int(diff / 86400))d ago"
+    }
+
+    private var sentimentColor: Color {
+        switch post.sentiment {
+        case "Bullish": return Theme.gain
+        case "Bearish": return Theme.loss
+        default: return Theme.accent
+        }
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            // Header
+            HStack(spacing: 10) {
+                Circle()
+                    .fill(Theme.accentGradient)
+                    .frame(width: 38, height: 38)
+                    .overlay(
+                        Text(String(appState.settings.displayName.prefix(1)).uppercased())
+                            .font(.system(size: 15, weight: .black))
+                            .foregroundStyle(.white)
+                    )
+
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack(spacing: 6) {
+                        Text(appState.settings.displayName)
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundStyle(Theme.text)
+                        Text("YOU")
+                            .font(.system(size: 9, weight: .black))
+                            .foregroundStyle(Theme.accent)
+                            .padding(.horizontal, 5).padding(.vertical, 2)
+                            .background(Theme.accentBg)
+                            .clipShape(Capsule())
+                    }
+                    Text("\(appState.settings.username) · \(timeAgo)")
+                        .font(.system(size: 12))
+                        .foregroundStyle(Theme.text3)
+                }
+
+                Spacer()
+
+                Text(post.sentiment)
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundStyle(sentimentColor)
+                    .padding(.horizontal, 10).padding(.vertical, 5)
+                    .background(sentimentColor.opacity(0.12))
+                    .clipShape(Capsule())
+            }
+            .padding(.horizontal, 14)
+            .padding(.top, 14)
+
+            // Body
+            Text(post.text)
+                .font(.system(size: 14))
+                .foregroundStyle(Theme.text)
+                .lineSpacing(4)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 10)
+
+            // Ticker chips
+            if !post.tickers.isEmpty {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 6) {
+                        ForEach(post.tickers, id: \.self) { ticker in
+                            Button { onTicker(ticker) } label: {
+                                Text("$\(ticker)")
+                                    .font(.system(size: 11, weight: .bold))
+                                    .foregroundStyle(Theme.accent)
+                                    .padding(.horizontal, 10).padding(.vertical, 5)
+                                    .background(Theme.accentBg)
+                                    .clipShape(Capsule())
+                                    .overlay(Capsule().stroke(Theme.accent.opacity(0.3), lineWidth: 1))
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 14)
+                }
+                .padding(.bottom, 8)
+            }
+
+            Divider().overlay(Theme.border)
+            HStack {
+                Image(systemName: "heart")
+                    .font(.system(size: 13))
+                    .foregroundStyle(Theme.text3)
+                Text("0")
+                    .font(.system(size: 12))
+                    .foregroundStyle(Theme.text3)
+                Spacer()
+                Image(systemName: "bubble.left")
+                    .font(.system(size: 13))
+                    .foregroundStyle(Theme.text3)
+                Text("0")
+                    .font(.system(size: 12))
+                    .foregroundStyle(Theme.text3)
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+        }
+        .background(Theme.card)
+        .clipShape(RoundedRectangle(cornerRadius: 20))
+        .overlay(RoundedRectangle(cornerRadius: 20).stroke(Theme.accent.opacity(0.2), lineWidth: 1))
+        .shadow(color: .black.opacity(0.30), radius: 8, y: 3)
     }
 }

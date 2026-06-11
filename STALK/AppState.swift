@@ -96,6 +96,7 @@ class AppState {
     // MARK: Social
     var followed: Set<Int> = []
     var likedPosts: Set<Int> = []
+    var userPosts: [UserPost] = []
 
     // MARK: Market
     var marketQuotes: [String: Quote] = [:]
@@ -148,6 +149,17 @@ class AppState {
         }
         if let l = UserDefaults.standard.array(forKey: "stalk_liked") as? [Int] {
             likedPosts = Set(l)
+        }
+        if let data = UserDefaults.standard.data(forKey: "stalk_userposts"),
+           let saved = try? JSONDecoder().decode([UserPost].self, from: data) {
+            userPosts = saved
+        }
+    }
+
+    func addUserPost(_ post: UserPost) {
+        userPosts.insert(post, at: 0)
+        if let data = try? JSONEncoder().encode(userPosts) {
+            UserDefaults.standard.set(data, forKey: "stalk_userposts")
         }
     }
 

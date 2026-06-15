@@ -154,6 +154,9 @@ class AppState {
            let saved = try? JSONDecoder().decode([UserPost].self, from: data) {
             userPosts = saved
         }
+        if let c = UserDefaults.standard.array(forKey: "stalk_copied") as? [Int] {
+            copiedTraders = Set(c)
+        }
     }
 
     func addUserPost(_ post: UserPost) {
@@ -231,6 +234,13 @@ class AppState {
     func toggleLike(_ id: Int) {
         if likedPosts.contains(id) { likedPosts.remove(id) } else { likedPosts.insert(id) }
         UserDefaults.standard.set(Array(likedPosts), forKey: "stalk_liked")
+    }
+
+    var copiedTraders: Set<Int> = []
+
+    func toggleCopyTrade(_ id: Int) {
+        if copiedTraders.contains(id) { copiedTraders.remove(id) } else { copiedTraders.insert(id) }
+        UserDefaults.standard.set(Array(copiedTraders), forKey: "stalk_copied")
     }
 
     // MARK: - Portfolio Computed

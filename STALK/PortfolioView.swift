@@ -5,6 +5,7 @@ struct PortfolioView: View {
     @Environment(AppState.self) var appState
     let onTicker: (String) -> Void
     let onAdd: () -> Void
+    @State private var showAutopilot = false
 
     var body: some View {
         ScrollView {
@@ -34,6 +35,12 @@ struct PortfolioView: View {
                         .padding(.bottom, 8)
                 }
 
+                // ── Autopilot Entry Card ─────────────────────────────────
+                AutopilotEntryCard()
+                    .padding(.horizontal, 14)
+                    .padding(.bottom, 8)
+                    .onTapGesture { showAutopilot = true }
+
                 PositionsList(onTicker: onTicker)
                     .padding(.horizontal, 14)
 
@@ -41,6 +48,9 @@ struct PortfolioView: View {
             }
         }
         .background(Theme.bg)
+        .sheet(isPresented: $showAutopilot) {
+            AutopilotView().environment(appState)
+        }
         .overlay(alignment: .bottomLeading) {
             if appState.positions.isEmpty || appState.selectedTab == .portfolio {
                 AddFAB(action: onAdd)
@@ -1403,6 +1413,57 @@ struct PortfolioHealthCard: View {
         .clipShape(RoundedRectangle(cornerRadius: 24))
         .overlay(RoundedRectangle(cornerRadius: 24).stroke(Theme.border, lineWidth: 1))
         .shadow(color: scoreColor.opacity(0.08), radius: 12, y: 3)
+    }
+}
+
+// MARK: - Autopilot Entry Card
+
+struct AutopilotEntryCard: View {
+    var body: some View {
+        HStack(spacing: 14) {
+            ZStack {
+                Circle()
+                    .fill(LinearGradient(
+                        colors: [Color(hex: "#5B5BD6"), Color(hex: "#7C7CF0")],
+                        startPoint: .topLeading, endPoint: .bottomTrailing
+                    ))
+                    .frame(width: 48, height: 48)
+                Text("🤖")
+                    .font(.system(size: 22))
+            }
+
+            VStack(alignment: .leading, spacing: 3) {
+                HStack(spacing: 6) {
+                    Text("AI Autopilot")
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundStyle(Theme.text)
+                    Text("NEW")
+                        .font(.system(size: 9, weight: .black))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 6).padding(.vertical, 2)
+                        .background(Theme.accent)
+                        .clipShape(Capsule())
+                }
+                Text("Copy AI-managed strategies · 5 live strategies")
+                    .font(.system(size: 12))
+                    .foregroundStyle(Theme.text3)
+            }
+
+            Spacer()
+
+            Image(systemName: "chevron.right")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(Theme.text3)
+        }
+        .padding(16)
+        .background(
+            LinearGradient(
+                colors: [Color(hex: "#5B5BD6").opacity(0.12), Color(hex: "#7C7CF0").opacity(0.06)],
+                startPoint: .leading, endPoint: .trailing
+            )
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 20))
+        .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color(hex: "#5B5BD6").opacity(0.25), lineWidth: 1))
     }
 }
 

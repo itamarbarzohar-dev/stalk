@@ -39,7 +39,7 @@ struct AutopilotStrategy: Identifiable {
     }
 }
 
-private let AI_STRATEGIES: [AutopilotStrategy] = [
+let AI_STRATEGIES: [AutopilotStrategy] = [
     AutopilotStrategy(
         id: 1,
         emoji: "🚀",

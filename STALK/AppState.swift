@@ -376,5 +376,5 @@ class AppState {
 }
 
 enum Tab: String, CaseIterable {
-    case market, portfolio, search, feed, forYou
+    case market, portfolio, ai, feed, forYou
 }

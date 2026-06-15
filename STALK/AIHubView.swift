@@ -370,8 +370,7 @@ struct AIHubView: View {
                             VStack(alignment: .leading, spacing: 10) {
                                 // Header row
                                 HStack(spacing: 8) {
-                                    Text(strategy.emoji)
-                                        .font(.system(size: 22))
+                                    PremiumIconView(symbol: strategy.icon, colors: strategy.iconColors, size: 36, iconSize: 16)
                                     VStack(alignment: .leading, spacing: 2) {
                                         Text(strategy.name)
                                             .font(.system(size: 13, weight: .bold))

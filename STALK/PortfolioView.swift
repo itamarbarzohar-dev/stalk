@@ -96,7 +96,7 @@ struct PortfolioHero: View {
                 Spacer()
                 Button { appState.showDailyBrief = true } label: {
                     HStack(spacing: 5) {
-                        Text("📋").font(.system(size: 12))
+                        Image(systemName: "doc.text.fill").font(.system(size: 12)).foregroundStyle(Theme.text3)
                         Text("Brief").font(.system(size: 12, weight: .bold)).foregroundStyle(Theme.text2)
                     }
                     .padding(.horizontal, 12).padding(.vertical, 6)
@@ -193,8 +193,9 @@ struct PortfolioHero: View {
 
                         if isATH {
                             HStack(spacing: 4) {
-                                Text("🏆")
+                                Image(systemName: "trophy.fill")
                                     .font(.system(size: 11))
+                                    .foregroundStyle(Theme.gold)
                                 Text("NEW ATH")
                                     .font(.system(size: 10, weight: .black))
                                     .foregroundStyle(Theme.gold)
@@ -223,7 +224,7 @@ struct PortfolioHero: View {
 
                         if appState.streak > 1 {
                             HStack(spacing: 4) {
-                                Text("🔥").font(.system(size: 12))
+                                Image(systemName: "flame.fill").font(.system(size: 12)).foregroundStyle(.white)
                                 Text("\(appState.streak)d").font(.system(size: 12, weight: .black)).foregroundStyle(.white)
                             }
                             .padding(.horizontal, 10).padding(.vertical, 5)
@@ -787,23 +788,23 @@ struct AIAgentCard: View {
                 // Real insights based on actual data
                 if let best = bestPosition {
                     let pct = positionPnlPct(best)
-                    aiInsight(icon: "🚀", tag: "TOP PERFORMER", tagColor: Color(hex: "#4ADE80"),
+                    aiInsight(icon: "arrow.up.circle.fill", tag: "TOP PERFORMER", tagColor: Color(hex: "#4ADE80"),
                               text: "\(best.ticker) leads your portfolio at \(pct.fmtPct()). \(pct > 50 ? "Consider taking partial profits to lock in gains." : "Strong momentum — let winners run.")")
                 }
 
                 if let worst = worstPosition, positionPnlPct(worst) < -5 {
-                    aiInsight(icon: "⚠️", tag: "WATCH", tagColor: Color(hex: "#FB923C"),
+                    aiInsight(icon: "exclamationmark.triangle.fill", tag: "WATCH", tagColor: Color(hex: "#FB923C"),
                               text: "\(worst.ticker) is down \(abs(positionPnlPct(worst)).fmtPct()). Review your thesis or set a stop-loss to protect capital.")
                 }
 
                 if let big = biggestPosition, big.pct > 30 {
-                    aiInsight(icon: "📊", tag: "CONCENTRATION RISK", tagColor: Color(hex: "#FACC15"),
+                    aiInsight(icon: "chart.bar.fill", tag: "CONCENTRATION RISK", tagColor: Color(hex: "#FACC15"),
                               text: "\(big.ticker) is \(String(format: "%.0f", big.pct))% of your portfolio. Rebalancing would reduce single-stock risk.")
                 } else if appState.positions.count < 5 {
-                    aiInsight(icon: "💡", tag: "DIVERSIFY", tagColor: Color(hex: "#818CF8"),
+                    aiInsight(icon: "lightbulb.fill", tag: "DIVERSIFY", tagColor: Color(hex: "#818CF8"),
                               text: "You hold \(appState.positions.count) position\(appState.positions.count == 1 ? "" : "s"). Target 8–12 stocks across different sectors to reduce risk.")
                 } else {
-                    aiInsight(icon: "✅", tag: "WELL DIVERSIFIED", tagColor: Color(hex: "#4ADE80"),
+                    aiInsight(icon: "checkmark.circle.fill", tag: "WELL DIVERSIFIED", tagColor: Color(hex: "#4ADE80"),
                               text: "\(appState.positions.count) positions across your portfolio. \(ret > 0 ? "Positive returns — stay the course." : "Market is tough. Patient investors are rewarded long-term.")")
                 }
 
@@ -834,10 +835,15 @@ struct AIAgentCard: View {
                 }
 
                 if let response = aiResponse {
-                    Text("🤖 \(response)")
-                        .font(.system(size: 13)).foregroundStyle(.white.opacity(0.9)).lineSpacing(4)
-                        .padding(12).background(.white.opacity(0.08))
-                        .clipShape(RoundedRectangle(cornerRadius: 14)).padding(.top, 8)
+                    HStack(alignment: .top, spacing: 8) {
+                        Image(systemName: "brain.fill")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(Color(hex: "#A78BFA"))
+                        Text(response)
+                            .font(.system(size: 13)).foregroundStyle(.white.opacity(0.9)).lineSpacing(4)
+                    }
+                    .padding(12).background(.white.opacity(0.08))
+                    .clipShape(RoundedRectangle(cornerRadius: 14)).padding(.top, 8)
                 }
 
                 Button { appState.showAIChat = true } label: {
@@ -883,7 +889,10 @@ struct AIAgentCard: View {
 
     func aiInsight(icon: String, tag: String, tagColor: Color, text: String) -> some View {
         HStack(alignment: .top, spacing: 10) {
-            Text(icon).font(.system(size: 16))
+            Image(systemName: icon)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(tagColor)
+                .frame(width: 18)
             VStack(alignment: .leading, spacing: 4) {
                 Text(tag).font(.system(size: 10, weight: .black)).foregroundStyle(tagColor)
                     .padding(.horizontal, 8).padding(.vertical, 2)
@@ -934,9 +943,9 @@ struct VsMarketCard: View {
     @State private var period = "1D"
 
     let indices: [(ticker: String, name: String, icon: String)] = [
-        ("SPY", "S&P 500",    "🇺🇸"),
-        ("QQQ", "NASDAQ 100", "💻"),
-        ("DIA", "Dow Jones",  "🏦"),
+        ("SPY", "S&P 500",    "chart.bar.fill"),
+        ("QQQ", "NASDAQ 100", "cpu.fill"),
+        ("DIA", "Dow Jones",  "building.columns.fill"),
     ]
 
     func myReturn() -> Double {
@@ -978,7 +987,11 @@ struct VsMarketCard: View {
                         .font(.system(size: 11)).foregroundStyle(Theme.text3)
                 }
                 Spacer()
-                Text(isBeating ? "🔥 Outperforming" : "📊 Tracking")
+                HStack(spacing: 5) {
+                    Image(systemName: isBeating ? "flame.fill" : "chart.bar.fill")
+                        .font(.system(size: 10, weight: .semibold))
+                    Text(isBeating ? "Outperforming" : "Tracking")
+                }
                     .font(.system(size: 11, weight: .bold))
                     .foregroundStyle(isBeating ? Theme.gain : Theme.text3)
                     .padding(.horizontal, 10).padding(.vertical, 4)
@@ -1007,7 +1020,7 @@ struct VsMarketCard: View {
             let allVals = ([my] + indices.map { marketReturn($0.ticker) }).map { abs($0) }
             let maxVal = max(allVals.max() ?? 1, 0.01)
 
-            compRow(icon: "💼", name: "My Portfolio", ret: my, color: appState.accentColor, isMe: true, maxVal: maxVal)
+            compRow(icon: "briefcase.fill", name: "My Portfolio", ret: my, color: appState.accentColor, isMe: true, maxVal: maxVal)
 
             ForEach(indices, id: \.ticker) { idx in
                 Divider().padding(.vertical, 10)
@@ -1029,7 +1042,10 @@ struct VsMarketCard: View {
 
     func compRow(icon: String, name: String, ret: Double, color: Color, isMe: Bool, maxVal: Double) -> some View {
         HStack(spacing: 10) {
-            Text(icon).font(.system(size: 18)).frame(width: 26)
+            Image(systemName: icon)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(color)
+                .frame(width: 26)
             Text(name)
                 .font(.system(size: 13, weight: isMe ? .black : .semibold))
                 .foregroundStyle(isMe ? appState.accentColor : Theme.text)
@@ -1104,7 +1120,7 @@ struct VsFriendsCard: View {
 
                 Spacer()
 
-                Text("#\(myRank) \(myRank == 1 ? "👑" : myRank == 2 ? "🥈" : "🥉")")
+                Text("#\(myRank)")
                     .font(.system(size: 11, weight: .black))
                     .foregroundStyle(.white)
                     .padding(.horizontal, 12)
@@ -1133,10 +1149,22 @@ struct VsFriendsCard: View {
             VStack(spacing: 0) {
                 ForEach(Array(allEntries.enumerated()), id: \.element.name) { i, entry in
                     HStack(spacing: 10) {
-                        Text(i == 0 ? "🥇" : i == 1 ? "🥈" : i == 2 ? "🥉" : "\(i+1)")
-                            .font(.system(size: 13, weight: .black))
-                            .foregroundStyle(entry.isMe ? Theme.accent : Theme.text3)
-                            .frame(width: 24)
+                        ZStack {
+                            if i < 3 {
+                                Circle()
+                                    .fill(LinearGradient(
+                                        colors: i == 0 ? [Color(hex: "#F59E0B"), Color(hex: "#D97706")]
+                                              : i == 1 ? [Color(hex: "#9CA3AF"), Color(hex: "#6B7280")]
+                                              :          [Color(hex: "#CD7F32"), Color(hex: "#92400E")],
+                                        startPoint: .topLeading, endPoint: .bottomTrailing
+                                    ))
+                                    .frame(width: 22, height: 22)
+                            }
+                            Text("\(i+1)")
+                                .font(.system(size: 11, weight: .black))
+                                .foregroundStyle(i < 3 ? .white : (entry.isMe ? Theme.accent : Theme.text3))
+                        }
+                        .frame(width: 24)
 
                         Circle()
                             .fill(entry.color)
@@ -1208,7 +1236,7 @@ struct LiveFeedCard: View {
             .max { abs(appState.quotes[$0.ticker]?.changePercent ?? 0) < abs(appState.quotes[$1.ticker]?.changePercent ?? 0) }
         if let m = bigMover, let q = appState.quotes[m.ticker] {
             let up = q.changePercent >= 0
-            items.append(FeedEvent(icon: up ? "🔥" : "📉",
+            items.append(FeedEvent(icon: up ? "flame.fill" : "chart.line.downtrend.xyaxis",
                 text: "\(m.ticker) is your biggest mover today",
                 sub: "\(q.changePercent.fmtPct()) · \(up ? "riding the wave" : "dragging today's P&L")",
                 accent: up ? Theme.gain : Theme.loss))
@@ -1218,7 +1246,7 @@ struct LiveFeedCard: View {
         let socialTickers = [("NVDA", 1243), ("AAPL", 890), ("TSLA", 734), ("META", 612)]
         for p in appState.positions.prefix(2) {
             if let entry = socialTickers.first(where: { $0.0 == p.ticker }) {
-                items.append(FeedEvent(icon: "👥",
+                items.append(FeedEvent(icon: "person.2.fill",
                     text: "\(entry.1) other STALK users hold \(p.ticker)",
                     sub: "You're in good company",
                     accent: Color(hex: "#8B7CF6")))
@@ -1227,7 +1255,7 @@ struct LiveFeedCard: View {
 
         // Market beat
         if appState.todayPnlPct > 0.5 {
-            items.append(FeedEvent(icon: "⚡",
+            items.append(FeedEvent(icon: "bolt.fill",
                 text: "You're beating SPY today",
                 sub: "Portfolio +\(appState.todayPnlPct.fmtPct()) vs SPY \((appState.marketQuotes["SPY"]?.changePercent ?? 0).fmtPct())",
                 accent: Theme.gain))
@@ -1235,7 +1263,7 @@ struct LiveFeedCard: View {
 
         // ATH
         if appState.portfolioATH > 0 && appState.totalValue >= appState.portfolioATH {
-            items.append(FeedEvent(icon: "🏆",
+            items.append(FeedEvent(icon: "trophy.fill",
                 text: "New all-time high!",
                 sub: "Portfolio just hit \(appState.totalValue.fmtPrice()) — your best ever",
                 accent: Color(hex: "#F59E0B")))
@@ -1243,22 +1271,22 @@ struct LiveFeedCard: View {
 
         // Streak
         if appState.streak >= 3 {
-            items.append(FeedEvent(icon: "🔥",
+            items.append(FeedEvent(icon: "flame.fill",
                 text: "\(appState.streak)-day check-in streak",
                 sub: "You're in the top 12% of active STALKers",
                 accent: Color(hex: "#F97316")))
         }
 
         // Static FOMO events
-        items.append(FeedEvent(icon: "📢",
+        items.append(FeedEvent(icon: "megaphone.fill",
             text: "NVDA earnings in 3 days",
             sub: "Options flow showing unusual call volume — traders expect a big move",
             accent: Color(hex: "#6366F1")))
-        items.append(FeedEvent(icon: "🤖",
+        items.append(FeedEvent(icon: "brain.fill",
             text: "STALK AI updated your portfolio score",
             sub: "Tap AI Agent above to see your new insights",
             accent: Color(hex: "#5B5BD6")))
-        items.append(FeedEvent(icon: "📈",
+        items.append(FeedEvent(icon: "chart.line.uptrend.xyaxis",
             text: "Lena V. +2.1% today · Semis on fire",
             sub: "She holds NVDA 40% · AMD 25% · See her portfolio →",
             accent: Color(hex: "#6EE7B7")))
@@ -1286,11 +1314,14 @@ struct LiveFeedCard: View {
             VStack(spacing: 0) {
                 ForEach(Array(events.prefix(visibleCount).enumerated()), id: \.element.id) { i, event in
                     HStack(alignment: .top, spacing: 12) {
-                        Text(event.icon)
-                            .font(.system(size: 18))
-                            .frame(width: 32, height: 32)
-                            .background(event.accent.opacity(0.12))
-                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 10)
+                                .fill(event.accent.opacity(0.14))
+                                .frame(width: 32, height: 32)
+                            Image(systemName: event.icon)
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundStyle(event.accent)
+                        }
 
                         VStack(alignment: .leading, spacing: 2) {
                             Text(event.text)

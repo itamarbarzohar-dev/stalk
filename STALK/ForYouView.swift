@@ -111,7 +111,7 @@ struct ForYouView: View {
             .padding(.bottom, 10)
 
         // Earnings Calendar Card
-        sectionLabel("📅 Earnings This Week")
+        sectionLabel("Earnings This Week")
         EarningsCalendarCard(userTickers: Set(appState.positions.map(\.ticker)), onTicker: onTicker)
             .padding(.horizontal, 14)
             .padding(.bottom, 6)
@@ -119,28 +119,28 @@ struct ForYouView: View {
         hotOnSTALKSection()
         missedOpportunitiesSection()
 
-        sectionLabel("🌍 Today's Top Portfolios · Copy & Invest")
+        sectionLabel("Today's Top Portfolios · Copy & Invest")
         worldGainersSection()
 
-        sectionLabel("📊 Earnings · Beat / Miss / Guidance")
+        sectionLabel("Earnings · Beat / Miss / Guidance")
         earningsSection()
 
-        sectionLabel("📈 Analyst Moves")
+        sectionLabel("Analyst Moves")
         analystSection()
 
-        sectionLabel("🏦 Insider Buys")
+        sectionLabel("Insider Buys")
         insiderSection()
 
-        sectionLabel("🇺🇸 Trump Watch")
+        sectionLabel("Trump Watch")
         trumpSection()
 
-        sectionLabel("🐋 Whale Alerts · Options Flow")
-        PremiumLockedCard(icon: "🐋", title: "Whale Alerts", subtitle: "See where the big money is flowing in real-time.") { showPremium = true }
+        sectionLabel("Whale Alerts · Options Flow")
+        PremiumLockedCard(icon: "waveform.path.ecg", title: "Whale Alerts", subtitle: "See where the big money is flowing in real-time.") { showPremium = true }
             .padding(.horizontal, 14)
             .padding(.bottom, 9)
 
-        sectionLabel("📉 Short Squeeze Radar")
-        PremiumLockedCard(icon: "📉", title: "Short Squeeze Radar", subtitle: "Spot the next GME before it happens. Upgrade to Pro.") { showPremium = true }
+        sectionLabel("Short Squeeze Radar")
+        PremiumLockedCard(icon: "chart.line.downtrend.xyaxis", title: "Short Squeeze Radar", subtitle: "Spot the next GME before it happens. Upgrade to Pro.") { showPremium = true }
             .padding(.horizontal, 14)
             .padding(.bottom, 9)
     }
@@ -149,19 +149,26 @@ struct ForYouView: View {
 
     @ViewBuilder
     func marketsContent() -> some View {
-        sectionLabel("📊 Index Snapshot")
+        sectionLabel("Index Snapshot")
 
         VStack(spacing: 0) {
-            let indices: [(ticker: String, name: String, icon: String, change: Double)] = [
-                ("SPY", "S&P 500",    "🇺🇸",  1.2),
-                ("QQQ", "NASDAQ 100", "💻",   2.1),
-                ("DIA", "Dow Jones",  "🏦",   0.8),
-                ("IWM", "Russell 2K", "🏗️", -0.4),
+            let indices: [(ticker: String, name: String, icon: String, color: Color, change: Double)] = [
+                ("SPY", "S&P 500",    "chart.bar.fill",        Color(hex: "#3B82F6"), 1.2),
+                ("QQQ", "NASDAQ 100", "cpu.fill",              Color(hex: "#8B5CF6"), 2.1),
+                ("DIA", "Dow Jones",  "building.columns.fill", Color(hex: "#22C55E"), 0.8),
+                ("IWM", "Russell 2K", "chart.pie.fill",        Color(hex: "#F97316"), -0.4),
             ]
             ForEach(Array(indices.enumerated()), id: \.element.ticker) { i, idx in
                 let q = appState.marketQuotes[idx.ticker]
                 HStack(spacing: 12) {
-                    Text(idx.icon).font(.system(size: 16)).frame(width: 26)
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 6)
+                            .fill(idx.color.opacity(0.15))
+                            .frame(width: 26, height: 26)
+                        Image(systemName: idx.icon)
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundStyle(idx.color)
+                    }
                     Text(idx.name)
                         .font(.system(size: 13, weight: .bold))
                         .foregroundStyle(Theme.text)
@@ -188,12 +195,12 @@ struct ForYouView: View {
         .padding(.horizontal, 14)
         .padding(.bottom, 20)
 
-        sectionLabel("🔥 Trending · Social Buzz")
+        sectionLabel("Trending · Social Buzz")
         TrendingTickersFeedView(onTicker: onTicker)
             .padding(.horizontal, 14)
             .padding(.bottom, 20)
 
-        sectionLabel("⚡ Top Movers")
+        sectionLabel("Top Movers")
         TopMoversGrid(onTicker: onTicker)
             .padding(.horizontal, 14)
             .padding(.bottom, 20)
@@ -203,7 +210,7 @@ struct ForYouView: View {
 
     @ViewBuilder
     func newsContent() -> some View {
-        sectionLabel("📰 Financial Headlines")
+        sectionLabel("Financial Headlines")
 
         VStack(spacing: 10) {
             ForEach(mockNewsHeadlines, id: \.id) { item in
@@ -259,14 +266,14 @@ struct ForYouView: View {
 
     func hotOnSTALKSection() -> some View {
         let hot: [(ticker: String, adds: Int, pct: Double, icon: String)] = [
-            ("NVDA", 1243, 4.2, "🔥"),
-            ("TSLA", 891,  2.1, "⚡"),
-            ("META", 734, -0.8, "📱"),
-            ("PLTR", 612,  6.7, "🤖"),
-            ("AAPL", 504,  0.9, "🍎"),
+            ("NVDA", 1243, 4.2, "flame.fill"),
+            ("TSLA", 891,  2.1, "bolt.fill"),
+            ("META", 734, -0.8, "person.2.circle.fill"),
+            ("PLTR", 612,  6.7, "brain.fill"),
+            ("AAPL", 504,  0.9, "applelogo"),
         ]
         return VStack(alignment: .leading, spacing: 0) {
-            sectionLabel("🔥 Hot on STALK This Week")
+            sectionLabel("Hot on STALK This Week")
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 10) {
                     ForEach(hot, id: \.ticker) { item in
@@ -285,11 +292,14 @@ struct ForYouView: View {
                                 VStack(alignment: .leading, spacing: 0) {
                                     // Top row: icon + change
                                     HStack(alignment: .top) {
-                                        Text(item.icon)
-                                            .font(.system(size: 26))
-                                            .frame(width: 40, height: 40)
-                                            .background((item.pct >= 0 ? Theme.gain : Theme.loss).opacity(0.15))
-                                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                                        ZStack {
+                                            RoundedRectangle(cornerRadius: 12)
+                                                .fill((item.pct >= 0 ? Theme.gain : Theme.loss).opacity(0.15))
+                                                .frame(width: 40, height: 40)
+                                            Image(systemName: item.icon)
+                                                .font(.system(size: 18, weight: .semibold))
+                                                .foregroundStyle(item.pct >= 0 ? Theme.gain : Theme.loss)
+                                        }
                                         Spacer()
                                         Text(item.pct.fmtPct())
                                             .font(.system(size: 15, weight: .black))
@@ -341,7 +351,7 @@ struct ForYouView: View {
             ("SMCI", 61,  45,  "Data center build-out beneficiary"),
         ]
         return VStack(alignment: .leading, spacing: 0) {
-            sectionLabel("😬 Missed Opportunities")
+            sectionLabel("Missed Opportunities")
             VStack(spacing: 9) {
                 ForEach(missed, id: \.ticker) { item in
                     Button { onTicker(item.ticker) } label: {
@@ -892,7 +902,9 @@ struct PremiumLockedCard: View {
             .blur(radius: 6)
 
             VStack(spacing: 8) {
-                Text(icon).font(.system(size: 28))
+                Image(systemName: icon)
+                    .font(.system(size: 26, weight: .semibold))
+                    .foregroundStyle(Theme.accent)
                 Text(title)
                     .font(.system(size: 15, weight: .black))
                     .foregroundStyle(Theme.text)
@@ -1175,8 +1187,9 @@ struct AIMarketContextCard: View {
             VStack(alignment: .leading, spacing: 0) {
                 // Header
                 HStack(spacing: 10) {
-                    Text("🤖")
-                        .font(.system(size: 18))
+                    Image(systemName: "brain.fill")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(Theme.accent)
                     Text("AI Market Context")
                         .font(.system(size: 14, weight: .bold))
                         .foregroundStyle(Theme.text)
@@ -1409,11 +1422,11 @@ struct PremiumSheet: View {
     @State private var showSuccess = false
 
     let features: [(String, String, String)] = [
-        ("🐋", "Whale Alerts",            "See $1M+ options trades live"),
-        ("🤖", "AI Analysis (Unlimited)", "Real AI answers about your stocks"),
-        ("📉", "Short Squeeze Radar",     "Spot the next GME early"),
-        ("🔔", "Unlimited Price Alerts",  "Set as many thresholds as you want"),
-        ("🎨", "Premium Themes",          "Gold & Midnight — exclusive styles"),
+        ("waveform.path.ecg",             "Whale Alerts",            "See $1M+ options trades live"),
+        ("brain.fill",                    "AI Analysis (Unlimited)", "Real AI answers about your stocks"),
+        ("chart.line.downtrend.xyaxis",   "Short Squeeze Radar",     "Spot the next GME early"),
+        ("bell.fill",                     "Unlimited Price Alerts",  "Set as many thresholds as you want"),
+        ("paintpalette.fill",             "Premium Themes",          "Gold & Midnight — exclusive styles"),
     ]
 
     var monthlyProduct: Product? {
@@ -1436,9 +1449,13 @@ struct PremiumSheet: View {
                     )
 
                     VStack(spacing: 10) {
-                        Text("🚀")
-                            .font(.system(size: 44))
-                            .padding(.top, 48)
+                        PremiumIconView(
+                            symbol: "sparkles",
+                            colors: [Color(hex: "#7C3AED"), Color(hex: "#5B21B6")],
+                            size: 80,
+                            iconSize: 36
+                        )
+                        .padding(.top, 48)
 
                         Text("STALK Pro")
                             .font(.system(size: 32, weight: .black))
@@ -1467,11 +1484,14 @@ struct PremiumSheet: View {
                 VStack(spacing: 0) {
                     ForEach(features, id: \.0) { icon, title, sub in
                         HStack(spacing: 14) {
-                            Text(icon)
-                                .font(.system(size: 22))
-                                .frame(width: 40, height: 40)
-                                .background(Color(hex: "#7B6FEF").opacity(0.15))
-                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(Color(hex: "#7B6FEF").opacity(0.15))
+                                    .frame(width: 40, height: 40)
+                                Image(systemName: icon)
+                                    .font(.system(size: 18, weight: .semibold))
+                                    .foregroundStyle(Color(hex: "#7B6FEF"))
+                            }
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(title)
                                     .font(.system(size: 14, weight: .semibold))

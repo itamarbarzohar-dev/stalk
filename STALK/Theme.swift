@@ -203,6 +203,29 @@ extension UIColor {
     }
 }
 
+// MARK: - Premium Icon Container
+
+struct PremiumIconView: View {
+    let symbol: String
+    let colors: [Color]
+    var size: CGFloat = 44
+    var iconSize: CGFloat = 20
+    var radius: CGFloat? = nil
+
+    var body: some View {
+        let r = radius ?? size * 0.26
+        ZStack {
+            RoundedRectangle(cornerRadius: r)
+                .fill(LinearGradient(colors: colors, startPoint: .topLeading, endPoint: .bottomTrailing))
+                .frame(width: size, height: size)
+            Image(systemName: symbol)
+                .font(.system(size: iconSize, weight: .semibold))
+                .foregroundStyle(.white)
+                .symbolRenderingMode(.hierarchical)
+        }
+    }
+}
+
 // MARK: - Formatting
 
 extension Double {

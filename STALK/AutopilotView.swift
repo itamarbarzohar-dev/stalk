@@ -4,7 +4,8 @@ import SwiftUI
 
 struct AutopilotStrategy: Identifiable {
     let id: Int
-    let emoji: String
+    let icon: String
+    let iconColors: [Color]
     let name: String
     let risk: RiskLevel
     let description: String
@@ -42,7 +43,8 @@ struct AutopilotStrategy: Identifiable {
 let AI_STRATEGIES: [AutopilotStrategy] = [
     AutopilotStrategy(
         id: 1,
-        emoji: "🚀",
+        icon: "chart.line.uptrend.xyaxis",
+        iconColors: [Color(hex: "#3B82F6"), Color(hex: "#6366F1")],
         name: "STALK Momentum",
         risk: .high,
         description: "Rides the hottest momentum names in AI and semiconductors. Rebalances weekly based on relative strength signals. High volatility, high conviction.",
@@ -53,7 +55,8 @@ let AI_STRATEGIES: [AutopilotStrategy] = [
     ),
     AutopilotStrategy(
         id: 2,
-        emoji: "🤖",
+        icon: "cpu.fill",
+        iconColors: [Color(hex: "#EF4444"), Color(hex: "#F97316")],
         name: "AI Wave",
         risk: .aggressive,
         description: "Pure-play exposure to the AI infrastructure buildout. Concentrates in foundational chip makers and hyperscalers driving the next wave of compute.",
@@ -64,7 +67,8 @@ let AI_STRATEGIES: [AutopilotStrategy] = [
     ),
     AutopilotStrategy(
         id: 3,
-        emoji: "💰",
+        icon: "banknote.fill",
+        iconColors: [Color(hex: "#22C55E"), Color(hex: "#16A34A")],
         name: "Steady Dividend",
         risk: .low,
         description: "Sleep-well-at-night portfolio. Dividend aristocrats and defensive names that generate consistent income regardless of market conditions.",
@@ -75,7 +79,8 @@ let AI_STRATEGIES: [AutopilotStrategy] = [
     ),
     AutopilotStrategy(
         id: 4,
-        emoji: "🛡️",
+        icon: "shield.lefthalf.filled",
+        iconColors: [Color(hex: "#F59E0B"), Color(hex: "#D97706")],
         name: "Macro Hedge",
         risk: .medium,
         description: "Designed to hold value through macro uncertainty. Blends gold, bonds, utilities, and diversified equities to weather any economic storm.",
@@ -86,7 +91,8 @@ let AI_STRATEGIES: [AutopilotStrategy] = [
     ),
     AutopilotStrategy(
         id: 5,
-        emoji: "🎯",
+        icon: "scope",
+        iconColors: [Color(hex: "#8B5CF6"), Color(hex: "#6D28D9")],
         name: "Small Cap Hunter",
         risk: .aggressive,
         description: "High-conviction bets on emerging tech disruptors. Targets small caps with transformative potential in AI, space, and quantum computing.",
@@ -300,8 +306,7 @@ struct AutopilotView: View {
                             .clipShape(Capsule())
                             .padding(.vertical, 4)
 
-                        Text(strategy.emoji)
-                            .font(.system(size: 22))
+                        PremiumIconView(symbol: strategy.icon, colors: strategy.iconColors, size: 36, iconSize: 16)
 
                         VStack(alignment: .leading, spacing: 2) {
                             Text(strategy.name)
@@ -407,8 +412,7 @@ struct AutopilotView: View {
                 }
             } label: {
                 HStack(alignment: .top, spacing: 12) {
-                    Text(strategy.emoji)
-                        .font(.system(size: 26))
+                    PremiumIconView(symbol: strategy.icon, colors: strategy.iconColors, size: 44, iconSize: 20)
 
                     VStack(alignment: .leading, spacing: 4) {
                         HStack(spacing: 8) {

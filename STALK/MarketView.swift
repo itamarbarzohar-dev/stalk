@@ -1,8 +1,11 @@
 import SwiftUI
 import Combine
 
-private let INDEX_ICONS: [String: String] = [
-    "SPY": "🇺🇸", "QQQ": "💻", "DIA": "🏦", "IWM": "🏗️",
+private let INDEX_SF: [String: (symbol: String, color: Color)] = [
+    "SPY": ("chart.bar.fill",        Color(hex: "#3B82F6")),
+    "QQQ": ("cpu.fill",              Color(hex: "#8B5CF6")),
+    "DIA": ("building.columns.fill", Color(hex: "#22C55E")),
+    "IWM": ("chart.pie.fill",        Color(hex: "#F97316")),
 ]
 
 struct MarketView: View {
@@ -46,19 +49,19 @@ struct MarketView: View {
                 .padding(.bottom, 16)
 
                 // Indices — compact Bloomberg rows
-                marketSectionLabel("📊 Indices")
+                marketSectionLabel("Indices")
                 IndexCompactList(appState: appState, onTicker: onTicker)
                     .padding(.horizontal, 14)
                     .padding(.bottom, 20)
 
                 // Top Movers grid
-                marketSectionLabel("⚡ Top Movers")
+                marketSectionLabel("Top Movers")
                 TopMoversGrid(onTicker: onTicker)
                     .padding(.horizontal, 14)
                     .padding(.bottom, 20)
 
                 // Sector Chips (horizontal scroll)
-                marketSectionLabel("🗂 Sectors")
+                marketSectionLabel("Sectors")
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 7) {
                         ForEach(SECTORS, id: \.etf) { sector in
@@ -70,13 +73,13 @@ struct MarketView: View {
                 .padding(.bottom, 20)
 
                 // Sector Heat Map — taller tiles
-                marketSectionLabel("🌡️ Sector Heat Map")
+                marketSectionLabel("Sector Heat Map")
                 SectorHeatMapView()
                     .padding(.horizontal, 14)
                     .padding(.bottom, 20)
 
                 // Trending Tickers Feed
-                marketSectionLabel("🔥 Trending · Social Buzz")
+                marketSectionLabel("Trending · Social Buzz")
                 TrendingTickersFeedView(onTicker: onTicker)
                     .padding(.horizontal, 14)
                     .padding(.bottom, 20)
@@ -126,9 +129,15 @@ struct IndexCompactList: View {
                 Button { onTicker(ticker) } label: {
                     HStack(spacing: 12) {
                         // Icon + name
-                        Text(INDEX_ICONS[ticker] ?? "📈")
-                            .font(.system(size: 16))
-                            .frame(width: 28)
+                        let sfEntry = INDEX_SF[ticker] ?? ("chart.bar.fill", Theme.accent)
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 7)
+                                .fill(sfEntry.color.opacity(0.15))
+                                .frame(width: 28, height: 28)
+                            Image(systemName: sfEntry.symbol)
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundStyle(sfEntry.color)
+                        }
                         VStack(alignment: .leading, spacing: 1) {
                             Text(INDEX_NAMES[ticker] ?? ticker)
                                 .font(.system(size: 13, weight: .bold))
@@ -180,9 +189,15 @@ struct IndexCompactList: View {
 
 // MARK: - Top Movers Grid
 
-private let topMovers: [(ticker: String, change: Double, icon: String)] = [
-    ("NVDA", 4.2, "🤖"), ("GME", 8.1, "🎮"), ("TSLA", -2.8, "⚡"), ("AAPL", 1.2, "🍎"),
-    ("META", 2.1, "📱"), ("PLTR", 5.3, "🤖"), ("AMD", 1.8, "💻"), ("AMZN", -0.9, "📦"),
+private let topMovers: [(ticker: String, change: Double, icon: String, iconColor: Color)] = [
+    ("NVDA", 4.2,  "cpu.fill",              Color(hex: "#8B5CF6")),
+    ("GME",  8.1,  "gamecontroller.fill",   Color(hex: "#22C55E")),
+    ("TSLA", -2.8, "bolt.car.circle.fill",  Color(hex: "#3B82F6")),
+    ("AAPL", 1.2,  "applelogo",             Color(hex: "#6B7280")),
+    ("META", 2.1,  "person.2.fill",         Color(hex: "#3B82F6")),
+    ("PLTR", 5.3,  "waveform.path.ecg",     Color(hex: "#F97316")),
+    ("AMD",  1.8,  "memorychip.fill",       Color(hex: "#EF4444")),
+    ("AMZN", -0.9, "shippingbox.fill",      Color(hex: "#F59E0B")),
 ]
 
 struct TopMoversGrid: View {
@@ -194,11 +209,14 @@ struct TopMoversGrid: View {
             ForEach(topMovers, id: \.ticker) { mover in
                 Button { onTicker(mover.ticker) } label: {
                     HStack(spacing: 10) {
-                        Text(mover.icon)
-                            .font(.system(size: 20))
-                            .frame(width: 32, height: 32)
-                            .background(mover.change >= 0 ? Theme.gainBg : Theme.lossBg)
-                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 10)
+                                .fill(mover.iconColor.opacity(0.15))
+                                .frame(width: 32, height: 32)
+                            Image(systemName: mover.icon)
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundStyle(mover.iconColor)
+                        }
 
                         VStack(alignment: .leading, spacing: 3) {
                             Text(mover.ticker)

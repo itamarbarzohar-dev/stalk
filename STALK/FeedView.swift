@@ -19,13 +19,13 @@ struct FeedView: View {
 
     var achievements: [AchievementBadge] {
         [
-            AchievementBadge(icon: "📈", title: "First Gain",    unlocked: appState.totalValue > appState.totalCost),
-            AchievementBadge(icon: "💼", title: "5 Stocks",      unlocked: appState.positions.count >= 5),
-            AchievementBadge(icon: "🔥", title: "7-Day Streak",  unlocked: appState.streak >= 7),
-            AchievementBadge(icon: "🏆", title: "New ATH",       unlocked: appState.totalValue >= appState.portfolioATH && appState.portfolioATH > 0),
-            AchievementBadge(icon: "💎", title: "Diamond Hands", unlocked: appState.positions.contains { $0.avgCost > 0 }),
-            AchievementBadge(icon: "🤖", title: "AI User",       unlocked: appState.settings.aiMessagesUsed > 0),
-            AchievementBadge(icon: "⭐", title: "STALK Pro",     unlocked: appState.settings.isPro),
+            AchievementBadge(icon: "chart.line.uptrend.xyaxis", iconColor: Theme.gain,                  title: "First Gain",    unlocked: appState.totalValue > appState.totalCost),
+            AchievementBadge(icon: "briefcase.fill",            iconColor: Color(hex: "#60A5FA"),       title: "5 Stocks",      unlocked: appState.positions.count >= 5),
+            AchievementBadge(icon: "flame.fill",                iconColor: Color(hex: "#F97316"),       title: "7-Day Streak",  unlocked: appState.streak >= 7),
+            AchievementBadge(icon: "trophy.fill",               iconColor: Theme.gold,                 title: "New ATH",       unlocked: appState.totalValue >= appState.portfolioATH && appState.portfolioATH > 0),
+            AchievementBadge(icon: "diamond.fill",              iconColor: Color(hex: "#38BDF8"),       title: "Diamond Hands", unlocked: appState.positions.contains { $0.avgCost > 0 }),
+            AchievementBadge(icon: "brain.fill",                iconColor: Theme.accent,               title: "AI User",       unlocked: appState.settings.aiMessagesUsed > 0),
+            AchievementBadge(icon: "crown.fill",                iconColor: Theme.gold,                 title: "STALK Pro",     unlocked: appState.settings.isPro),
         ]
     }
 
@@ -58,8 +58,7 @@ struct FeedView: View {
                     // ── Streak Banner ───────────────────────────────────────
                     if appState.streak >= 1 {
                         HStack(spacing: 10) {
-                            Text("🔥")
-                                .font(.system(size: 36))
+                            PremiumIconView(symbol: "flame.fill", colors: [Color(hex: "#FF6B35"), Color(hex: "#EA580C")], size: 44, iconSize: 22)
                             VStack(alignment: .leading, spacing: 2) {
                                 Text("\(appState.streak)-day streak")
                                     .font(.system(size: 15, weight: .black))
@@ -580,38 +579,45 @@ struct StoryRing: View {
 // MARK: - Feature 2: Reaction Bar
 
 struct ReactionBar: View {
-    @State private var reactions: [String: Int] = ["🔥": 24, "📈": 18, "💎": 31, "😱": 7]
+    @State private var reactions: [String: Int] = ["fire": 24, "up": 18, "gem": 31, "wow": 7]
     @State private var tapped: String? = nil
 
-    let emojis = ["🔥", "📈", "💎", "😱"]
+    let reactionItems: [(id: String, symbol: String, color: Color)] = [
+        ("fire", "flame.fill",                  Color(hex: "#F97316")),
+        ("up",   "chart.line.uptrend.xyaxis",   Color(hex: "#22C55E")),
+        ("gem",  "diamond.fill",                Color(hex: "#38BDF8")),
+        ("wow",  "exclamationmark.bubble.fill", Color(hex: "#F43F5E")),
+    ]
 
     var body: some View {
         HStack(spacing: 8) {
-            ForEach(emojis, id: \.self) { emoji in
+            ForEach(reactionItems, id: \.id) { item in
                 Button {
                     withAnimation(.spring(response: 0.3, dampingFraction: 0.5)) {
-                        if tapped == emoji {
+                        if tapped == item.id {
                             tapped = nil
-                            reactions[emoji, default: 0] -= 1
+                            reactions[item.id, default: 0] -= 1
                         } else {
                             if let prev = tapped { reactions[prev, default: 1] -= 1 }
-                            tapped = emoji
-                            reactions[emoji, default: 0] += 1
+                            tapped = item.id
+                            reactions[item.id, default: 0] += 1
                         }
                     }
                 } label: {
                     HStack(spacing: 4) {
-                        Text(emoji).font(.system(size: 20))
-                        Text("\(reactions[emoji, default: 0])")
+                        Image(systemName: item.symbol)
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(tapped == item.id ? item.color : Theme.text3)
+                        Text("\(reactions[item.id, default: 0])")
                             .font(.system(size: 12, weight: .semibold))
-                            .foregroundStyle(tapped == emoji ? Theme.accent : Theme.text3)
+                            .foregroundStyle(tapped == item.id ? item.color : Theme.text3)
                     }
                     .padding(.horizontal, 11)
                     .padding(.vertical, 7)
-                    .background(tapped == emoji ? Theme.accent.opacity(0.15) : Theme.bg3)
+                    .background(tapped == item.id ? item.color.opacity(0.15) : Theme.bg3)
                     .clipShape(Capsule())
-                    .overlay(Capsule().stroke(tapped == emoji ? Theme.accent.opacity(0.5) : Color.clear, lineWidth: 1))
-                    .scaleEffect(tapped == emoji ? 1.18 : 1.0)
+                    .overlay(Capsule().stroke(tapped == item.id ? item.color.opacity(0.5) : Color.clear, lineWidth: 1))
+                    .scaleEffect(tapped == item.id ? 1.18 : 1.0)
                 }
                 .buttonStyle(.plain)
             }
@@ -719,10 +725,22 @@ struct LeaderboardRow: View {
     var body: some View {
         HStack(spacing: 12) {
             // Rank
-            Text(rank <= 3 ? ["🥇", "🥈", "🥉"][rank - 1] : "\(rank)")
-                .font(.system(size: rank <= 3 ? 24 : 13, weight: .bold))
-                .foregroundStyle(rankColor)
-                .frame(width: 32)
+            ZStack {
+                if rank <= 3 {
+                    Circle()
+                        .fill(LinearGradient(
+                            colors: rank == 1 ? [Color(hex: "#F59E0B"), Color(hex: "#D97706")]
+                                  : rank == 2 ? [Color(hex: "#9CA3AF"), Color(hex: "#6B7280")]
+                                  :             [Color(hex: "#CD7F32"), Color(hex: "#92400E")],
+                            startPoint: .topLeading, endPoint: .bottomTrailing
+                        ))
+                        .frame(width: 28, height: 28)
+                }
+                Text("\(rank)")
+                    .font(.system(size: 12, weight: .black))
+                    .foregroundStyle(rank <= 3 ? .white : rankColor)
+            }
+            .frame(width: 32)
 
             // Avatar
             Circle()
@@ -773,6 +791,7 @@ struct LeaderboardRow: View {
 struct AchievementBadge: Identifiable {
     let id = UUID()
     let icon: String
+    let iconColor: Color
     let title: String
     let unlocked: Bool
 }
@@ -812,9 +831,10 @@ struct BadgeTile: View {
                 Circle()
                     .fill(badge.unlocked ? Theme.accentBg : Theme.bg3)
                     .frame(width: 48, height: 48)
-                Text(badge.icon)
-                    .font(.system(size: 22))
-                    .opacity(badge.unlocked ? 1.0 : 0.35)
+                Image(systemName: badge.icon)
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundStyle(badge.unlocked ? badge.iconColor : Theme.text4)
+                    .opacity(badge.unlocked ? 1.0 : 0.4)
                 if !badge.unlocked {
                     Image(systemName: "lock.fill")
                         .font(.system(size: 11, weight: .bold))

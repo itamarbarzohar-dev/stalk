@@ -9,6 +9,9 @@ struct AIHubView: View {
     @State private var showBrief = false
     @State private var insightIndex = 0
     @State private var preloadedPrompt = ""
+    @State private var heroIconScale: CGFloat = 1.0
+    @State private var heroIconRotation: Double = 0
+    @State private var thinkingDot = 0
 
     private let insights = [
         "Your portfolio is up +19% all-time — beating the S&P by 4.2pts",
@@ -65,41 +68,70 @@ struct AIHubView: View {
 
     var heroSection: some View {
         ZStack(alignment: .bottomLeading) {
-            LinearGradient(
-                colors: [Color(hex: "#2D2B8F"), Color(hex: "#5B5BD6"), Color(hex: "#9C8FF5")],
-                startPoint: .topLeading, endPoint: .bottomTrailing
-            )
-            .clipShape(RoundedRectangle(cornerRadius: 28))
-            .frame(height: 160)
+            // Richer multi-stop mesh gradient
+            Theme.aiHeroGradient
+                .clipShape(RoundedRectangle(cornerRadius: 28))
 
-            // Decorative circles
+            // Decorative glowing blobs
             Circle()
-                .fill(.white.opacity(0.06))
-                .frame(width: 200, height: 200)
-                .offset(x: 200, y: -40)
+                .fill(.white.opacity(0.05))
+                .frame(width: 240, height: 240)
+                .blur(radius: 30)
+                .offset(x: 160, y: -60)
             Circle()
-                .fill(.white.opacity(0.04))
-                .frame(width: 120, height: 120)
-                .offset(x: 260, y: 40)
+                .fill(Color(hex: "#8B72F8").opacity(0.20))
+                .frame(width: 140, height: 140)
+                .blur(radius: 20)
+                .offset(x: 220, y: 50)
+            Circle()
+                .fill(.white.opacity(0.03))
+                .frame(width: 80, height: 80)
+                .offset(x: 40, y: -80)
 
-            VStack(alignment: .leading, spacing: 6) {
+            // Animated brain icon top-right
+            VStack {
+                HStack {
+                    Spacer()
+                    ZStack {
+                        Circle()
+                            .fill(.white.opacity(0.08))
+                            .frame(width: 80, height: 80)
+                        Circle()
+                            .fill(.white.opacity(0.06))
+                            .frame(width: 60, height: 60)
+                            .scaleEffect(heroIconScale)
+                        Image(systemName: "brain.head.profile")
+                            .font(.system(size: 30, weight: .semibold))
+                            .foregroundStyle(.white.opacity(0.9))
+                            .rotationEffect(.degrees(heroIconRotation))
+                            .scaleEffect(heroIconScale)
+                    }
+                    .padding(.trailing, 20)
+                    .padding(.top, 24)
+                }
+                Spacer()
+            }
+
+            VStack(alignment: .leading, spacing: 8) {
                 HStack(spacing: 8) {
                     Image(systemName: "sparkles")
-                        .font(.system(size: 20, weight: .bold))
-                        .foregroundStyle(.white)
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundStyle(Color(hex: "#C4B5FD"))
                     Text("STALK AI")
-                        .font(.system(size: 22, weight: .black))
+                        .font(.system(size: 26, weight: .black))
                         .foregroundStyle(.white)
                     Text("BETA")
                         .font(.system(size: 9, weight: .black))
-                        .foregroundStyle(Color(hex: "#9C8FF5"))
-                        .padding(.horizontal, 6).padding(.vertical, 3)
+                        .foregroundStyle(Color(hex: "#C4B5FD"))
+                        .kerning(0.5)
+                        .padding(.horizontal, 7).padding(.vertical, 3)
                         .background(.white.opacity(0.15))
                         .clipShape(Capsule())
                 }
                 Text("Your personal finance AI")
-                    .font(.system(size: 14))
-                    .foregroundStyle(.white.opacity(0.75))
+                    .font(.system(size: 15))
+                    .foregroundStyle(.white.opacity(0.70))
+                    .lineSpacing(4)
 
                 Button {
                     showChat = true
@@ -111,17 +143,27 @@ struct AIHubView: View {
                             .font(.system(size: 13, weight: .bold))
                     }
                     .foregroundStyle(Color(hex: "#5B5BD6"))
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 9)
+                    .padding(.horizontal, 18)
+                    .padding(.vertical, 10)
                     .background(.white)
                     .clipShape(Capsule())
-                    .shadow(color: .black.opacity(0.15), radius: 8, y: 3)
+                    .shadow(color: Color(hex: "#5B5BD6").opacity(0.4), radius: 12, y: 4)
                 }
                 .padding(.top, 4)
             }
-            .padding(20)
+            .padding(22)
         }
+        .frame(height: 200)
+        .shadow(color: Color(hex: "#2D2B8F").opacity(0.5), radius: 24, y: 8)
         .padding(.top, 12)
+        .onAppear {
+            withAnimation(.easeInOut(duration: 2.8).repeatForever(autoreverses: true)) {
+                heroIconScale = 1.08
+            }
+            withAnimation(.easeInOut(duration: 6).repeatForever(autoreverses: true)) {
+                heroIconRotation = 8
+            }
+        }
     }
 
     // MARK: - Quick Actions
@@ -180,29 +222,41 @@ struct AIHubView: View {
                     ZStack {
                         Circle()
                             .fill(LinearGradient(
-                                colors: [Color(hex: "#5B5BD6"), Color(hex: "#9C8FF5")],
+                                colors: [Color(hex: "#5B5BD6"), Color(hex: "#8B72F8")],
                                 startPoint: .topLeading, endPoint: .bottomTrailing
                             ))
-                            .frame(width: 36, height: 36)
+                            .frame(width: 38, height: 38)
+                            .shadow(color: Color(hex: "#5B5BD6").opacity(0.55), radius: 8, y: 2)
                         Image(systemName: "sparkles")
-                            .font(.system(size: 14, weight: .semibold))
+                            .font(.system(size: 15, weight: .semibold))
                             .foregroundStyle(.white)
                     }
                     VStack(alignment: .leading, spacing: 1) {
                         Text("STALK AI")
                             .font(.system(size: 12, weight: .bold))
                             .foregroundStyle(Theme.text)
-                        Text("Live · Updating every 5s")
-                            .font(.system(size: 10))
-                            .foregroundStyle(Theme.gain)
+                        // Animated "thinking" dots
+                        HStack(spacing: 3) {
+                            Text("Thinking")
+                                .font(.system(size: 10))
+                                .foregroundStyle(Theme.gain)
+                            ForEach(0..<3, id: \.self) { i in
+                                Circle()
+                                    .fill(Theme.gain)
+                                    .frame(width: 4, height: 4)
+                                    .opacity(thinkingDot == i ? 1.0 : 0.25)
+                                    .scaleEffect(thinkingDot == i ? 1.2 : 0.9)
+                                    .animation(.easeInOut(duration: 0.3), value: thinkingDot)
+                            }
+                        }
                     }
                     Spacer()
                     HStack(spacing: 3) {
                         ForEach(0..<insights.count, id: \.self) { i in
-                            Circle()
+                            Capsule()
                                 .fill(i == insightIndex ? Color(hex: "#5B5BD6") : Theme.border)
-                                .frame(width: 5, height: 5)
-                                .animation(.easeInOut, value: insightIndex)
+                                .frame(width: i == insightIndex ? 14 : 5, height: 5)
+                                .animation(.spring(response: 0.3, dampingFraction: 0.7), value: insightIndex)
                         }
                     }
                 }
@@ -221,30 +275,52 @@ struct AIHubView: View {
                 Button {
                     showChat = true
                 } label: {
-                    Text("Ask AI for more →")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(Color(hex: "#5B5BD6"))
+                    HStack(spacing: 4) {
+                        Text("Ask AI for more")
+                            .font(.system(size: 12, weight: .semibold))
+                        Image(systemName: "arrow.up.right")
+                            .font(.system(size: 10, weight: .bold))
+                    }
+                    .foregroundStyle(Color(hex: "#5B5BD6"))
                 }
             }
             .padding(16)
-            .background(Theme.card)
+            .background(
+                ZStack {
+                    Theme.card
+                    LinearGradient(
+                        colors: [Color(hex: "#5B5BD6").opacity(0.05), Color.clear],
+                        startPoint: .topLeading, endPoint: .bottomTrailing
+                    )
+                }
+            )
             .clipShape(RoundedRectangle(cornerRadius: 20))
             .overlay(
                 RoundedRectangle(cornerRadius: 20)
                     .stroke(
                         LinearGradient(
-                            colors: [Color(hex: "#5B5BD6").opacity(0.5), Color(hex: "#9C8FF5").opacity(0.2)],
+                            colors: [
+                                Color(hex: "#8B72F8").opacity(0.70),
+                                Color(hex: "#5B5BD6").opacity(0.45),
+                                Color(hex: "#9C8FF5").opacity(0.15),
+                            ],
                             startPoint: .topLeading, endPoint: .bottomTrailing
                         ),
                         lineWidth: 1.5
                     )
             )
-            .shadow(color: Color(hex: "#5B5BD6").opacity(0.08), radius: 12, y: 4)
+            .shadow(color: Color(hex: "#5B5BD6").opacity(0.20), radius: 18, y: 6)
         }
         .onAppear {
             Timer.scheduledTimer(withTimeInterval: 5, repeats: true) { _ in
                 withAnimation {
                     insightIndex = (insightIndex + 1) % insights.count
+                }
+            }
+            // Thinking dots pulse
+            Timer.scheduledTimer(withTimeInterval: 0.45, repeats: true) { _ in
+                withAnimation {
+                    thinkingDot = (thinkingDot + 1) % 3
                 }
             }
         }
@@ -260,31 +336,11 @@ struct AIHubView: View {
                 .kerning(1.5)
 
             VStack(spacing: 8) {
-                ForEach(suggestedPrompts, id: \.self) { prompt in
-                    Button {
+                ForEach(Array(suggestedPrompts.enumerated()), id: \.offset) { index, prompt in
+                    PromptRow(prompt: prompt, index: index) {
                         preloadedPrompt = prompt
                         showChat = true
-                    } label: {
-                        HStack(spacing: 12) {
-                            Image(systemName: "sparkle")
-                                .font(.system(size: 12))
-                                .foregroundStyle(Color(hex: "#5B5BD6"))
-                                .frame(width: 20)
-                            Text(prompt)
-                                .font(.system(size: 13, weight: .medium))
-                                .foregroundStyle(Theme.text)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                            Image(systemName: "arrow.up.right")
-                                .font(.system(size: 11, weight: .semibold))
-                                .foregroundStyle(Theme.text3)
-                        }
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 12)
-                        .background(Theme.card)
-                        .clipShape(RoundedRectangle(cornerRadius: 14))
-                        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Theme.border, lineWidth: 1))
                     }
-                    .buttonStyle(.plain)
                 }
             }
         }
@@ -311,47 +367,165 @@ struct AIHubView: View {
                 HStack(spacing: 12) {
                     ForEach(Array(AI_STRATEGIES.prefix(3))) { strategy in
                         Button { showAutopilot = true } label: {
-                            VStack(alignment: .leading, spacing: 8) {
-                                HStack(spacing: 6) {
+                            VStack(alignment: .leading, spacing: 10) {
+                                // Header row
+                                HStack(spacing: 8) {
                                     Text(strategy.emoji)
-                                        .font(.system(size: 20))
-                                    VStack(alignment: .leading, spacing: 1) {
+                                        .font(.system(size: 22))
+                                    VStack(alignment: .leading, spacing: 2) {
                                         Text(strategy.name)
                                             .font(.system(size: 13, weight: .bold))
                                             .foregroundStyle(Theme.text)
+                                        // Risk pill — solid color bg + white text
                                         Text(strategy.risk.rawValue)
-                                            .font(.system(size: 10, weight: .semibold))
-                                            .foregroundStyle(strategy.risk.color)
-                                    }
-                                }
-
-                                HStack(spacing: 12) {
-                                    VStack(alignment: .leading, spacing: 1) {
-                                        Text("YTD")
-                                            .font(.system(size: 9))
-                                            .foregroundStyle(Theme.text3)
-                                        Text(strategy.perf.ytd >= 0 ? "+\(String(format: "%.1f", strategy.perf.ytd))%" : "\(String(format: "%.1f", strategy.perf.ytd))%")
-                                            .font(.system(size: 15, weight: .black))
-                                            .foregroundStyle(strategy.perf.ytd >= 0 ? Theme.gain : Theme.loss)
+                                            .font(.system(size: 9, weight: .black))
+                                            .foregroundStyle(.white)
+                                            .kerning(0.3)
+                                            .padding(.horizontal, 6).padding(.vertical, 3)
+                                            .background(strategy.risk.color)
+                                            .clipShape(Capsule())
                                     }
                                     Spacer()
-                                    Text("\(strategy.followers / 1000)K following")
-                                        .font(.system(size: 10))
-                                        .foregroundStyle(Theme.text3)
+                                }
+
+                                // Mini sparkline bars (YTD visual proxy)
+                                let bars: [CGFloat] = [0.3, 0.55, 0.4, 0.7, 0.6, 0.85, CGFloat(min(max(strategy.perf.ytd / 70.0, 0.1), 1.0))]
+                                HStack(alignment: .bottom, spacing: 3) {
+                                    ForEach(Array(bars.enumerated()), id: \.offset) { i, h in
+                                        RoundedRectangle(cornerRadius: 2)
+                                            .fill(
+                                                i == bars.count - 1
+                                                    ? (strategy.perf.ytd >= 0 ? Theme.gain : Theme.loss)
+                                                    : Theme.accent.opacity(0.35)
+                                            )
+                                            .frame(width: 8, height: max(h * 28, 4))
+                                    }
+                                }
+                                .frame(height: 28)
+
+                                Divider().opacity(0.4)
+
+                                HStack(spacing: 0) {
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("YTD")
+                                            .font(.system(size: 9, weight: .medium))
+                                            .foregroundStyle(Theme.text3)
+                                            .kerning(0.5)
+                                        Text(strategy.perf.ytd >= 0 ? "+\(String(format: "%.1f", strategy.perf.ytd))%" : "\(String(format: "%.1f", strategy.perf.ytd))%")
+                                            .font(.system(size: 17, weight: .black))
+                                            .foregroundStyle(strategy.perf.ytd >= 0 ? Theme.gain : Theme.loss)
+                                            .contentTransition(.numericText())
+                                    }
+                                    Spacer()
+                                    VStack(alignment: .trailing, spacing: 2) {
+                                        Text("AUM")
+                                            .font(.system(size: 9, weight: .medium))
+                                            .foregroundStyle(Theme.text3)
+                                            .kerning(0.5)
+                                        Text(strategy.aum)
+                                            .font(.system(size: 12, weight: .bold))
+                                            .foregroundStyle(Theme.text2)
+                                    }
                                 }
                             }
-                            .padding(14)
-                            .frame(width: 180)
+                            .padding(16)
+                            .frame(width: 200)
                             .background(Theme.card)
                             .clipShape(RoundedRectangle(cornerRadius: 18))
-                            .overlay(RoundedRectangle(cornerRadius: 18).stroke(Theme.border, lineWidth: 1))
-                            .shadow(color: .black.opacity(0.06), radius: 8, y: 3)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 18)
+                                    .stroke(
+                                        LinearGradient(
+                                            colors: [strategy.risk.color.opacity(0.30), Theme.border],
+                                            startPoint: .topLeading, endPoint: .bottomTrailing
+                                        ),
+                                        lineWidth: 1
+                                    )
+                            )
+                            .shadow(color: strategy.risk.color.opacity(0.15), radius: 12, y: 4)
                         }
                         .buttonStyle(.plain)
                     }
                 }
+                .padding(.horizontal, 1)
             }
         }
+    }
+}
+
+// MARK: - Prompt Row
+
+struct PromptRow: View {
+    let prompt: String
+    let index: Int
+    let action: () -> Void
+
+    @State private var isPressed = false
+
+    // Cycle through a few accent tints for variety
+    private var accentColor: Color {
+        let palette: [Color] = [
+            Color(hex: "#5B5BD6"),
+            Color(hex: "#7C3AED"),
+            Color(hex: "#0A84FF"),
+            Color(hex: "#00C45A"),
+            Color(hex: "#8B72F8"),
+        ]
+        return palette[index % palette.count]
+    }
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 0) {
+                // Left accent border stripe
+                Rectangle()
+                    .fill(
+                        LinearGradient(
+                            colors: [accentColor, accentColor.opacity(0.3)],
+                            startPoint: .top, endPoint: .bottom
+                        )
+                    )
+                    .frame(width: 3)
+                    .clipShape(Capsule())
+                    .padding(.vertical, 8)
+
+                HStack(spacing: 12) {
+                    Image(systemName: "sparkle")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(accentColor)
+                        .frame(width: 20)
+                    Text(prompt)
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(Theme.text)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .lineSpacing(3)
+                    Image(systemName: "arrow.up.right")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundStyle(accentColor.opacity(0.7))
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 13)
+            }
+            .background(
+                isPressed
+                    ? accentColor.opacity(0.08)
+                    : Theme.card
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 14))
+            .overlay(
+                RoundedRectangle(cornerRadius: 14)
+                    .stroke(
+                        isPressed ? accentColor.opacity(0.35) : Theme.border,
+                        lineWidth: 1
+                    )
+            )
+            .scaleEffect(isPressed ? 0.98 : 1.0)
+            .animation(.spring(response: 0.2, dampingFraction: 0.85), value: isPressed)
+        }
+        .buttonStyle(.plain)
+        .onLongPressGesture(minimumDuration: 0, pressing: { pressing in
+            withAnimation { isPressed = pressing }
+        }, perform: {})
     }
 }
 
@@ -364,16 +538,33 @@ struct AIActionCard: View {
     let color: Color
     let action: () -> Void
 
+    @State private var isPressed = false
+
     var body: some View {
         Button(action: action) {
-            VStack(alignment: .leading, spacing: 10) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(color.opacity(0.15))
-                        .frame(width: 44, height: 44)
-                    Image(systemName: icon)
-                        .font(.system(size: 18, weight: .semibold))
-                        .foregroundStyle(color)
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(alignment: .top) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 14)
+                            .fill(
+                                LinearGradient(
+                                    colors: [color.opacity(0.22), color.opacity(0.12)],
+                                    startPoint: .topLeading, endPoint: .bottomTrailing
+                                )
+                            )
+                            .frame(width: 52, height: 52)
+                            .shadow(color: color.opacity(0.35), radius: 8, y: 3)
+                        Image(systemName: icon)
+                            .font(.system(size: 22, weight: .semibold))
+                            .foregroundStyle(color)
+                    }
+                    Spacer()
+                    Image(systemName: "arrow.up.right")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundStyle(color.opacity(0.55))
+                        .padding(6)
+                        .background(color.opacity(0.10))
+                        .clipShape(Circle())
                 }
 
                 VStack(alignment: .leading, spacing: 3) {
@@ -384,15 +575,31 @@ struct AIActionCard: View {
                         .font(.system(size: 11))
                         .foregroundStyle(Theme.text3)
                         .lineLimit(2)
+                        .lineSpacing(3)
                 }
             }
             .padding(14)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(Theme.card)
             .clipShape(RoundedRectangle(cornerRadius: 18))
-            .overlay(RoundedRectangle(cornerRadius: 18).stroke(color.opacity(0.15), lineWidth: 1))
-            .shadow(color: color.opacity(0.06), radius: 8, y: 3)
+            .overlay(
+                RoundedRectangle(cornerRadius: 18)
+                    .stroke(
+                        LinearGradient(
+                            colors: [color.opacity(0.30), color.opacity(0.08)],
+                            startPoint: .topLeading, endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 1
+                    )
+            )
+            .shadow(color: color.opacity(0.18), radius: 14, y: 5)
+            .scaleEffect(isPressed ? 0.97 : 1.0)
         }
         .buttonStyle(.plain)
+        .onLongPressGesture(minimumDuration: 0, pressing: { pressing in
+            withAnimation(.spring(response: 0.25, dampingFraction: 0.8)) {
+                isPressed = pressing
+            }
+        }, perform: {})
     }
 }

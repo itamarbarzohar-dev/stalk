@@ -59,7 +59,7 @@ struct FeedView: View {
                     if appState.streak >= 1 {
                         HStack(spacing: 10) {
                             Text("🔥")
-                                .font(.system(size: 28))
+                                .font(.system(size: 36))
                             VStack(alignment: .leading, spacing: 2) {
                                 Text("\(appState.streak)-day streak")
                                     .font(.system(size: 15, weight: .black))
@@ -76,14 +76,15 @@ struct FeedView: View {
                                 .padding(.vertical, 4)
                                 .background(Theme.gold.opacity(0.15))
                                 .clipShape(Capsule())
+                                .shadow(color: Theme.gold.opacity(0.4), radius: 8)
                         }
                         .padding(14)
                         .background(LinearGradient(
-                            colors: [Color(hex: "#F97316").opacity(0.12), Color(hex: "#EA580C").opacity(0.06)],
+                            colors: [Color(hex: "#FB923C").opacity(0.22), Color(hex: "#F97316").opacity(0.14), Color(hex: "#EA580C").opacity(0.06)],
                             startPoint: .leading, endPoint: .trailing
                         ))
                         .clipShape(RoundedRectangle(cornerRadius: 16))
-                        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color(hex: "#F97316").opacity(0.25), lineWidth: 1))
+                        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color(hex: "#F97316").opacity(0.4), lineWidth: 1))
                         .padding(.horizontal, 14)
                         .padding(.top, 12)
                     }
@@ -279,15 +280,22 @@ struct FeedView: View {
                 .font(.system(size: 9, weight: .bold))
                 .foregroundStyle(Theme.text3)
                 .textCase(.uppercase)
-                .kerning(0.5)
+                .kerning(1.5)
             Text(value == 0 ? "—" : "\(value >= 0 ? "+" : "")\(String(format: "%.1f", value))%")
-                .font(.system(size: 22, weight: .bold))
+                .font(.system(size: 22, weight: .black))
                 .foregroundStyle(value == 0 ? Theme.text3 : value >= 0 ? Theme.gain : Theme.loss)
+                .contentTransition(.numericText())
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(13)
-        .background(Theme.bg)
+        .background(
+            (value == 0 ? Theme.bg : (value >= 0 ? Theme.gain : Theme.loss).opacity(0.07))
+        )
         .clipShape(RoundedRectangle(cornerRadius: 14))
+        .overlay(
+            RoundedRectangle(cornerRadius: 14)
+                .stroke(value == 0 ? Color.clear : (value >= 0 ? Theme.gain : Theme.loss).opacity(0.18), lineWidth: 1)
+        )
     }
 
     func holdingsStrip() -> some View {
@@ -349,7 +357,7 @@ struct TraderPostCardV2: View {
             HStack(spacing: 10) {
                 Circle()
                     .fill(LinearGradient(
-                        colors: [Theme.accent.opacity(0.8), Theme.accent2.opacity(0.6)],
+                        colors: [Theme.accent, Color(hex: "#A78BFA"), Theme.accent2.opacity(0.85)],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     ))
@@ -359,6 +367,7 @@ struct TraderPostCardV2: View {
                             .font(.system(size: 16, weight: .black))
                             .foregroundStyle(.white)
                     )
+                    .shadow(color: Theme.accent.opacity(0.35), radius: 6, y: 2)
 
                 VStack(alignment: .leading, spacing: 2) {
                     HStack(spacing: 6) {
@@ -392,12 +401,16 @@ struct TraderPostCardV2: View {
                 // Today's return badge
                 VStack(alignment: .trailing, spacing: 1) {
                     Text(trader.todayPct.fmtPct())
-                        .font(.system(size: 14, weight: .black))
-                        .foregroundStyle(trader.todayPct >= 0 ? Theme.gain : Theme.loss)
+                        .font(.system(size: 16, weight: .black))
+                        .foregroundStyle(.white)
                     Text("today")
-                        .font(.system(size: 9))
-                        .foregroundStyle(Theme.text3)
+                        .font(.system(size: 9, weight: .semibold))
+                        .foregroundStyle(.white.opacity(0.75))
                 }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .background((trader.todayPct >= 0 ? Theme.gain : Theme.loss).opacity(0.88))
+                .clipShape(Capsule())
             }
             .padding(.horizontal, 16)
             .padding(.top, 14)
@@ -405,9 +418,9 @@ struct TraderPostCardV2: View {
             // Post body — the "take"
             let postText = trader.take.isEmpty ? trader.text : trader.take
             Text(postText)
-                .font(.system(size: 14))
+                .font(.system(size: 15))
                 .foregroundStyle(Theme.text)
-                .lineSpacing(4)
+                .lineSpacing(5)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 10)
 
@@ -452,6 +465,12 @@ struct TraderPostCardV2: View {
             RoundedRectangle(cornerRadius: 20)
                 .stroke(Theme.border, lineWidth: 1)
         )
+        .overlay(alignment: .bottom) {
+            RoundedRectangle(cornerRadius: 20)
+                .fill((trader.todayPct >= 0 ? Theme.gain : Theme.loss).opacity(0.15))
+                .frame(height: 3)
+                .padding(.horizontal, 20)
+        }
         .shadow(color: .black.opacity(0.35), radius: 10, y: 4)
     }
 }
@@ -500,18 +519,30 @@ struct StoryRing: View {
     let isOwn: Bool
     let onTap: () -> Void
     @State private var appeared = false
+    @State private var pulseScale: CGFloat = 1.0
 
     var body: some View {
         Button(action: onTap) {
             VStack(spacing: 5) {
                 ZStack {
+                    // Vivid 3-color gradient ring for unviewed stories
                     Circle()
-                        .stroke(ringColor, lineWidth: 3)
+                        .stroke(
+                            AngularGradient(
+                                colors: pct >= 0
+                                    ? [Color(hex: "#00D26A"), Color(hex: "#34D399"), Color(hex: "#10B981"), Color(hex: "#00D26A")]
+                                    : [Color(hex: "#FF4757"), Color(hex: "#FF6B81"), Color(hex: "#EF4444"), Color(hex: "#FF4757")],
+                                center: .center
+                            ),
+                            lineWidth: 3
+                        )
                         .frame(width: 64, height: 64)
+                        .scaleEffect(isOwn ? 1.0 : pulseScale)
+
                     Circle()
                         .fill(
                             LinearGradient(
-                                colors: [Theme.accent.opacity(0.6), Theme.accent2.opacity(0.4)],
+                                colors: [Theme.accent.opacity(0.75), Theme.accent2.opacity(0.55)],
                                 startPoint: .topLeading, endPoint: .bottomTrailing
                             )
                         )
@@ -521,9 +552,10 @@ struct StoryRing: View {
                         .foregroundStyle(.white)
                 }
                 Text(name)
-                    .font(.system(size: 10, weight: .medium))
+                    .font(.system(size: 10, weight: .semibold))
                     .foregroundStyle(Theme.text2)
                     .lineLimit(1)
+                    .truncationMode(.tail)
                 Text(pct.fmtPct())
                     .font(.system(size: 9, weight: .bold))
                     .foregroundStyle(pct >= 0 ? Theme.gain : Theme.loss)
@@ -535,6 +567,12 @@ struct StoryRing: View {
         .buttonStyle(.plain)
         .onAppear {
             withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) { appeared = true }
+            // Subtle pulse for unviewed stories
+            if !isOwn {
+                withAnimation(.easeInOut(duration: 1.4).repeatForever(autoreverses: true).delay(0.3)) {
+                    pulseScale = 1.07
+                }
+            }
         }
     }
 }
@@ -563,17 +601,17 @@ struct ReactionBar: View {
                     }
                 } label: {
                     HStack(spacing: 4) {
-                        Text(emoji).font(.system(size: 14))
+                        Text(emoji).font(.system(size: 20))
                         Text("\(reactions[emoji, default: 0])")
-                            .font(.system(size: 11, weight: .semibold))
+                            .font(.system(size: 12, weight: .semibold))
                             .foregroundStyle(tapped == emoji ? Theme.accent : Theme.text3)
                     }
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 6)
+                    .padding(.horizontal, 11)
+                    .padding(.vertical, 7)
                     .background(tapped == emoji ? Theme.accent.opacity(0.15) : Theme.bg3)
                     .clipShape(Capsule())
-                    .overlay(Capsule().stroke(tapped == emoji ? Theme.accent.opacity(0.4) : Color.clear, lineWidth: 1))
-                    .scaleEffect(tapped == emoji ? 1.05 : 1.0)
+                    .overlay(Capsule().stroke(tapped == emoji ? Theme.accent.opacity(0.5) : Color.clear, lineWidth: 1))
+                    .scaleEffect(tapped == emoji ? 1.18 : 1.0)
                 }
                 .buttonStyle(.plain)
             }
@@ -669,13 +707,22 @@ struct LeaderboardRow: View {
         }
     }
 
+    var leftBorderColor: Color {
+        switch rank {
+        case 1: return Theme.gold
+        case 2: return Color(hex: "#C0C0C0")
+        case 3: return Color(hex: "#CD7F32")
+        default: return Color.clear
+        }
+    }
+
     var body: some View {
         HStack(spacing: 12) {
             // Rank
             Text(rank <= 3 ? ["🥇", "🥈", "🥉"][rank - 1] : "\(rank)")
-                .font(.system(size: rank <= 3 ? 18 : 13, weight: .bold))
+                .font(.system(size: rank <= 3 ? 24 : 13, weight: .bold))
                 .foregroundStyle(rankColor)
-                .frame(width: 28)
+                .frame(width: 32)
 
             // Avatar
             Circle()
@@ -705,6 +752,18 @@ struct LeaderboardRow: View {
                 .font(.system(size: 15, weight: .black))
                 .foregroundStyle(returnPct >= 0 ? Theme.gain : Theme.loss)
                 .monospacedDigit()
+        }
+        .padding(.vertical, rank <= 3 ? 6 : 2)
+        .padding(.horizontal, rank <= 3 ? 10 : 0)
+        .background(rank == 1 ? Theme.gold.opacity(0.07) : Color.clear)
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .overlay(alignment: .leading) {
+            if rank <= 3 {
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(leftBorderColor)
+                    .frame(width: 3)
+                    .padding(.vertical, 4)
+            }
         }
     }
 }

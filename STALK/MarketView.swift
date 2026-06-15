@@ -139,14 +139,18 @@ struct IndexCompactList: View {
                         }
                         Spacer()
                         if let q = appState.marketQuotes[ticker] {
-                            VStack(alignment: .trailing, spacing: 1) {
+                            HStack(spacing: 8) {
                                 Text(q.price.fmtPrice())
-                                    .font(.system(size: 14, weight: .bold))
+                                    .font(.system(size: 15, weight: .bold))
                                     .foregroundStyle(Theme.text)
                                     .monospacedDigit()
                                 Text(q.changePercent.fmtPct())
                                     .font(.system(size: 12, weight: .black))
                                     .foregroundStyle(q.isUp ? Theme.gain : Theme.loss)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 4)
+                                    .background((q.isUp ? Theme.gain : Theme.loss).opacity(0.14))
+                                    .clipShape(Capsule())
                             }
                         } else {
                             VStack(alignment: .trailing, spacing: 4) {
@@ -196,12 +200,12 @@ struct TopMoversGrid: View {
                             .background(mover.change >= 0 ? Theme.gainBg : Theme.lossBg)
                             .clipShape(RoundedRectangle(cornerRadius: 10))
 
-                        VStack(alignment: .leading, spacing: 2) {
+                        VStack(alignment: .leading, spacing: 3) {
                             Text(mover.ticker)
                                 .font(.system(size: 14, weight: .black))
                                 .foregroundStyle(Theme.text)
                             Text(mover.change >= 0 ? "+\(String(format: "%.1f", mover.change))%" : "\(String(format: "%.1f", mover.change))%")
-                                .font(.system(size: 13, weight: .bold))
+                                .font(.system(size: 16, weight: .black))
                                 .foregroundStyle(mover.change >= 0 ? Theme.gain : Theme.loss)
                         }
                         Spacer()
@@ -212,8 +216,8 @@ struct TopMoversGrid: View {
                     .background(Theme.card)
                     .clipShape(RoundedRectangle(cornerRadius: 14))
                     .overlay(RoundedRectangle(cornerRadius: 14).stroke(
-                        mover.change >= 0 ? Theme.gain.opacity(0.15) : Theme.loss.opacity(0.15),
-                        lineWidth: 1
+                        mover.change >= 0 ? Theme.gain.opacity(0.30) : Theme.loss.opacity(0.30),
+                        lineWidth: 1.5
                     ))
                 }
                 .buttonStyle(.plain)
@@ -354,49 +358,60 @@ struct SectorHeatMapView: View {
     func tileColor(_ change: Double) -> Color {
         let gain = Color(hex: "#00D26A")
         let loss = Color(hex: "#FF4757")
-        let flat = Color(hex: "#141420")
-        if change > 2.0      { return gain }
-        if change >= 0.5     { return gain.opacity(0.40) }
-        if change > -0.5     { return flat }
-        if change >= -2.0    { return loss.opacity(0.40) }
-        return loss
+        let flat = Color(hex: "#1A1A2E")
+        // Deep range: -3% to +3% full saturation
+        if change >= 3.0      { return Color(hex: "#00C853") }
+        if change >= 1.5      { return gain }
+        if change >= 0.5      { return gain.opacity(0.55) }
+        if change > -0.5      { return flat }
+        if change >= -1.5     { return loss.opacity(0.55) }
+        if change >= -3.0     { return loss }
+        return Color(hex: "#CC0000")
     }
 
     var body: some View {
         LazyVGrid(columns: columns, spacing: 8) {
             ForEach(heatMapSectors) { tile in
                 ZStack {
-                    RoundedRectangle(cornerRadius: 12)
+                    RoundedRectangle(cornerRadius: 14)
                         .fill(tileColor(tile.change))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(Color.white.opacity(0.08), lineWidth: 1)
-                        )
 
-                    VStack(spacing: 4) {
+                    // Inner glow for positive sectors
+                    if tile.change > 0 {
+                        RoundedRectangle(cornerRadius: 14)
+                            .fill(
+                                RadialGradient(
+                                    colors: [Color(hex: "#00D26A").opacity(0.25), Color.clear],
+                                    center: .center,
+                                    startRadius: 0,
+                                    endRadius: 50
+                                )
+                            )
+                    }
+
+                    RoundedRectangle(cornerRadius: 14)
+                        .stroke(Color.white.opacity(tile.change > 0 ? 0.15 : 0.06), lineWidth: 1)
+
+                    VStack(spacing: 5) {
                         Image(systemName: tile.icon)
-                            .font(.system(size: 17, weight: .semibold))
-                            .foregroundStyle(.white.opacity(0.85))
+                            .font(.system(size: 20, weight: .semibold))
+                            .foregroundStyle(.white.opacity(0.90))
 
                         Text(tile.name)
-                            .font(.system(size: 10, weight: .semibold))
+                            .font(.system(size: 11, weight: .bold))
                             .foregroundStyle(.white)
                             .multilineTextAlignment(.center)
                             .lineLimit(2)
-                            .minimumScaleFactor(0.8)
-
-                        Text(tile.symbol)
-                            .font(.system(size: 9, weight: .bold))
-                            .foregroundStyle(.white.opacity(0.5))
+                            .minimumScaleFactor(0.75)
 
                         Text(tile.change.fmtPct())
-                            .font(.system(size: 14, weight: .black))
+                            .font(.system(size: 18, weight: .black))
                             .foregroundStyle(.white)
                     }
                     .padding(.horizontal, 6)
-                    .padding(.vertical, 10)
+                    .padding(.vertical, 12)
                 }
-                .frame(height: 100)
+                .frame(minHeight: 100)
             }
         }
     }

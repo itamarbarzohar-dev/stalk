@@ -161,15 +161,19 @@ struct AutopilotView: View {
     @ViewBuilder
     func autopilotHeader() -> some View {
         ZStack(alignment: .top) {
-            LinearGradient(
-                colors: [
-                    Color(hex: "#1A0938"),
-                    Color(hex: "#2D1B6B"),
-                    Color(hex: "#4B3BA8"),
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
+            Theme.autopilotHeroGradient
+
+            // Decorative glowing blobs
+            Circle()
+                .fill(Color(hex: "#7C6FE8").opacity(0.20))
+                .frame(width: 280, height: 280)
+                .blur(radius: 40)
+                .offset(x: 120, y: -60)
+            Circle()
+                .fill(Color(hex: "#5B3BA8").opacity(0.25))
+                .frame(width: 160, height: 160)
+                .blur(radius: 25)
+                .offset(x: -80, y: 80)
 
             VStack(alignment: .leading, spacing: 0) {
                 HStack {
@@ -178,19 +182,21 @@ struct AutopilotView: View {
                 .padding(.top, 52)
 
                 Text("AI AUTOPILOT")
-                    .font(.system(size: 11, weight: .bold))
-                    .foregroundStyle(.white.opacity(0.55))
-                    .kerning(2.0)
+                    .font(.system(size: 11, weight: .black))
+                    .foregroundStyle(.white.opacity(0.50))
+                    .kerning(2.5)
                     .padding(.top, 4)
 
                 Text("AI Autopilot")
-                    .font(.system(size: 30, weight: .black))
+                    .font(.system(size: 34, weight: .black))
                     .foregroundStyle(.white)
                     .padding(.top, 6)
+                    .shadow(color: .black.opacity(0.3), radius: 8, y: 2)
 
                 Text("Let AI manage your strategy")
                     .font(.system(size: 15))
                     .foregroundStyle(.white.opacity(0.65))
+                    .lineSpacing(4)
                     .padding(.top, 4)
 
                 heroPulseCard()
@@ -287,6 +293,13 @@ struct AutopilotView: View {
             VStack(spacing: 10) {
                 ForEach(activeStrategies) { strategy in
                     HStack(spacing: 12) {
+                        // Colored left stripe
+                        Rectangle()
+                            .fill(strategy.risk.color)
+                            .frame(width: 3)
+                            .clipShape(Capsule())
+                            .padding(.vertical, 4)
+
                         Text(strategy.emoji)
                             .font(.system(size: 22))
 
@@ -295,31 +308,55 @@ struct AutopilotView: View {
                                 .font(.system(size: 15, weight: .semibold))
                                 .foregroundStyle(Theme.text)
                             Text(strategy.risk.rawValue)
-                                .font(.system(size: 12))
+                                .font(.system(size: 11))
                                 .foregroundStyle(Theme.text2)
                         }
 
                         Spacer()
 
-                        Text("ACTIVE")
-                            .font(.system(size: 10, weight: .black))
-                            .foregroundStyle(Theme.gain)
-                            .kerning(0.8)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(Theme.gain.opacity(0.15))
-                            .clipShape(Capsule())
+                        // Green pulsing dot + ACTIVE pill
+                        HStack(spacing: 5) {
+                            Circle()
+                                .fill(Theme.gain)
+                                .frame(width: 7, height: 7)
+                                .scaleEffect(pulseScale)
+                                .animation(
+                                    .easeInOut(duration: 1.0).repeatForever(autoreverses: true),
+                                    value: pulseScale
+                                )
+                            Text("ACTIVE")
+                                .font(.system(size: 10, weight: .black))
+                                .foregroundStyle(Theme.gain)
+                                .kerning(0.8)
+                        }
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 5)
+                        .background(Theme.gain.opacity(0.12))
+                        .clipShape(Capsule())
+                        .overlay(Capsule().stroke(Theme.gain.opacity(0.30), lineWidth: 1))
 
-                        perfBadge(strategy.perf.day)
+                        Text(formatPct(strategy.perf.day))
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundStyle(strategy.perf.day >= 0 ? Theme.gain : Theme.loss)
+                            .contentTransition(.numericText())
                     }
-                    .padding(.horizontal, 14)
+                    .padding(.horizontal, 12)
                     .padding(.vertical, 12)
-                    .background(Theme.card)
+                    .background(
+                        ZStack {
+                            Theme.card
+                            LinearGradient(
+                                colors: [Theme.gain.opacity(0.04), Color.clear],
+                                startPoint: .leading, endPoint: .trailing
+                            )
+                        }
+                    )
                     .clipShape(RoundedRectangle(cornerRadius: 14))
                     .overlay(
                         RoundedRectangle(cornerRadius: 14)
-                            .stroke(Theme.gain.opacity(0.25), lineWidth: 1)
+                            .stroke(Theme.gain.opacity(0.30), lineWidth: 1)
                     )
+                    .shadow(color: Theme.gain.opacity(0.10), radius: 8, y: 3)
                 }
             }
         }
@@ -344,6 +381,23 @@ struct AutopilotView: View {
     func strategyCard(_ strategy: AutopilotStrategy) -> some View {
         let isExpanded = expandedStrategy == strategy.id
         let isFollowing = followedStrategies.contains(strategy.id)
+
+        HStack(spacing: 0) {
+            // Colored left border stripe (4pt wide)
+            Rectangle()
+                .fill(
+                    LinearGradient(
+                        colors: [strategy.risk.color, strategy.risk.color.opacity(0.4)],
+                        startPoint: .top, endPoint: .bottom
+                    )
+                )
+                .frame(width: 4)
+                .clipShape(
+                    UnevenRoundedRectangle(
+                        topLeadingRadius: 18, bottomLeadingRadius: 18,
+                        bottomTrailingRadius: 0, topTrailingRadius: 0
+                    )
+                )
 
         VStack(alignment: .leading, spacing: 0) {
             // Tap header to expand
@@ -447,13 +501,14 @@ struct AutopilotView: View {
         .overlay(
             RoundedRectangle(cornerRadius: 18)
                 .stroke(
-                    isFollowing ? Theme.accent.opacity(0.35) : Theme.border,
+                    isFollowing ? Theme.accent.opacity(0.45) : Theme.border,
                     lineWidth: isFollowing ? 1.5 : 1
                 )
         )
-        .shadow(color: .black.opacity(0.30), radius: 10, x: 0, y: 4)
+        .shadow(color: strategy.risk.color.opacity(0.18), radius: 14, x: 0, y: 5)
         .animation(.spring(response: 0.4, dampingFraction: 0.8), value: isExpanded)
         .animation(.spring(response: 0.35, dampingFraction: 0.85), value: isFollowing)
+    }
     }
 
     @ViewBuilder
@@ -467,20 +522,39 @@ struct AutopilotView: View {
 
         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
             ForEach(metrics, id: \.label) { metric in
-                VStack(spacing: 3) {
+                VStack(spacing: 4) {
                     Text(metric.label)
-                        .font(.system(size: 10, weight: .medium))
-                        .foregroundStyle(Theme.text3)
+                        .font(.system(size: 9, weight: .black))
+                        .foregroundStyle(metric.value >= 0 ? Theme.gain.opacity(0.75) : Theme.loss.opacity(0.75))
                         .textCase(.uppercase)
-                        .kerning(0.4)
+                        .kerning(0.6)
                     Text(formatPct(metric.value))
-                        .font(.system(size: 14, weight: .bold))
+                        .font(.system(size: 15, weight: .black))
                         .foregroundStyle(metric.value >= 0 ? Theme.gain : Theme.loss)
+                        .contentTransition(.numericText())
                 }
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 8)
-                .background(metric.value >= 0 ? Theme.gainBg : Theme.lossBg)
-                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .padding(.vertical, 10)
+                .background(
+                    ZStack {
+                        (metric.value >= 0 ? Theme.gainBg : Theme.lossBg)
+                        LinearGradient(
+                            colors: [
+                                (metric.value >= 0 ? Theme.gain : Theme.loss).opacity(0.07),
+                                Color.clear
+                            ],
+                            startPoint: .top, endPoint: .bottom
+                        )
+                    }
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 10))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(
+                            (metric.value >= 0 ? Theme.gain : Theme.loss).opacity(0.20),
+                            lineWidth: 1
+                        )
+                )
             }
         }
     }
@@ -604,12 +678,19 @@ struct AutopilotView: View {
     @ViewBuilder
     func riskBadge(_ risk: AutopilotStrategy.RiskLevel) -> some View {
         Text(risk.rawValue)
-            .font(.system(size: 10, weight: .bold))
-            .foregroundStyle(risk.color)
-            .padding(.horizontal, 7)
-            .padding(.vertical, 3)
-            .background(risk.bgColor)
+            .font(.system(size: 10, weight: .black))
+            .foregroundStyle(.white)
+            .kerning(0.2)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(
+                LinearGradient(
+                    colors: [risk.color, risk.color.opacity(0.75)],
+                    startPoint: .topLeading, endPoint: .bottomTrailing
+                )
+            )
             .clipShape(Capsule())
+            .shadow(color: risk.color.opacity(0.35), radius: 4, y: 2)
     }
 
     @ViewBuilder

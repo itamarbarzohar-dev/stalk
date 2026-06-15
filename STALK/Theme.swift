@@ -74,6 +74,27 @@ enum Theme {
     static var accentBg: Color { accent.opacity(0.12) }
     static var goldBg:   Color { gold.opacity(0.15) }
 
+    // MARK: - Shadow & Overlay
+    static var shadow: Color {
+        Color(UIColor { t in t.userInterfaceStyle == .dark
+            ? UIColor.black.withAlphaComponent(0.50)
+            : UIColor.black.withAlphaComponent(0.12) })
+    }
+    static var overlay: Color {
+        Color(UIColor { t in t.userInterfaceStyle == .dark
+            ? UIColor.black.withAlphaComponent(0.40)
+            : UIColor.black.withAlphaComponent(0.15) })
+    }
+
+    // MARK: - Spacing
+    enum Spacing {
+        static let xs: CGFloat = 4
+        static let sm: CGFloat = 8
+        static let md: CGFloat = 16
+        static let lg: CGFloat = 24
+        static let xl: CGFloat = 32
+    }
+
     // MARK: - Alloc bar
     static let allocColors: [Color] = [
         Color(hex: "#5B5BD6"), Color(hex: "#7C7CF0"), Color(hex: "#A78BFA"),
@@ -96,6 +117,24 @@ enum Theme {
     static let goldGradient = LinearGradient(
         colors: [Color(hex: "#F5A623"), Color(hex: "#E8952A")],
         startPoint: .leading, endPoint: .trailing
+    )
+    static let aiHeroGradient = LinearGradient(
+        colors: [
+            Color(hex: "#1A1060"),
+            Color(hex: "#2D2B8F"),
+            Color(hex: "#5B5BD6"),
+            Color(hex: "#8B72F8"),
+        ],
+        startPoint: .topLeading, endPoint: .bottomTrailing
+    )
+    static let autopilotHeroGradient = LinearGradient(
+        colors: [
+            Color(hex: "#0D0726"),
+            Color(hex: "#1A0938"),
+            Color(hex: "#2D1B6B"),
+            Color(hex: "#5B3BA8"),
+        ],
+        startPoint: .topLeading, endPoint: .bottomTrailing
     )
 }
 

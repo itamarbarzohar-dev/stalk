@@ -666,20 +666,37 @@ struct TodaySummaryCard: View {
 
     var body: some View {
         ZStack {
+            // Dramatic layered gradient background
             RoundedRectangle(cornerRadius: 20)
-                .fill(Color(hex: "#0D0D1A"))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 20)
-                        .stroke(
-                            LinearGradient(
-                                colors: [Color(hex: "#5B5BD6").opacity(0.6), Color(hex: "#7B6FEF").opacity(0.2)],
-                                startPoint: .topLeading, endPoint: .bottomTrailing
-                            ),
-                            lineWidth: 1.5
-                        )
+                .fill(
+                    LinearGradient(
+                        colors: [Color(hex: "#0A0A1A"), Color(hex: "#0D0D28"), Color(hex: "#111132")],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
                 )
 
-            VStack(alignment: .leading, spacing: 12) {
+            // Radial accent glow in top-right
+            RoundedRectangle(cornerRadius: 20)
+                .fill(
+                    RadialGradient(
+                        colors: [Color(hex: "#5B5BD6").opacity(0.22), Color.clear],
+                        center: .init(x: 0.85, y: 0.15),
+                        startRadius: 0,
+                        endRadius: 140
+                    )
+                )
+
+            RoundedRectangle(cornerRadius: 20)
+                .stroke(
+                    LinearGradient(
+                        colors: [Color(hex: "#5B5BD6").opacity(0.75), Color(hex: "#7B6FEF").opacity(0.3), Color.clear],
+                        startPoint: .topLeading, endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 1.5
+                )
+
+            VStack(alignment: .leading, spacing: 14) {
                 HStack(spacing: 8) {
                     Text("📰")
                         .font(.system(size: 16))
@@ -697,26 +714,49 @@ struct TodaySummaryCard: View {
                             .kerning(0.8)
                     }
                     .padding(.horizontal, 8).padding(.vertical, 4)
-                    .background(Color(hex: "#00D26A").opacity(0.10))
+                    .background(Color(hex: "#00D26A").opacity(0.12))
                     .clipShape(Capsule())
+                    .overlay(Capsule().stroke(Color(hex: "#00D26A").opacity(0.3), lineWidth: 1))
                 }
 
                 Text(summaryText)
                     .font(.system(size: 14, weight: .medium))
                     .foregroundStyle(Theme.text2)
-                    .lineSpacing(4)
+                    .lineSpacing(5)
                     .fixedSize(horizontal: false, vertical: true)
 
-                Button {
-                    onOpenBrief()
-                } label: {
-                    HStack(spacing: 5) {
-                        Text("Full Daily Brief")
-                            .font(.system(size: 12, weight: .bold))
-                        Image(systemName: "arrow.right")
-                            .font(.system(size: 10, weight: .bold))
+                HStack(spacing: 10) {
+                    Button {
+                        onOpenBrief()
+                    } label: {
+                        HStack(spacing: 5) {
+                            Text("Full Daily Brief")
+                                .font(.system(size: 12, weight: .bold))
+                            Image(systemName: "arrow.right")
+                                .font(.system(size: 10, weight: .bold))
+                        }
+                        .foregroundStyle(Color(hex: "#7B6FEF"))
                     }
-                    .foregroundStyle(Color(hex: "#7B6FEF"))
+
+                    Spacer()
+
+                    Button {
+                        onOpenBrief()
+                    } label: {
+                        HStack(spacing: 5) {
+                            Text("View Portfolio")
+                                .font(.system(size: 12, weight: .bold))
+                            Image(systemName: "arrow.right")
+                                .font(.system(size: 10, weight: .bold))
+                        }
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 7)
+                        .background(
+                            LinearGradient(colors: [Color(hex: "#5B5BD6"), Color(hex: "#7B6FEF")], startPoint: .leading, endPoint: .trailing)
+                        )
+                        .clipShape(Capsule())
+                    }
                 }
             }
             .padding(18)
@@ -1100,23 +1140,36 @@ struct AIMarketContextCard: View {
 
     @State private var currentIndex: Int = 0
     @State private var dragOffset: CGFloat = 0
+    @State private var insightOpacity: Double = 1.0
     let timer = Timer.publish(every: 5, on: .main, in: .common).autoconnect()
+
+    private let insightTags: [String] = ["AI Analysis", "Fed Watch", "Earnings Data", "Sentiment"]
 
     var body: some View {
         ZStack {
             // Background with indigo gradient border
             RoundedRectangle(cornerRadius: 20)
                 .fill(Color(hex: "#0D0D1A"))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 20)
-                        .stroke(
-                            LinearGradient(
-                                colors: [Color(hex: "#4B4ACF").opacity(0.7), Color(hex: "#7B6FEF").opacity(0.3)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
-                            lineWidth: 1.5
-                        )
+
+            // Top accent glow
+            RoundedRectangle(cornerRadius: 20)
+                .fill(
+                    RadialGradient(
+                        colors: [Color(hex: "#4B4ACF").opacity(0.18), Color.clear],
+                        center: .init(x: 0.8, y: 0.1),
+                        startRadius: 0,
+                        endRadius: 120
+                    )
+                )
+
+            RoundedRectangle(cornerRadius: 20)
+                .stroke(
+                    LinearGradient(
+                        colors: [Color(hex: "#4B4ACF").opacity(0.8), Color(hex: "#7B6FEF").opacity(0.4), Color.clear],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 1.5
                 )
 
             VStack(alignment: .leading, spacing: 0) {
@@ -1142,10 +1195,23 @@ struct AIMarketContextCard: View {
                     .padding(.vertical, 4)
                     .background(Color(hex: "#00D26A").opacity(0.12))
                     .clipShape(Capsule())
+                    .overlay(Capsule().stroke(Color(hex: "#00D26A").opacity(0.3), lineWidth: 1))
                 }
-                .padding(.bottom, 14)
+                .padding(.bottom, 10)
 
-                // Insight body — animated horizontal slide
+                // Source tag pill
+                Text(insightTags[currentIndex % insightTags.count])
+                    .font(.system(size: 9, weight: .black))
+                    .foregroundStyle(Color(hex: "#7B6FEF"))
+                    .kerning(0.5)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 3)
+                    .background(Color(hex: "#7B6FEF").opacity(0.14))
+                    .clipShape(Capsule())
+                    .padding(.bottom, 10)
+                    .id(currentIndex)
+
+                // Insight body — dramatic slide + blur transition
                 GeometryReader { geo in
                     let plainText = insights[currentIndex]
                         .replacingOccurrences(of: "**", with: "")
@@ -1156,8 +1222,10 @@ struct AIMarketContextCard: View {
                         .frame(width: geo.size.width, alignment: .leading)
                         .fixedSize(horizontal: false, vertical: true)
                         .offset(x: dragOffset)
-                        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: dragOffset)
-                        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: currentIndex)
+                        .opacity(insightOpacity)
+                        .blur(radius: insightOpacity < 0.5 ? (1.0 - insightOpacity) * 6 : 0)
+                        .animation(.spring(response: 0.45, dampingFraction: 0.75), value: dragOffset)
+                        .animation(.easeInOut(duration: 0.2), value: insightOpacity)
                 }
                 .frame(height: 72)
                 .clipped()
@@ -1168,10 +1236,10 @@ struct AIMarketContextCard: View {
                     // Page dots
                     HStack(spacing: 5) {
                         ForEach(0..<insights.count, id: \.self) { i in
-                            Circle()
+                            Capsule()
                                 .fill(i == currentIndex ? Color(hex: "#7B6FEF") : Color.white.opacity(0.2))
-                                .frame(width: i == currentIndex ? 8 : 5, height: i == currentIndex ? 8 : 5)
-                                .animation(.spring(response: 0.3), value: currentIndex)
+                                .frame(width: i == currentIndex ? 16 : 5, height: 5)
+                                .animation(.spring(response: 0.35, dampingFraction: 0.7), value: currentIndex)
                         }
                     }
 
@@ -1198,14 +1266,19 @@ struct AIMarketContextCard: View {
     }
 
     func advanceInsight() {
-        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-            dragOffset = -20
+        // Phase 1: blur out + slide out
+        withAnimation(.easeIn(duration: 0.18)) {
+            insightOpacity = 0
+            dragOffset = -32
         }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.22) {
             currentIndex = (currentIndex + 1) % insights.count
-            dragOffset = 20
-            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+            dragOffset = 36
+            insightOpacity = 0
+            // Phase 2: slide in + fade in
+            withAnimation(.spring(response: 0.45, dampingFraction: 0.75)) {
                 dragOffset = 0
+                insightOpacity = 1
             }
         }
     }
@@ -1260,8 +1333,9 @@ struct EarningsCalendarCard: View {
                             .background(isOwned ? Theme.gold : Theme.accent)
                             .clipShape(RoundedRectangle(cornerRadius: 8))
                             .frame(minWidth: 50)
+                            .shadow(color: isOwned ? Theme.gold.opacity(0.4) : Theme.accent.opacity(0.3), radius: 6)
 
-                        VStack(alignment: .leading, spacing: 2) {
+                        VStack(alignment: .leading, spacing: 3) {
                             HStack(spacing: 6) {
                                 Text(event.company)
                                     .font(.system(size: 13, weight: .bold))
@@ -1269,26 +1343,42 @@ struct EarningsCalendarCard: View {
                                 if isOwned {
                                     Text("YOUR STOCK")
                                         .font(.system(size: 8, weight: .black))
-                                        .foregroundStyle(Theme.gold)
-                                        .padding(.horizontal, 5)
-                                        .padding(.vertical, 2)
-                                        .background(Theme.gold.opacity(0.15))
-                                        .clipShape(RoundedRectangle(cornerRadius: 4))
+                                        .foregroundStyle(.white)
+                                        .padding(.horizontal, 6)
+                                        .padding(.vertical, 2.5)
+                                        .background(Theme.gold)
+                                        .clipShape(RoundedRectangle(cornerRadius: 5))
+                                        .shadow(color: Theme.gold.opacity(0.45), radius: 5)
                                 }
                             }
-                            Text("\(event.date) · \(event.timing)")
-                                .font(.system(size: 10))
-                                .foregroundStyle(Theme.text3)
+                            HStack(spacing: 4) {
+                                Image(systemName: "calendar")
+                                    .font(.system(size: 9, weight: .semibold))
+                                    .foregroundStyle(isOwned ? Theme.gold.opacity(0.8) : Theme.text3)
+                                Text("\(event.date)")
+                                    .font(.system(size: 11, weight: .semibold))
+                                    .foregroundStyle(isOwned ? Theme.gold.opacity(0.9) : Theme.text2)
+                                Text("·")
+                                    .foregroundStyle(Theme.text4)
+                                Text(event.timing)
+                                    .font(.system(size: 10))
+                                    .foregroundStyle(Theme.text3)
+                            }
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
 
-                        VStack(alignment: .trailing, spacing: 2) {
+                        VStack(alignment: .trailing, spacing: 3) {
                             Text(event.epsEst)
-                                .font(.system(size: 11, weight: .semibold))
+                                .font(.system(size: 12, weight: .bold))
                                 .foregroundStyle(Theme.text)
-                            Text(event.epsPrev)
-                                .font(.system(size: 10))
-                                .foregroundStyle(Theme.text3)
+                            HStack(spacing: 2) {
+                                Image(systemName: "arrow.up")
+                                    .font(.system(size: 9, weight: .black))
+                                    .foregroundStyle(Theme.gain)
+                                Text("vs \(event.epsPrev.replacingOccurrences(of: " prev", with: ""))")
+                                    .font(.system(size: 10))
+                                    .foregroundStyle(Theme.text3)
+                            }
                         }
                     }
                     .padding(.horizontal, 14)

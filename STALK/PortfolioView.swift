@@ -77,6 +77,7 @@ struct PortfolioHero: View {
     @Environment(AppState.self) var appState
     @State private var now = Date()
     @State private var athPulse = false
+    @State private var progressAppeared = false
     let timer = Timer.publish(every: 30, on: .main, in: .common).autoconnect()
 
     var marketStatus: MarketStatus { MarketCalendar.status(at: now) }
@@ -116,10 +117,21 @@ struct PortfolioHero: View {
             .padding(.top, 52)
             .padding(.bottom, 20)
 
-            // Portfolio value — clean, no gradient box
-            VStack(alignment: .leading, spacing: 2) {
+            // Portfolio value — hero section with gradient mesh
+            ZStack(alignment: .topLeading) {
+                // Radial gradient mesh behind the value
+                RadialGradient(
+                    colors: [Color(hex: "#4F46E5").opacity(0.18), Color.clear],
+                    center: .topLeading,
+                    startRadius: 0,
+                    endRadius: 220
+                )
+                .frame(height: 130)
+                .allowsHitTesting(false)
+
+                VStack(alignment: .leading, spacing: 2) {
                 Text(appState.totalValue.fmtPrice())
-                    .font(.system(size: 44, weight: .black))
+                    .font(.system(size: 52, weight: .black))
                     .foregroundStyle(Theme.text)
                     .monospacedDigit()
                     .contentTransition(.numericText())
@@ -161,21 +173,23 @@ struct PortfolioHero: View {
                     }
                     .padding(.top, 4)
 
-                    // Today P&L + badges
+                    // Today P&L + badges — more prominent pill
                     HStack(spacing: 8) {
                         let todayIsGain = appState.todayPnl >= 0
                         let todayColor = todayIsGain ? Theme.gain : Theme.loss
-                        HStack(spacing: 4) {
-                            Text("Today")
-                                .font(.system(size: 11, weight: .semibold))
-                                .foregroundStyle(Theme.text3)
+                        HStack(spacing: 5) {
+                            Text("TODAY")
+                                .font(.system(size: 10, weight: .black))
+                                .foregroundStyle(todayColor.opacity(0.8))
+                                .kerning(0.8)
                             Text(appState.todayPnlPct.fmtPct())
-                                .font(.system(size: 12, weight: .black))
+                                .font(.system(size: 14, weight: .black))
                                 .foregroundStyle(todayColor)
                         }
-                        .padding(.horizontal, 10).padding(.vertical, 5)
-                        .background(todayColor.opacity(0.10))
+                        .padding(.horizontal, 12).padding(.vertical, 7)
+                        .background(todayColor.opacity(0.15))
                         .clipShape(Capsule())
+                        .overlay(Capsule().stroke(todayColor.opacity(0.35), lineWidth: 1.5))
 
                         if isATH {
                             HStack(spacing: 4) {
@@ -218,8 +232,26 @@ struct PortfolioHero: View {
                         }
                     }
                     .padding(.top, 8)
+
+                    // Animated progress bar showing today's change magnitude
+                    let todayIsGain2 = appState.todayPnl >= 0
+                    let todayBarColor = todayIsGain2 ? Theme.gain : Theme.loss
+                    let magnitude = min(abs(appState.todayPnlPct) / 5.0, 1.0)  // scale: 5% = full bar
+                    GeometryReader { geo in
+                        ZStack(alignment: .leading) {
+                            Capsule().fill(Theme.card).frame(height: 3)
+                            Capsule()
+                                .fill(LinearGradient(colors: [todayBarColor.opacity(0.5), todayBarColor], startPoint: .leading, endPoint: .trailing))
+                                .frame(width: progressAppeared ? geo.size.width * CGFloat(magnitude) : 0, height: 3)
+                                .animation(.spring(response: 1.0, dampingFraction: 0.75).delay(0.3), value: progressAppeared)
+                        }
+                    }
+                    .frame(height: 3)
+                    .padding(.top, 12)
+                    .onAppear { progressAppeared = true }
                 }
-            }
+                } // closes inner VStack
+            } // closes ZStack
             .padding(.horizontal, 20)
             .padding(.bottom, 14)
 
@@ -315,6 +347,18 @@ struct PositionsList: View {
             .frame(maxWidth: .infinity)
         } else {
             VStack(spacing: 10) {
+                HStack {
+                    Text("POSITIONS")
+                        .font(.system(size: 10, weight: .black))
+                        .foregroundStyle(Theme.text3)
+                        .kerning(1.5)
+                    Spacer()
+                    Text("\(appState.positions.count) stocks")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(Theme.text3)
+                }
+                .padding(.bottom, 4)
+
                 ForEach(Array(appState.positions.enumerated()), id: \.element.id) { index, position in
                     PositionCard(position: position, onTap: { onTicker(position.ticker) })
                         .staggerEntrance(index: index)
@@ -354,12 +398,21 @@ struct PositionCard: View {
     var body: some View {
         let sparkColor = isUp ? Theme.gain : Theme.loss
         let sparkPoints = sparklinePoints(ticker: position.ticker, trending: isUp)
+        let stripeColor = isUp ? Theme.gain : Theme.loss
+        let bgTint = isUp ? Theme.gainBg : Theme.lossBg
 
         HStack(spacing: 0) {
+            // Left color stripe — 4px wide, P&L colored
+            RoundedRectangle(cornerRadius: 2)
+                .fill(stripeColor)
+                .frame(width: 4)
+                .padding(.vertical, 10)
+                .padding(.trailing, 12)
+
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 8) {
                     Text(position.ticker)
-                        .font(.system(size: 16, weight: .bold))
+                        .font(.system(size: 16, weight: .black))
                         .foregroundStyle(Theme.text)
 
                     Text("\(isUp ? "▲" : "▼") \(String(format: "%.1f", abs(pnlPct)))%")
@@ -408,7 +461,7 @@ struct PositionCard: View {
 
                 VStack(alignment: .trailing, spacing: 3) {
                     Text(value.fmtPrice())
-                        .font(.system(size: 15, weight: .bold))
+                        .font(.system(size: 16, weight: .black))
                         .foregroundStyle(Theme.text)
 
                     Text(pnl.fmtChange())
@@ -417,7 +470,7 @@ struct PositionCard: View {
 
                     if let q = quote {
                         Text("Today \(q.changePercent.fmtPct())")
-                            .font(.system(size: 11, weight: .semibold))
+                            .font(.system(size: 11, weight: .bold))
                             .foregroundStyle(dayIsUp ? Theme.gain : Theme.loss)
                     }
                 }
@@ -425,13 +478,18 @@ struct PositionCard: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 14)
-        .background(Theme.card)
+        .background(
+            ZStack {
+                Theme.card
+                bgTint.opacity(0.04)
+            }
+        )
         .clipShape(RoundedRectangle(cornerRadius: 20))
         .overlay(
             RoundedRectangle(cornerRadius: 20)
-                .stroke(Theme.border, lineWidth: 1)
+                .stroke(stripeColor.opacity(0.12), lineWidth: 1)
         )
-        .shadow(color: .black.opacity(0.05), radius: 4, y: 1)
+        .shadow(color: .black.opacity(0.08), radius: 10, y: 4)
         .scaleEffect(pressing ? 0.98 : 1)
         .animation(.easeInOut(duration: 0.1), value: pressing)
         .onTapGesture { onTap() }
@@ -672,10 +730,20 @@ struct AIAgentCard: View {
         let todayPct = appState.todayPnlPct
 
         ZStack {
+            // More dramatic deep indigo → violet gradient
             LinearGradient(
-                colors: [Color(hex: "#1A1040"), Color(hex: "#2D1B6E"), Color(hex: "#1A1040")],
+                colors: [Color(hex: "#0D0829"), Color(hex: "#1E0F5C"), Color(hex: "#2D1B6E"), Color(hex: "#1A1040")],
                 startPoint: .topLeading, endPoint: .bottomTrailing
             )
+
+            // Radial accent bloom top-right
+            RadialGradient(
+                colors: [Color(hex: "#6D28D9").opacity(0.35), Color.clear],
+                center: .topTrailing,
+                startRadius: 0,
+                endRadius: 200
+            )
+            .allowsHitTesting(false)
 
             VStack(alignment: .leading, spacing: 0) {
                 // Header
@@ -684,11 +752,17 @@ struct AIAgentCard: View {
                         Circle()
                             .fill(LinearGradient(colors: [Color(hex: "#818CF8"), Color(hex: "#C4B5FD")],
                                                  startPoint: .topLeading, endPoint: .bottomTrailing))
-                            .frame(width: 44, height: 44)
-                        Text("🤖").font(.system(size: 22))
+                            .frame(width: 48, height: 48)
+                            .shadow(color: Color(hex: "#818CF8").opacity(0.5), radius: 12)
+                        Image(systemName: "sparkles")
+                            .font(.system(size: 22, weight: .bold))
+                            .foregroundStyle(.white)
+                            .symbolEffect(.pulse)
                     }
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("STALK AI").font(.system(size: 15, weight: .bold)).foregroundStyle(.white)
+                        Text("STALK AI")
+                            .font(.system(size: 16, weight: .black))
+                            .foregroundStyle(.white)
                         Text("Analyzing \(appState.positions.count) position\(appState.positions.count == 1 ? "" : "s") in real-time")
                             .font(.system(size: 11)).foregroundStyle(.white.opacity(0.55))
                     }
@@ -768,13 +842,16 @@ struct AIAgentCard: View {
 
                 Button { appState.showAIChat = true } label: {
                     HStack(spacing: 6) {
-                        Text("Open Full AI Chat").font(.system(size: 13, weight: .bold))
-                        Image(systemName: "arrow.right").font(.system(size: 13, weight: .bold))
+                        Text("Open Full AI Chat").font(.system(size: 13, weight: .black))
+                        Image(systemName: "arrow.right").font(.system(size: 13, weight: .black))
                     }
-                    .foregroundStyle(.white.opacity(0.7)).frame(maxWidth: .infinity)
-                    .padding(.vertical, 12).background(.white.opacity(0.07))
-                    .clipShape(RoundedRectangle(cornerRadius: 14))
-                    .overlay(RoundedRectangle(cornerRadius: 14).stroke(.white.opacity(0.1), lineWidth: 1))
+                    .foregroundStyle(.white).frame(maxWidth: .infinity)
+                    .padding(.vertical, 13)
+                    .background(
+                        LinearGradient(colors: [Color(hex: "#6D28D9").opacity(0.6), Color(hex: "#4F46E5").opacity(0.4)], startPoint: .leading, endPoint: .trailing)
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                    .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color(hex: "#818CF8").opacity(0.4), lineWidth: 1))
                 }
                 .padding(.top, 12)
             }
@@ -892,9 +969,11 @@ struct VsMarketCard: View {
         VStack(alignment: .leading, spacing: 0) {
             // Header
             HStack {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("📈 vs Market")
-                        .font(.system(size: 15, weight: .bold)).foregroundStyle(Theme.text)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("VS MARKET")
+                        .font(.system(size: 10, weight: .black))
+                        .foregroundStyle(Theme.text3)
+                        .kerning(1.5)
                     Text("How you stack up against major indices")
                         .font(.system(size: 11)).foregroundStyle(Theme.text3)
                 }
@@ -945,7 +1024,7 @@ struct VsMarketCard: View {
         .background(Theme.card)
         .clipShape(RoundedRectangle(cornerRadius: 24))
         .overlay(RoundedRectangle(cornerRadius: 24).stroke(Theme.border, lineWidth: 1))
-        .shadow(color: .black.opacity(0.04), radius: 8, y: 2)
+        .shadow(color: .black.opacity(0.08), radius: 10, y: 4)
     }
 
     func compRow(icon: String, name: String, ret: Double, color: Color, isMe: Bool, maxVal: Double) -> some View {
@@ -1018,9 +1097,10 @@ struct VsFriendsCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
-                Text("📊 vs Friends")
-                    .font(.system(size: 15, weight: .bold))
-                    .foregroundStyle(Theme.text)
+                Text("VS FRIENDS")
+                    .font(.system(size: 10, weight: .black))
+                    .foregroundStyle(Theme.text3)
+                    .kerning(1.5)
 
                 Spacer()
 
@@ -1102,7 +1182,7 @@ struct VsFriendsCard: View {
         .background(Theme.card)
         .clipShape(RoundedRectangle(cornerRadius: 24))
         .overlay(RoundedRectangle(cornerRadius: 24).stroke(Theme.border, lineWidth: 1))
-        .shadow(color: Theme.accent.opacity(0.1), radius: 16, y: 4)
+        .shadow(color: .black.opacity(0.08), radius: 10, y: 4)
     }
 }
 
@@ -1189,9 +1269,11 @@ struct LiveFeedCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("⚡ Live Feed")
-                        .font(.system(size: 15, weight: .bold)).foregroundStyle(Theme.text)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("LIVE FEED")
+                        .font(.system(size: 10, weight: .black))
+                        .foregroundStyle(Theme.text3)
+                        .kerning(1.5)
                     Text("What's happening in your portfolio right now")
                         .font(.system(size: 11)).foregroundStyle(Theme.text3)
                 }
@@ -1245,7 +1327,7 @@ struct LiveFeedCard: View {
         .background(Theme.card)
         .clipShape(RoundedRectangle(cornerRadius: 24))
         .overlay(RoundedRectangle(cornerRadius: 24).stroke(Theme.border, lineWidth: 1))
-        .shadow(color: .black.opacity(0.04), radius: 8, y: 2)
+        .shadow(color: .black.opacity(0.08), radius: 10, y: 4)
     }
 }
 
@@ -1253,6 +1335,7 @@ struct LiveFeedCard: View {
 
 struct PortfolioHealthCard: View {
     @Environment(AppState.self) var appState
+    @State private var ringAppeared = false
 
     struct HealthResult {
         let score: Int
@@ -1346,9 +1429,10 @@ struct PortfolioHealthCard: View {
             // Header
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("💪 Portfolio Health")
-                        .font(.system(size: 15, weight: .bold))
-                        .foregroundStyle(Theme.text)
+                    Text("PORTFOLIO HEALTH")
+                        .font(.system(size: 10, weight: .black))
+                        .foregroundStyle(Theme.text3)
+                        .kerning(1.5)
                     Text("Personalized score based on your holdings")
                         .font(.system(size: 11))
                         .foregroundStyle(Theme.text3)
@@ -1358,28 +1442,29 @@ struct PortfolioHealthCard: View {
             .padding(.bottom, 18)
 
             HStack(spacing: 20) {
-                // Ring + Score
+                // Ring + Score with glow
                 ZStack {
                     // Background ring
                     Circle()
-                        .stroke(Theme.bg2, lineWidth: 10)
-                        .frame(width: 90, height: 90)
+                        .stroke(Theme.bg2, lineWidth: 12)
+                        .frame(width: 100, height: 100)
 
-                    // Filled arc
+                    // Filled arc — animated entrance
                     Circle()
-                        .trim(from: 0, to: CGFloat(result.score) / 100.0)
+                        .trim(from: 0, to: ringAppeared ? CGFloat(result.score) / 100.0 : 0)
                         .stroke(
                             scoreColor,
-                            style: StrokeStyle(lineWidth: 10, lineCap: .round)
+                            style: StrokeStyle(lineWidth: 12, lineCap: .round)
                         )
-                        .frame(width: 90, height: 90)
+                        .frame(width: 100, height: 100)
                         .rotationEffect(.degrees(-90))
-                        .animation(.spring(response: 0.8, dampingFraction: 0.7), value: result.score)
+                        .shadow(color: scoreColor.opacity(0.4), radius: 16)
+                        .animation(.spring(response: 1.0, dampingFraction: 0.72).delay(0.15), value: ringAppeared)
 
                     // Score label
                     VStack(spacing: 1) {
                         Text("\(result.score)")
-                            .font(.system(size: 28, weight: .heavy))
+                            .font(.system(size: 32, weight: .black))
                             .foregroundStyle(scoreColor)
                         Text(result.label)
                             .font(.system(size: 8, weight: .bold))
@@ -1388,6 +1473,7 @@ struct PortfolioHealthCard: View {
                             .kerning(0.5)
                     }
                 }
+                .onAppear { ringAppeared = true }
 
                 // Insights
                 VStack(alignment: .leading, spacing: 8) {
@@ -1412,37 +1498,48 @@ struct PortfolioHealthCard: View {
         .background(Theme.card)
         .clipShape(RoundedRectangle(cornerRadius: 24))
         .overlay(RoundedRectangle(cornerRadius: 24).stroke(Theme.border, lineWidth: 1))
-        .shadow(color: scoreColor.opacity(0.08), radius: 12, y: 3)
+        .shadow(color: .black.opacity(0.08), radius: 10, y: 4)
     }
 }
 
 // MARK: - Autopilot Entry Card
 
 struct AutopilotEntryCard: View {
+    @State private var newBadgePulse = false
+    @State private var arrowOffset: CGFloat = 0
+
     var body: some View {
         HStack(spacing: 14) {
             ZStack {
                 Circle()
                     .fill(LinearGradient(
-                        colors: [Color(hex: "#5B5BD6"), Color(hex: "#7C7CF0")],
+                        colors: [Color(hex: "#4338CA"), Color(hex: "#7C3AED")],
                         startPoint: .topLeading, endPoint: .bottomTrailing
                     ))
-                    .frame(width: 48, height: 48)
-                Text("🤖")
-                    .font(.system(size: 22))
+                    .frame(width: 52, height: 52)
+                    .shadow(color: Color(hex: "#6D28D9").opacity(0.45), radius: 10)
+                Image(systemName: "cpu.fill")
+                    .font(.system(size: 22, weight: .bold))
+                    .foregroundStyle(.white)
             }
 
-            VStack(alignment: .leading, spacing: 3) {
-                HStack(spacing: 6) {
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(spacing: 7) {
                     Text("AI Autopilot")
-                        .font(.system(size: 15, weight: .bold))
+                        .font(.system(size: 15, weight: .black))
                         .foregroundStyle(Theme.text)
+                    // Pulsing NEW badge
                     Text("NEW")
                         .font(.system(size: 9, weight: .black))
                         .foregroundStyle(.white)
-                        .padding(.horizontal, 6).padding(.vertical, 2)
-                        .background(Theme.accent)
+                        .padding(.horizontal, 7).padding(.vertical, 3)
+                        .background(
+                            LinearGradient(colors: [Color(hex: "#7C3AED"), Color(hex: "#4F46E5")], startPoint: .leading, endPoint: .trailing)
+                        )
                         .clipShape(Capsule())
+                        .scaleEffect(newBadgePulse ? 1.08 : 1.0)
+                        .animation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true), value: newBadgePulse)
+                        .onAppear { newBadgePulse = true }
                 }
                 Text("Copy AI-managed strategies · 5 live strategies")
                     .font(.system(size: 12))
@@ -1451,19 +1548,31 @@ struct AutopilotEntryCard: View {
 
             Spacer()
 
-            Image(systemName: "chevron.right")
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(Theme.text3)
+            Image(systemName: "arrow.right")
+                .font(.system(size: 14, weight: .bold))
+                .foregroundStyle(Color(hex: "#7C3AED"))
+                .offset(x: arrowOffset)
         }
         .padding(16)
         .background(
             LinearGradient(
-                colors: [Color(hex: "#5B5BD6").opacity(0.12), Color(hex: "#7C7CF0").opacity(0.06)],
+                colors: [Color(hex: "#4338CA").opacity(0.15), Color(hex: "#7C3AED").opacity(0.08), Color.clear],
                 startPoint: .leading, endPoint: .trailing
             )
         )
         .clipShape(RoundedRectangle(cornerRadius: 20))
-        .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color(hex: "#5B5BD6").opacity(0.25), lineWidth: 1))
+        .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color(hex: "#6D28D9").opacity(0.35), lineWidth: 1))
+        .shadow(color: .black.opacity(0.08), radius: 10, y: 4)
+        .onTapGesture {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.5)) {
+                arrowOffset = 6
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                    arrowOffset = 0
+                }
+            }
+        }
     }
 }
 

@@ -35,6 +35,8 @@ struct UserPost: Identifiable, Codable {
     var tickers: [String]
     var sentiment: String   // "Bullish" / "Bearish" / "Neutral"
     var timestamp: Date = Date()
+    var contentType: String = "post"   // "post" | "short" | "video"
+    var hasMedia: Bool = false
 }
 
 // MARK: - Comments

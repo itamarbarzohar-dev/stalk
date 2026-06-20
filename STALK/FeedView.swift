@@ -2116,7 +2116,7 @@ struct DiscoverShortCard: View {
 
     var body: some View {
         ZStack(alignment: .bottom) {
-            // Gradient background (simulated video frame)
+            // ── Video background ───────────────────────────────────────────────
             RoundedRectangle(cornerRadius: 20)
                 .fill(LinearGradient(
                     colors: item.gradientColors.isEmpty
@@ -2125,15 +2125,14 @@ struct DiscoverShortCard: View {
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
                 ))
-                .frame(height: 400)
+                .frame(height: 440)
                 .overlay(alignment: .topLeading) {
-                    // "SHORT" badge + duration
                     HStack(spacing: 8) {
                         Text("SHORT")
                             .font(.system(size: 9, weight: .black))
                             .foregroundStyle(.white)
                             .padding(.horizontal, 8).padding(.vertical, 4)
-                            .background(.white.opacity(0.20))
+                            .background(.ultraThinMaterial.opacity(0.6))
                             .clipShape(Capsule())
                         if let dur = item.duration {
                             Text(dur)
@@ -2144,65 +2143,73 @@ struct DiscoverShortCard: View {
                     .padding(14)
                 }
                 .overlay(alignment: .center) {
-                    // Abstract "video" visual — animated chart lines
                     shortVisualOverlay()
                 }
 
-            // Bottom overlay: trader info + caption
-            VStack(alignment: .leading, spacing: 0) {
-                // Gradient fade-in
-                LinearGradient(
-                    colors: [Color.clear, Color.black.opacity(0.85)],
-                    startPoint: .top, endPoint: .bottom
-                )
-                .frame(height: 80)
+            // ── Single wide fade that covers the bottom ~55% ───────────────────
+            LinearGradient(
+                stops: [
+                    .init(color: .clear,                 location: 0.0),
+                    .init(color: .black.opacity(0.15),   location: 0.25),
+                    .init(color: .black.opacity(0.55),   location: 0.55),
+                    .init(color: .black.opacity(0.82),   location: 1.0),
+                ],
+                startPoint: .top, endPoint: .bottom
+            )
+            .frame(height: 260)
 
-                VStack(alignment: .leading, spacing: 10) {
-                    // Trader row
+            // ── Content + actions float over the fade ──────────────────────────
+            HStack(alignment: .bottom, spacing: 0) {
+
+                // Left: trader info, caption, tickers
+                VStack(alignment: .leading, spacing: 9) {
                     HStack(spacing: 10) {
                         Circle()
                             .fill(item.trader.color)
-                            .frame(width: 36, height: 36)
-                            .overlay(Text(item.trader.initial).font(.system(size: 14, weight: .black)).foregroundStyle(.white))
-                            .overlay(Circle().stroke(.white.opacity(0.4), lineWidth: 1.5))
+                            .frame(width: 34, height: 34)
+                            .overlay(Text(item.trader.initial).font(.system(size: 13, weight: .black)).foregroundStyle(.white))
+                            .overlay(Circle().stroke(.white.opacity(0.35), lineWidth: 1.5))
+                            .shadow(color: .black.opacity(0.5), radius: 4, y: 2)
 
-                        VStack(alignment: .leading, spacing: 1) {
-                            HStack(spacing: 6) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            HStack(spacing: 5) {
                                 Text(item.trader.name)
                                     .font(.system(size: 13, weight: .bold))
                                     .foregroundStyle(.white)
+                                    .shadow(color: .black.opacity(0.6), radius: 3)
                                 if item.trader.isPro {
                                     Text("PRO")
                                         .font(.system(size: 8, weight: .black))
                                         .foregroundStyle(Theme.nanoBanana)
                                         .padding(.horizontal, 5).padding(.vertical, 2)
-                                        .background(Theme.nanoBanana.opacity(0.20))
+                                        .background(Theme.nanoBanana.opacity(0.18))
                                         .clipShape(Capsule())
                                 }
                             }
                             Text("\(item.trader.handle) · \(formatViews(item.views)) views")
-                                .font(.system(size: 11))
-                                .foregroundStyle(.white.opacity(0.7))
+                                .font(.system(size: 10))
+                                .foregroundStyle(.white.opacity(0.65))
+                                .shadow(color: .black.opacity(0.5), radius: 2)
                         }
-                        Spacer()
-
-                        // Today return badge
-                        Text(item.trader.todayPct.fmtPct())
-                            .font(.system(size: 14, weight: .black))
-                            .foregroundStyle(.white)
-                            .padding(.horizontal, 10).padding(.vertical, 5)
-                            .background((item.trader.todayPct >= 0 ? Theme.gain : Theme.loss).opacity(0.85))
-                            .clipShape(Capsule())
+                        Spacer(minLength: 0)
                     }
 
-                    // Caption
+                    Text(item.trader.todayPct.fmtPct())
+                        .font(.system(size: 13, weight: .black))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 9).padding(.vertical, 4)
+                        .background((item.trader.todayPct >= 0 ? Theme.gain : Theme.loss).opacity(0.9))
+                        .clipShape(Capsule())
+                        .shadow(color: .black.opacity(0.4), radius: 4, y: 2)
+
                     Text(item.caption)
                         .font(.system(size: 13))
-                        .foregroundStyle(.white.opacity(0.92))
-                        .lineSpacing(4)
+                        .foregroundStyle(.white.opacity(0.95))
+                        .lineSpacing(3)
                         .lineLimit(3)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .shadow(color: .black.opacity(0.7), radius: 3)
 
-                    // Ticker chips
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 6) {
                             ForEach(item.tickers, id: \.self) { t in
@@ -2210,64 +2217,62 @@ struct DiscoverShortCard: View {
                                     Text(t)
                                         .font(.system(size: 11, weight: .bold))
                                         .foregroundStyle(Theme.nanoBanana)
-                                        .padding(.horizontal, 10).padding(.vertical, 5)
-                                        .background(.white.opacity(0.12))
+                                        .padding(.horizontal, 9).padding(.vertical, 4)
+                                        .background(.black.opacity(0.30))
                                         .clipShape(Capsule())
-                                        .overlay(Capsule().stroke(Theme.nanoBanana.opacity(0.5), lineWidth: 1))
+                                        .overlay(Capsule().stroke(Theme.nanoBanana.opacity(0.6), lineWidth: 1))
                                 }
                                 .buttonStyle(.plain)
                             }
                         }
                     }
                 }
-                .padding(.horizontal, 16)
-                .padding(.bottom, 16)
-                .background(.black.opacity(0.85))
-            }
+                .padding(.leading, 16)
+                .padding(.bottom, 22)
+                .frame(maxWidth: .infinity, alignment: .leading)
 
-            // Right-side TikTok action stack
-            VStack(spacing: 20) {
-                Spacer()
-                // Like
-                shortActionButton(
-                    icon: liked ? "heart.fill" : "heart",
-                    label: formatViews(likeCount + (liked ? 1 : 0)),
-                    color: liked ? Color(hex: "#F43F5E") : .white
-                ) {
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.5)) { liked.toggle() }
-                }
-                // Comment
-                shortActionButton(icon: "bubble.left.fill", label: "\(item.comments)", color: .white, action: onComments)
-                // Share
-                ShareLink(item: "Check out this trade idea on STALK: \(item.caption.prefix(80))...") {
-                    VStack(spacing: 4) {
-                        Image(systemName: "arrowshape.turn.up.right.fill")
-                            .font(.system(size: 24, weight: .semibold))
-                            .foregroundStyle(.white)
-                            .shadow(color: .black.opacity(0.4), radius: 4)
-                        Text("Share")
-                            .font(.system(size: 10, weight: .semibold))
-                            .foregroundStyle(.white.opacity(0.85))
+                // Right: floating action stack — no background
+                VStack(spacing: 20) {
+                    shortActionButton(
+                        icon: liked ? "heart.fill" : "heart",
+                        label: formatViews(likeCount + (liked ? 1 : 0)),
+                        color: liked ? Color(hex: "#F43F5E") : .white
+                    ) {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.5)) { liked.toggle() }
                     }
-                }
-                .buttonStyle(.plain)
-                // Save
-                shortActionButton(
-                    icon: isSaved ? "bookmark.fill" : "bookmark",
-                    label: "Save",
-                    color: isSaved ? Theme.nanoBanana : .white
-                ) {
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
-                        if isSaved { appState.savedItems.remove(item.id) }
-                        else        { appState.savedItems.insert(item.id) }
+
+                    shortActionButton(icon: "bubble.left.fill", label: "\(item.comments)", color: .white, action: onComments)
+
+                    ShareLink(item: "Check out this trade idea on STALK: \(item.caption.prefix(80))...") {
+                        VStack(spacing: 4) {
+                            Image(systemName: "arrowshape.turn.up.right.fill")
+                                .font(.system(size: 26, weight: .semibold))
+                                .foregroundStyle(.white)
+                                .shadow(color: .black.opacity(0.7), radius: 5, y: 2)
+                            Text("Share")
+                                .font(.system(size: 10, weight: .semibold))
+                                .foregroundStyle(.white.opacity(0.85))
+                                .shadow(color: .black.opacity(0.6), radius: 3)
+                        }
                     }
+                    .buttonStyle(.plain)
+
+                    shortActionButton(
+                        icon: isSaved ? "bookmark.fill" : "bookmark",
+                        label: "Save",
+                        color: isSaved ? Theme.nanoBanana : .white
+                    ) {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                            if isSaved { appState.savedItems.remove(item.id) }
+                            else        { appState.savedItems.insert(item.id) }
+                        }
+                    }
+
+                    shortActionButton(icon: "person.badge.plus.fill", label: "Tag", color: .white, action: onTag)
                 }
-                // Tag
-                shortActionButton(icon: "person.badge.plus.fill", label: "Tag", color: .white, action: onTag)
+                .padding(.trailing, 14)
+                .padding(.bottom, 22)
             }
-            .padding(.trailing, 14)
-            .padding(.bottom, 110)
-            .frame(maxWidth: .infinity, alignment: .trailing)
         }
         .clipShape(RoundedRectangle(cornerRadius: 20))
         .shadow(color: .black.opacity(0.5), radius: 16, y: 6)
@@ -2286,10 +2291,11 @@ struct DiscoverShortCard: View {
                 Image(systemName: icon)
                     .font(.system(size: 26, weight: .semibold))
                     .foregroundStyle(color)
-                    .shadow(color: .black.opacity(0.5), radius: 4)
+                    .shadow(color: .black.opacity(0.7), radius: 5, y: 2)
                 Text(label)
                     .font(.system(size: 10, weight: .semibold))
-                    .foregroundStyle(.white.opacity(0.85))
+                    .foregroundStyle(.white.opacity(0.9))
+                    .shadow(color: .black.opacity(0.6), radius: 3)
             }
         }
         .buttonStyle(.plain)

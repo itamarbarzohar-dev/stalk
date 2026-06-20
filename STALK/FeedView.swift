@@ -9,6 +9,10 @@ struct FeedView: View {
     @State private var storyTrader: Trader? = nil
     @State private var feedTab = "Trending"
     @State private var showCreatePost = false
+    @State private var showMyProfile = false
+    @State private var showActivity = false
+    @State private var showCommunities = false
+    @State private var commentsTrader: Trader? = nil
 
     var totalValue: Double { appState.totalValue }
     var totalCost: Double { appState.totalCost }
@@ -18,13 +22,13 @@ struct FeedView: View {
 
     var achievements: [AchievementBadge] {
         [
-            AchievementBadge(icon: "📈", title: "First Gain",    unlocked: appState.totalValue > appState.totalCost),
-            AchievementBadge(icon: "💼", title: "5 Stocks",      unlocked: appState.positions.count >= 5),
-            AchievementBadge(icon: "🔥", title: "7-Day Streak",  unlocked: appState.streak >= 7),
-            AchievementBadge(icon: "🏆", title: "New ATH",       unlocked: appState.totalValue >= appState.portfolioATH && appState.portfolioATH > 0),
-            AchievementBadge(icon: "💎", title: "Diamond Hands", unlocked: appState.positions.contains { $0.avgCost > 0 }),
-            AchievementBadge(icon: "🤖", title: "AI User",       unlocked: appState.settings.aiMessagesUsed > 0),
-            AchievementBadge(icon: "⭐", title: "STALK Pro",     unlocked: appState.settings.isPro),
+            AchievementBadge(icon: "chart.line.uptrend.xyaxis", iconColor: Theme.gain,                  title: "First Gain",    unlocked: appState.totalValue > appState.totalCost),
+            AchievementBadge(icon: "briefcase.fill",            iconColor: Color(hex: "#60A5FA"),       title: "5 Stocks",      unlocked: appState.positions.count >= 5),
+            AchievementBadge(icon: "flame.fill",                iconColor: Color(hex: "#F97316"),       title: "7-Day Streak",  unlocked: appState.streak >= 7),
+            AchievementBadge(icon: "trophy.fill",               iconColor: Theme.gold,                 title: "New ATH",       unlocked: appState.totalValue >= appState.portfolioATH && appState.portfolioATH > 0),
+            AchievementBadge(icon: "diamond.fill",              iconColor: Color(hex: "#38BDF8"),       title: "Diamond Hands", unlocked: appState.positions.contains { $0.avgCost > 0 }),
+            AchievementBadge(icon: "brain.fill",                iconColor: Theme.accent,               title: "AI User",       unlocked: appState.settings.aiMessagesUsed > 0),
+            AchievementBadge(icon: "crown.fill",                iconColor: Theme.gold,                 title: "STALK Pro",     unlocked: appState.settings.isPro),
         ]
     }
 
@@ -34,6 +38,8 @@ struct FeedView: View {
             return FEED_TRADERS.filter { appState.followed.contains($0.id) }
         case "Friends":
             return Array(FEED_TRADERS.prefix(4))
+        case "Discover":
+            return FEED_TRADERS.filter { !appState.followed.contains($0.id) }.sorted { $0.copiers > $1.copiers }
         default: // Trending
             return FEED_TRADERS.sorted { $0.todayPct > $1.todayPct }
         }
@@ -57,8 +63,7 @@ struct FeedView: View {
                     // ── Streak Banner ───────────────────────────────────────
                     if appState.streak >= 1 {
                         HStack(spacing: 10) {
-                            Text("🔥")
-                                .font(.system(size: 28))
+                            PremiumIconView(symbol: "flame.fill", colors: [Color(hex: "#FF6B35"), Color(hex: "#EA580C")], size: 44, iconSize: 22)
                             VStack(alignment: .leading, spacing: 2) {
                                 Text("\(appState.streak)-day streak")
                                     .font(.system(size: 15, weight: .black))
@@ -75,14 +80,15 @@ struct FeedView: View {
                                 .padding(.vertical, 4)
                                 .background(Theme.gold.opacity(0.15))
                                 .clipShape(Capsule())
+                                .shadow(color: Theme.gold.opacity(0.4), radius: 8)
                         }
                         .padding(14)
                         .background(LinearGradient(
-                            colors: [Color(hex: "#F97316").opacity(0.12), Color(hex: "#EA580C").opacity(0.06)],
+                            colors: [Color(hex: "#FB923C").opacity(0.22), Color(hex: "#F97316").opacity(0.14), Color(hex: "#EA580C").opacity(0.06)],
                             startPoint: .leading, endPoint: .trailing
                         ))
                         .clipShape(RoundedRectangle(cornerRadius: 16))
-                        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color(hex: "#F97316").opacity(0.25), lineWidth: 1))
+                        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color(hex: "#F97316").opacity(0.4), lineWidth: 1))
                         .padding(.horizontal, 14)
                         .padding(.top, 12)
                     }
@@ -180,8 +186,13 @@ struct FeedView: View {
                     } else {
                         VStack(spacing: 12) {
                             ForEach(Array(feedTraders.enumerated()), id: \.element.id) { i, trader in
-                                TraderPostCardV2(trader: trader, onTicker: onTicker)
-                                    .staggerEntrance(index: i)
+                                TraderPostCardV2(
+                                    trader: trader,
+                                    onTicker: onTicker,
+                                    onComments: { commentsTrader = trader },
+                                    onProfile: { profileTrader = trader }
+                                )
+                                .staggerEntrance(index: i)
                             }
                         }
                         .padding(.horizontal, 14)
@@ -208,11 +219,23 @@ struct FeedView: View {
         .sheet(isPresented: $showCreatePost) {
             CreatePostView().environment(appState)
         }
+        .sheet(isPresented: $showMyProfile) {
+            MyProfileView().environment(appState)
+        }
+        .sheet(isPresented: $showActivity) {
+            ActivityView().environment(appState)
+        }
+        .sheet(isPresented: $showCommunities) {
+            CommunitiesView().environment(appState)
+        }
         .sheet(item: $profileTrader) { trader in
             TraderProfileView(trader: trader, onTicker: onTicker)
         }
         .sheet(item: $storyTrader) { trader in
             TraderProfileView(trader: trader, onTicker: onTicker)
+        }
+        .sheet(item: $commentsTrader) { trader in
+            CommentsSheet(trader: trader).environment(appState)
         }
     }
 
@@ -220,44 +243,83 @@ struct FeedView: View {
 
     var feedHeader: some View {
         VStack(spacing: 12) {
-            // Line 1: Title + Bell
-            HStack {
+            // Line 1: Title + action icons
+            HStack(spacing: 10) {
                 Text("Feed")
                     .font(.system(size: 28, weight: .bold))
                     .foregroundStyle(Theme.text)
                 Spacer()
-                Button { } label: {
-                    Image(systemName: "bell")
-                        .font(.system(size: 20, weight: .semibold))
-                        .foregroundStyle(Theme.text2)
-                        .frame(width: 40, height: 40)
-                        .background(Theme.bg3)
-                        .clipShape(Circle())
+
+                // Communities button
+                Button { showCommunities = true } label: {
+                    ZStack(alignment: .topTrailing) {
+                        Image(systemName: "person.3.fill")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(Theme.text2)
+                            .frame(width: 38, height: 38)
+                            .background(Theme.card)
+                            .clipShape(Circle())
+                            .overlay(Circle().stroke(Theme.border, lineWidth: 1))
+                    }
+                }
+                .buttonStyle(.plain)
+
+                // Activity bell with unread indicator
+                Button { showActivity = true } label: {
+                    ZStack(alignment: .topTrailing) {
+                        Image(systemName: "bell.fill")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(Theme.text2)
+                            .frame(width: 38, height: 38)
+                            .background(Theme.card)
+                            .clipShape(Circle())
+                            .overlay(Circle().stroke(Theme.border, lineWidth: 1))
+                        Circle()
+                            .fill(Color(hex: "#F43F5E"))
+                            .frame(width: 10, height: 10)
+                            .overlay(Circle().stroke(Theme.bg, lineWidth: 1.5))
+                            .offset(x: 1, y: -1)
+                    }
+                }
+                .buttonStyle(.plain)
+
+                // Profile avatar
+                Button { showMyProfile = true } label: {
+                    Circle()
+                        .fill(Theme.accentGradient)
+                        .frame(width: 38, height: 38)
+                        .overlay(
+                            Text(String(appState.settings.displayName.prefix(1)).uppercased())
+                                .font(.system(size: 15, weight: .black))
+                                .foregroundStyle(.white)
+                        )
+                        .overlay(Circle().stroke(Theme.accent.opacity(0.4), lineWidth: 2))
                 }
                 .buttonStyle(.plain)
             }
 
-            // Line 2: Pill segmented control
-            HStack(spacing: 0) {
-                ForEach(["Friends", "Trending", "Following"], id: \.self) { tab in
-                    Button {
-                        withAnimation(.easeInOut(duration: 0.2)) { feedTab = tab }
-                    } label: {
-                        Text(tab)
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundStyle(feedTab == tab ? .white : Theme.text3)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 8)
-                            .background(feedTab == tab ? Theme.accent : Color.clear)
-                            .clipShape(Capsule())
+            // Line 2: Feed tab selector
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 0) {
+                    ForEach(["Trending", "Following", "Friends", "Discover"], id: \.self) { tab in
+                        Button {
+                            withAnimation(.easeInOut(duration: 0.2)) { feedTab = tab }
+                        } label: {
+                            Text(tab)
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundStyle(feedTab == tab ? .white : Theme.text3)
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 8)
+                                .background(feedTab == tab ? Theme.accent : Color.clear)
+                                .clipShape(Capsule())
+                        }
+                        .buttonStyle(.plain)
                     }
-                    .buttonStyle(.plain)
                 }
+                .padding(3)
+                .background(Theme.bg3)
+                .clipShape(Capsule())
             }
-            .padding(3)
-            .background(Theme.bg3)
-            .clipShape(Capsule())
-            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(.horizontal, 18)
         .padding(.top, 56)
@@ -272,15 +334,22 @@ struct FeedView: View {
                 .font(.system(size: 9, weight: .bold))
                 .foregroundStyle(Theme.text3)
                 .textCase(.uppercase)
-                .kerning(0.5)
+                .kerning(1.5)
             Text(value == 0 ? "—" : "\(value >= 0 ? "+" : "")\(String(format: "%.1f", value))%")
-                .font(.system(size: 22, weight: .bold))
+                .font(.system(size: 22, weight: .black))
                 .foregroundStyle(value == 0 ? Theme.text3 : value >= 0 ? Theme.gain : Theme.loss)
+                .contentTransition(.numericText())
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(13)
-        .background(Theme.bg)
+        .background(
+            (value == 0 ? Theme.bg : (value >= 0 ? Theme.gain : Theme.loss).opacity(0.07))
+        )
         .clipShape(RoundedRectangle(cornerRadius: 14))
+        .overlay(
+            RoundedRectangle(cornerRadius: 14)
+                .stroke(value == 0 ? Color.clear : (value >= 0 ? Theme.gain : Theme.loss).opacity(0.18), lineWidth: 1)
+        )
     }
 
     func holdingsStrip() -> some View {
@@ -334,24 +403,30 @@ struct FeedView: View {
 struct TraderPostCardV2: View {
     let trader: Trader
     let onTicker: (String) -> Void
+    var onComments: (() -> Void)? = nil
+    var onProfile: (() -> Void)? = nil
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
 
             // Header row
             HStack(spacing: 10) {
-                Circle()
-                    .fill(LinearGradient(
-                        colors: [Theme.accent.opacity(0.8), Theme.accent2.opacity(0.6)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    ))
-                    .frame(width: 40, height: 40)
-                    .overlay(
-                        Text(String(trader.name.prefix(1)))
-                            .font(.system(size: 16, weight: .black))
-                            .foregroundStyle(.white)
-                    )
+                Button { onProfile?() } label: {
+                    Circle()
+                        .fill(LinearGradient(
+                            colors: [Theme.accent, Color(hex: "#A78BFA"), Theme.accent2.opacity(0.85)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ))
+                        .frame(width: 40, height: 40)
+                        .overlay(
+                            Text(String(trader.name.prefix(1)))
+                                .font(.system(size: 16, weight: .black))
+                                .foregroundStyle(.white)
+                        )
+                        .shadow(color: Theme.accent.opacity(0.35), radius: 6, y: 2)
+                }
+                .buttonStyle(.plain)
 
                 VStack(alignment: .leading, spacing: 2) {
                     HStack(spacing: 6) {
@@ -385,12 +460,16 @@ struct TraderPostCardV2: View {
                 // Today's return badge
                 VStack(alignment: .trailing, spacing: 1) {
                     Text(trader.todayPct.fmtPct())
-                        .font(.system(size: 14, weight: .black))
-                        .foregroundStyle(trader.todayPct >= 0 ? Theme.gain : Theme.loss)
+                        .font(.system(size: 16, weight: .black))
+                        .foregroundStyle(.white)
                     Text("today")
-                        .font(.system(size: 9))
-                        .foregroundStyle(Theme.text3)
+                        .font(.system(size: 9, weight: .semibold))
+                        .foregroundStyle(.white.opacity(0.75))
                 }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .background((trader.todayPct >= 0 ? Theme.gain : Theme.loss).opacity(0.88))
+                .clipShape(Capsule())
             }
             .padding(.horizontal, 16)
             .padding(.top, 14)
@@ -398,9 +477,9 @@ struct TraderPostCardV2: View {
             // Post body — the "take"
             let postText = trader.take.isEmpty ? trader.text : trader.take
             Text(postText)
-                .font(.system(size: 14))
+                .font(.system(size: 15))
                 .foregroundStyle(Theme.text)
-                .lineSpacing(4)
+                .lineSpacing(5)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 10)
 
@@ -433,11 +512,30 @@ struct TraderPostCardV2: View {
             }
             .padding(.bottom, 10)
 
-            // Divider + reaction bar
+            // Divider + action bar
             Divider().overlay(Theme.border)
-            ReactionBar()
-                .padding(.horizontal, 16)
-                .padding(.vertical, 10)
+            HStack(spacing: 0) {
+                ReactionBar()
+                Spacer()
+                // Comments button
+                Button { onComments?() } label: {
+                    HStack(spacing: 5) {
+                        Image(systemName: "bubble.left.fill")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(Theme.text3)
+                        Text("Comment")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundStyle(Theme.text3)
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 7)
+                    .background(Theme.bg3)
+                    .clipShape(Capsule())
+                }
+                .buttonStyle(.plain)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
         }
         .background(Theme.card)
         .clipShape(RoundedRectangle(cornerRadius: 20))
@@ -445,6 +543,12 @@ struct TraderPostCardV2: View {
             RoundedRectangle(cornerRadius: 20)
                 .stroke(Theme.border, lineWidth: 1)
         )
+        .overlay(alignment: .bottom) {
+            RoundedRectangle(cornerRadius: 20)
+                .fill((trader.todayPct >= 0 ? Theme.gain : Theme.loss).opacity(0.15))
+                .frame(height: 3)
+                .padding(.horizontal, 20)
+        }
         .shadow(color: .black.opacity(0.35), radius: 10, y: 4)
     }
 }
@@ -493,18 +597,30 @@ struct StoryRing: View {
     let isOwn: Bool
     let onTap: () -> Void
     @State private var appeared = false
+    @State private var pulseScale: CGFloat = 1.0
 
     var body: some View {
         Button(action: onTap) {
             VStack(spacing: 5) {
                 ZStack {
+                    // Vivid 3-color gradient ring for unviewed stories
                     Circle()
-                        .stroke(ringColor, lineWidth: 3)
+                        .stroke(
+                            AngularGradient(
+                                colors: pct >= 0
+                                    ? [Color(hex: "#00D26A"), Color(hex: "#34D399"), Color(hex: "#10B981"), Color(hex: "#00D26A")]
+                                    : [Color(hex: "#FF4757"), Color(hex: "#FF6B81"), Color(hex: "#EF4444"), Color(hex: "#FF4757")],
+                                center: .center
+                            ),
+                            lineWidth: 3
+                        )
                         .frame(width: 64, height: 64)
+                        .scaleEffect(isOwn ? 1.0 : pulseScale)
+
                     Circle()
                         .fill(
                             LinearGradient(
-                                colors: [Theme.accent.opacity(0.6), Theme.accent2.opacity(0.4)],
+                                colors: [Theme.accent.opacity(0.75), Theme.accent2.opacity(0.55)],
                                 startPoint: .topLeading, endPoint: .bottomTrailing
                             )
                         )
@@ -514,9 +630,10 @@ struct StoryRing: View {
                         .foregroundStyle(.white)
                 }
                 Text(name)
-                    .font(.system(size: 10, weight: .medium))
+                    .font(.system(size: 10, weight: .semibold))
                     .foregroundStyle(Theme.text2)
                     .lineLimit(1)
+                    .truncationMode(.tail)
                 Text(pct.fmtPct())
                     .font(.system(size: 9, weight: .bold))
                     .foregroundStyle(pct >= 0 ? Theme.gain : Theme.loss)
@@ -528,6 +645,12 @@ struct StoryRing: View {
         .buttonStyle(.plain)
         .onAppear {
             withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) { appeared = true }
+            // Subtle pulse for unviewed stories
+            if !isOwn {
+                withAnimation(.easeInOut(duration: 1.4).repeatForever(autoreverses: true).delay(0.3)) {
+                    pulseScale = 1.07
+                }
+            }
         }
     }
 }
@@ -535,38 +658,45 @@ struct StoryRing: View {
 // MARK: - Feature 2: Reaction Bar
 
 struct ReactionBar: View {
-    @State private var reactions: [String: Int] = ["🔥": 24, "📈": 18, "💎": 31, "😱": 7]
+    @State private var reactions: [String: Int] = ["fire": 24, "up": 18, "gem": 31, "wow": 7]
     @State private var tapped: String? = nil
 
-    let emojis = ["🔥", "📈", "💎", "😱"]
+    let reactionItems: [(id: String, symbol: String, color: Color)] = [
+        ("fire", "flame.fill",                  Color(hex: "#F97316")),
+        ("up",   "chart.line.uptrend.xyaxis",   Color(hex: "#22C55E")),
+        ("gem",  "diamond.fill",                Color(hex: "#38BDF8")),
+        ("wow",  "exclamationmark.bubble.fill", Color(hex: "#F43F5E")),
+    ]
 
     var body: some View {
         HStack(spacing: 8) {
-            ForEach(emojis, id: \.self) { emoji in
+            ForEach(reactionItems, id: \.id) { item in
                 Button {
                     withAnimation(.spring(response: 0.3, dampingFraction: 0.5)) {
-                        if tapped == emoji {
+                        if tapped == item.id {
                             tapped = nil
-                            reactions[emoji, default: 0] -= 1
+                            reactions[item.id, default: 0] -= 1
                         } else {
                             if let prev = tapped { reactions[prev, default: 1] -= 1 }
-                            tapped = emoji
-                            reactions[emoji, default: 0] += 1
+                            tapped = item.id
+                            reactions[item.id, default: 0] += 1
                         }
                     }
                 } label: {
                     HStack(spacing: 4) {
-                        Text(emoji).font(.system(size: 14))
-                        Text("\(reactions[emoji, default: 0])")
-                            .font(.system(size: 11, weight: .semibold))
-                            .foregroundStyle(tapped == emoji ? Theme.accent : Theme.text3)
+                        Image(systemName: item.symbol)
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(tapped == item.id ? item.color : Theme.text3)
+                        Text("\(reactions[item.id, default: 0])")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundStyle(tapped == item.id ? item.color : Theme.text3)
                     }
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 6)
-                    .background(tapped == emoji ? Theme.accent.opacity(0.15) : Theme.bg3)
+                    .padding(.horizontal, 11)
+                    .padding(.vertical, 7)
+                    .background(tapped == item.id ? item.color.opacity(0.15) : Theme.bg3)
                     .clipShape(Capsule())
-                    .overlay(Capsule().stroke(tapped == emoji ? Theme.accent.opacity(0.4) : Color.clear, lineWidth: 1))
-                    .scaleEffect(tapped == emoji ? 1.05 : 1.0)
+                    .overlay(Capsule().stroke(tapped == item.id ? item.color.opacity(0.5) : Color.clear, lineWidth: 1))
+                    .scaleEffect(tapped == item.id ? 1.18 : 1.0)
                 }
                 .buttonStyle(.plain)
             }
@@ -662,13 +792,34 @@ struct LeaderboardRow: View {
         }
     }
 
+    var leftBorderColor: Color {
+        switch rank {
+        case 1: return Theme.gold
+        case 2: return Color(hex: "#C0C0C0")
+        case 3: return Color(hex: "#CD7F32")
+        default: return Color.clear
+        }
+    }
+
     var body: some View {
         HStack(spacing: 12) {
             // Rank
-            Text(rank <= 3 ? ["🥇", "🥈", "🥉"][rank - 1] : "\(rank)")
-                .font(.system(size: rank <= 3 ? 18 : 13, weight: .bold))
-                .foregroundStyle(rankColor)
-                .frame(width: 28)
+            ZStack {
+                if rank <= 3 {
+                    Circle()
+                        .fill(LinearGradient(
+                            colors: rank == 1 ? [Color(hex: "#F59E0B"), Color(hex: "#D97706")]
+                                  : rank == 2 ? [Color(hex: "#9CA3AF"), Color(hex: "#6B7280")]
+                                  :             [Color(hex: "#CD7F32"), Color(hex: "#92400E")],
+                            startPoint: .topLeading, endPoint: .bottomTrailing
+                        ))
+                        .frame(width: 28, height: 28)
+                }
+                Text("\(rank)")
+                    .font(.system(size: 12, weight: .black))
+                    .foregroundStyle(rank <= 3 ? .white : rankColor)
+            }
+            .frame(width: 32)
 
             // Avatar
             Circle()
@@ -699,6 +850,18 @@ struct LeaderboardRow: View {
                 .foregroundStyle(returnPct >= 0 ? Theme.gain : Theme.loss)
                 .monospacedDigit()
         }
+        .padding(.vertical, rank <= 3 ? 6 : 2)
+        .padding(.horizontal, rank <= 3 ? 10 : 0)
+        .background(rank == 1 ? Theme.gold.opacity(0.07) : Color.clear)
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .overlay(alignment: .leading) {
+            if rank <= 3 {
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(leftBorderColor)
+                    .frame(width: 3)
+                    .padding(.vertical, 4)
+            }
+        }
     }
 }
 
@@ -707,6 +870,7 @@ struct LeaderboardRow: View {
 struct AchievementBadge: Identifiable {
     let id = UUID()
     let icon: String
+    let iconColor: Color
     let title: String
     let unlocked: Bool
 }
@@ -746,9 +910,10 @@ struct BadgeTile: View {
                 Circle()
                     .fill(badge.unlocked ? Theme.accentBg : Theme.bg3)
                     .frame(width: 48, height: 48)
-                Text(badge.icon)
-                    .font(.system(size: 22))
-                    .opacity(badge.unlocked ? 1.0 : 0.35)
+                Image(systemName: badge.icon)
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundStyle(badge.unlocked ? badge.iconColor : Theme.text4)
+                    .opacity(badge.unlocked ? 1.0 : 0.4)
                 if !badge.unlocked {
                     Image(systemName: "lock.fill")
                         .font(.system(size: 11, weight: .bold))
@@ -911,170 +1076,1077 @@ struct TraderPostCard: View {
 
 // MARK: - Trader Profile
 
+private enum ReturnsPeriod: String, CaseIterable {
+    case day  = "1D"
+    case week = "1W"
+    case month = "1M"
+    case ytd  = "YTD"
+    case all  = "All"
+}
+
 struct TraderProfileView: View {
     @Environment(AppState.self) var appState
     @Environment(\.dismiss) var dismiss
     let trader: Trader
     let onTicker: (String) -> Void
 
+    @State private var selectedPeriod: ReturnsPeriod = .day
+    @State private var showCopySheet = false
+    @State private var showMessageAlert = false
+    @State private var copyHoldings: [String: Bool] = [:]
+    @State private var copyStep = 1
+    @State private var copyAmount: Double = 1000
+    @State private var stopLossPct: Double = 20
+
+    private var riskColor: Color {
+        if trader.riskScore <= 3 { return Theme.gain }
+        if trader.riskScore <= 6 { return Theme.gold }
+        return Theme.loss
+    }
+
     var isFollowed: Bool { appState.followed.contains(trader.id) }
+    var isCopying: Bool { appState.copiedTraders.contains(trader.id) }
+
+    private var postCount: Int { trader.id % 10 + 12 }
+
+    // Returns for selected period
+    private var traderReturn: Double {
+        switch selectedPeriod {
+        case .day:   return trader.perf.day
+        case .week:  return trader.weekPct
+        case .month: return trader.perf.sixMonth / 6
+        case .ytd:   return trader.perf.ytd
+        case .all:   return trader.perf.allTime
+        }
+    }
+
+    private var youReturn: Double {
+        switch selectedPeriod {
+        case .day: return appState.todayPnlPct
+        default:   return appState.totalPnlPct
+        }
+    }
+
+    private var spReturn: Double {
+        switch selectedPeriod {
+        case .day:   return 0.8
+        case .week:  return 1.9
+        case .month: return 4.2
+        case .ytd:   return 14.8
+        case .all:   return 26.8
+        }
+    }
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: 0) {
-                    // Cover
-                    ZStack(alignment: .bottomLeading) {
-                        LinearGradient(
-                            colors: [trader.color, Color(hex: "#EDE9FE")],
-                            startPoint: .topLeading, endPoint: .bottomTrailing
-                        )
-                        .frame(height: 130)
-                        .clipShape(RoundedRectangle(cornerRadius: 0))
-                        .overlay(alignment: .bottomLeading) {
-                            RoundedRectangle(cornerRadius: 0)
-                                .fill(.clear)
-                                .frame(height: 42)
-                        }
+        ScrollView {
+            VStack(spacing: 0) {
+                // MARK: Cover + Avatar
+                ZStack(alignment: .bottomLeading) {
+                    LinearGradient(
+                        colors: [trader.color, trader.color.opacity(0.3)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                    .frame(height: 160)
 
+                    // Back button overlaid top-left
+                    Button {
+                        dismiss()
+                    } label: {
+                        HStack(spacing: 5) {
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: 13, weight: .bold))
+                            Text("Back")
+                                .font(.system(size: 14, weight: .semibold))
+                        }
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 8)
+                        .background(.black.opacity(0.25))
+                        .clipShape(Capsule())
+                    }
+                    .padding(.leading, 16)
+                    .padding(.bottom, 90)
+
+                    // Avatar — overlaps cover bottom
+                    ZStack {
                         Circle()
                             .fill(trader.color)
-                            .frame(width: 84, height: 84)
+                            .frame(width: 90, height: 90)
                             .overlay(
                                 Text(trader.initial)
-                                    .font(.system(size: 32, weight: .black))
+                                    .font(.system(size: 34, weight: .black))
                                     .foregroundStyle(.white)
                             )
                             .overlay(Circle().stroke(Theme.bg, lineWidth: 4))
-                            .shadow(color: .black.opacity(0.1), radius: 12, y: 6)
-                            .offset(x: 18, y: 42)
+                            .shadow(color: .black.opacity(0.15), radius: 14, y: 6)
+
+                        if trader.isPro {
+                            Image(systemName: "checkmark.seal.fill")
+                                .font(.system(size: 20))
+                                .foregroundStyle(Theme.gold)
+                                .background(Circle().fill(Theme.bg).frame(width: 22, height: 22))
+                                .offset(x: 32, y: 32)
+                        }
+                    }
+                    .offset(x: 20, y: 45)
+                }
+                .frame(height: 160)
+
+                // MARK: Identity + Stats
+                VStack(alignment: .leading, spacing: 0) {
+                    // Name row — offset to clear avatar
+                    HStack(alignment: .bottom) {
+                        VStack(alignment: .leading, spacing: 3) {
+                            HStack(spacing: 8) {
+                                Text(trader.name)
+                                    .font(.system(size: 22, weight: .black))
+                                    .foregroundStyle(Theme.text)
+                                if trader.isPro {
+                                    Text("PRO")
+                                        .font(.system(size: 9, weight: .black))
+                                        .foregroundStyle(Theme.gold)
+                                        .padding(.horizontal, 6).padding(.vertical, 3)
+                                        .background(Theme.gold.opacity(0.15))
+                                        .clipShape(Capsule())
+                                }
+                            }
+                            Text(trader.handle)
+                                .font(.system(size: 13))
+                                .foregroundStyle(Theme.text3)
+                        }
+                        Spacer()
+                    }
+                    .padding(.top, 54)
+
+                    // Bio
+                    if !trader.take.isEmpty {
+                        Text(trader.take)
+                            .font(.system(size: 13))
+                            .foregroundStyle(Theme.text2)
+                            .lineLimit(2)
+                            .padding(.top, 6)
                     }
 
-                    VStack(alignment: .leading, spacing: 0) {
-                        HStack {
-                            Spacer()
-                            Button("✕ Close") { dismiss() }
-                                .font(.system(size: 13, weight: .bold))
-                                .foregroundStyle(Theme.accent)
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 7)
-                                .background(Theme.bg2)
-                                .clipShape(Capsule())
-                        }
-                        .padding(.bottom, -8)
+                    // Stats row
+                    HStack(spacing: 0) {
+                        profileStatItem(trader.followers.formatted(), "Followers")
+                        Divider().frame(height: 28).padding(.horizontal, 16)
+                        profileStatItem("\(trader.following)", "Following")
+                        Divider().frame(height: 28).padding(.horizontal, 16)
+                        profileStatItem("\(postCount)", "Posts")
+                        Spacer()
+                    }
+                    .padding(.top, 18)
 
-                        Text(trader.name)
-                            .font(.system(size: 22, weight: .black))
-                            .foregroundStyle(Theme.text)
-                            .padding(.top, 54)
-
-                        Text(trader.handle)
-                            .font(.system(size: 13))
-                            .foregroundStyle(Theme.text3)
-                            .padding(.top, 2)
-
-                        HStack(spacing: 24) {
-                            VStack {
-                                Text(trader.followers.formatted())
-                                    .font(.system(size: 20, weight: .bold))
-                                    .foregroundStyle(Theme.text)
-                                Text("Followers")
-                                    .font(.system(size: 10))
-                                    .foregroundStyle(Theme.text3)
-                            }
-                            VStack {
-                                Text("\(trader.following)")
-                                    .font(.system(size: 20, weight: .bold))
-                                    .foregroundStyle(Theme.text)
-                                Text("Following")
-                                    .font(.system(size: 10))
-                                    .foregroundStyle(Theme.text3)
-                            }
-                        }
-                        .padding(.top, 16)
-
+                    // MARK: Action Buttons
+                    HStack(spacing: 10) {
+                        // Follow
                         Button {
                             appState.toggleFollow(trader.id)
                         } label: {
                             Text(isFollowed ? "Following" : "Follow")
-                                .font(.system(size: 15, weight: .bold))
+                                .font(.system(size: 14, weight: .bold))
                                 .foregroundStyle(.white)
                                 .frame(maxWidth: .infinity)
-                                .padding(.vertical, 12)
-                                .background(Theme.accentGradient)
-                                .clipShape(RoundedRectangle(cornerRadius: 16))
+                                .padding(.vertical, 11)
+                                .background(isFollowed ? AnyShapeStyle(Theme.accentGradient) : AnyShapeStyle(Theme.accentGradient))
+                                .clipShape(RoundedRectangle(cornerRadius: 14))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 14)
+                                        .stroke(isFollowed ? Color.clear : Color.clear, lineWidth: 1)
+                                )
                         }
-                        .padding(.top, 14)
 
-                        // Performance
-                        Text("Performance")
-                            .font(.system(size: 10, weight: .bold))
+                        // Copy Trade
+                        Button {
+                            if isCopying {
+                                appState.toggleCopyTrade(trader.id)
+                            } else {
+                                copyHoldings = Dictionary(uniqueKeysWithValues: trader.holdings.map { ($0, true) })
+                                showCopySheet = true
+                            }
+                        } label: {
+                            HStack(spacing: 5) {
+                                Image(systemName: isCopying ? "checkmark.circle.fill" : "doc.on.doc.fill")
+                                    .font(.system(size: 12))
+                                Text(isCopying ? "Copying" : "Copy")
+                                    .font(.system(size: 14, weight: .bold))
+                            }
+                            .foregroundStyle(isCopying ? Theme.gain : .white)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 11)
+                            .background(isCopying ? Theme.gainBg : Theme.accent)
+                            .clipShape(RoundedRectangle(cornerRadius: 14))
+                        }
+
+                        // Message
+                        Button {
+                            showMessageAlert = true
+                        } label: {
+                            Image(systemName: "bubble.left")
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundStyle(Theme.text3)
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 11)
+                                .background(Theme.card)
+                                .clipShape(RoundedRectangle(cornerRadius: 14))
+                                .overlay(RoundedRectangle(cornerRadius: 14).stroke(Theme.border, lineWidth: 1))
+                        }
+                        .alert("Coming soon", isPresented: $showMessageAlert) {
+                            Button("OK", role: .cancel) {}
+                        } message: {
+                            Text("Direct messages are coming in a future update.")
+                        }
+                    }
+                    .padding(.top, 16)
+
+                    // MARK: eToro-Style Stats Grid
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("TRADING STATS")
+                            .font(.system(size: 10, weight: .black))
                             .foregroundStyle(Theme.text3)
-                            .textCase(.uppercase)
-                            .kerning(1.3)
-                            .padding(.top, 20)
+                            .kerning(2.0)
+                            .padding(.top, 22)
+
+                        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
+                            etoroStatCell("Risk Score",
+                                          "\(trader.riskScore)/10",
+                                          subtitle: trader.riskScore <= 3 ? "Low" : trader.riskScore <= 6 ? "Medium" : "High",
+                                          color: riskColor)
+                            etoroStatCell("Max Drawdown",
+                                          "\(String(format: "%.1f", trader.maxDrawdown))%",
+                                          subtitle: "peak to trough",
+                                          color: Theme.loss)
+                            etoroStatCell("Win Rate",
+                                          "\(String(format: "%.1f", trader.winRate))%",
+                                          subtitle: "profitable trades",
+                                          color: Theme.gain)
+                            etoroStatCell("Copiers",
+                                          trader.copiers >= 1000 ? "\(String(format: "%.1f", Double(trader.copiers)/1000))K" : "\(trader.copiers)",
+                                          subtitle: "copying now",
+                                          color: Theme.accent)
+                            etoroStatCell("Avg Hold",
+                                          "\(trader.avgHoldingDays)d",
+                                          subtitle: "per trade",
+                                          color: Theme.text2)
+                            etoroStatCell("All Time",
+                                          pctString(trader.perf.allTime),
+                                          subtitle: "total return",
+                                          color: trader.perf.allTime >= 0 ? Theme.gain : Theme.loss)
+                        }
+                    }
+
+                    // MARK: Trade History
+                    if !trader.tradeHistory.isEmpty {
+                        Text("TRADE HISTORY")
+                            .font(.system(size: 10, weight: .black))
+                            .foregroundStyle(Theme.text3)
+                            .kerning(2.0)
+                            .padding(.top, 22)
                             .padding(.bottom, 10)
 
-                        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 9) {
-                            profilePerfItem("Today", trader.perf.day)
-                            profilePerfItem("6M", trader.perf.sixMonth)
-                            profilePerfItem("YTD", trader.perf.ytd)
-                            profilePerfItem("All Time", trader.perf.allTime)
-                        }
-                        .padding(.bottom, 18)
+                        VStack(spacing: 0) {
+                            ForEach(Array(trader.tradeHistory.enumerated()), id: \.element.id) { i, trade in
+                                HStack(spacing: 12) {
+                                    Text(trade.action)
+                                        .font(.system(size: 10, weight: .black))
+                                        .foregroundStyle(trade.action == "BUY" ? Theme.gain : Theme.loss)
+                                        .padding(.horizontal, 8).padding(.vertical, 4)
+                                        .background((trade.action == "BUY" ? Theme.gain : Theme.loss).opacity(0.12))
+                                        .clipShape(RoundedRectangle(cornerRadius: 6))
+                                        .frame(width: 48)
 
-                        // Holdings
-                        Text("Top Holdings")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundStyle(Theme.text3)
-                            .textCase(.uppercase)
-                            .kerning(1.3)
-                            .padding(.bottom, 10)
+                                    Text(trade.ticker)
+                                        .font(.system(size: 14, weight: .bold))
+                                        .foregroundStyle(Theme.text)
 
-                        VStack(spacing: 8) {
-                            ForEach(trader.holdings, id: \.self) { h in
-                                Button { onTicker(h); dismiss() } label: {
-                                    HStack {
-                                        Text(h)
-                                            .font(.system(size: 14, weight: .bold))
-                                            .foregroundStyle(Theme.text)
-                                        Spacer()
-                                        Text("Tap for chart →")
-                                            .font(.system(size: 12))
+                                    VStack(alignment: .leading, spacing: 1) {
+                                        Text("\(trade.daysHeld)d held")
+                                            .font(.system(size: 11))
                                             .foregroundStyle(Theme.text3)
+                                        Text(trade.date)
+                                            .font(.system(size: 10))
+                                            .foregroundStyle(Theme.text4)
                                     }
-                                    .padding(14)
-                                    .background(Theme.card)
-                                    .clipShape(RoundedRectangle(cornerRadius: 16))
-                                    .overlay(RoundedRectangle(cornerRadius: 16).stroke(Theme.border, lineWidth: 1))
+
+                                    Spacer()
+
+                                    Text(pctString(trade.pct))
+                                        .font(.system(size: 14, weight: .black))
+                                        .foregroundStyle(trade.pct >= 0 ? Theme.gain : Theme.loss)
+                                        .monospacedDigit()
+                                }
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 12)
+                                if i < trader.tradeHistory.count - 1 {
+                                    Divider().padding(.leading, 14)
+                                }
+                            }
+                        }
+                        .background(Theme.card)
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Theme.border, lineWidth: 1))
+                    }
+
+                    // MARK: Returns Comparison
+                    VStack(alignment: .leading, spacing: 14) {
+                        Text("RETURNS COMPARISON")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundStyle(Theme.text3)
+                            .kerning(1.3)
+                            .padding(.top, 24)
+
+                        // Period picker
+                        HStack(spacing: 6) {
+                            ForEach(ReturnsPeriod.allCases, id: \.self) { period in
+                                Button {
+                                    selectedPeriod = period
+                                } label: {
+                                    Text(period.rawValue)
+                                        .font(.system(size: 12, weight: .bold))
+                                        .foregroundStyle(selectedPeriod == period ? .white : Theme.text3)
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 6)
+                                        .background(selectedPeriod == period ? AnyShapeStyle(Theme.accentGradient) : AnyShapeStyle(Theme.card))
+                                        .clipShape(Capsule())
+                                }
+                            }
+                        }
+
+                        // Comparison table
+                        VStack(spacing: 0) {
+                            returnsTableHeader()
+                            Divider().background(Theme.border)
+                            returnsRow(icon: "🏆", label: trader.name, todayVal: trader.perf.day, periodVal: traderReturn)
+                            Divider().background(Theme.border).padding(.leading, 40)
+                            returnsRow(icon: "👤", label: "You", todayVal: appState.todayPnlPct, periodVal: youReturn)
+                            Divider().background(Theme.border).padding(.leading, 40)
+                            returnsRow(icon: "📈", label: "S&P 500", todayVal: 0.8, periodVal: spReturn)
+                        }
+                        .background(Theme.card)
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Theme.border, lineWidth: 1))
+
+                        // Visual bar comparison
+                        returnsBarChart()
+                    }
+
+                    // MARK: Top Holdings
+                    Text("TOP HOLDINGS")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundStyle(Theme.text3)
+                        .kerning(1.3)
+                        .padding(.top, 24)
+                        .padding(.bottom, 10)
+
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 10) {
+                            ForEach(trader.holdingDetails) { h in
+                                Button {
+                                    onTicker(h.ticker)
+                                    dismiss()
+                                } label: {
+                                    VStack(spacing: 4) {
+                                        Text(h.ticker)
+                                            .font(.system(size: 13, weight: .bold))
+                                            .foregroundStyle(Theme.text)
+                                        Text("\(h.pct >= 0 ? "+" : "")\(String(format: "%.1f", h.pct))%")
+                                            .font(.system(size: 11, weight: .semibold))
+                                            .foregroundStyle(h.pct >= 0 ? Theme.gain : Theme.loss)
+                                    }
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 12)
+                                    .background(h.pct >= 0 ? Theme.gainBg : Theme.lossBg)
+                                    .clipShape(RoundedRectangle(cornerRadius: 14))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 14)
+                                            .stroke(h.pct >= 0 ? Theme.gain.opacity(0.25) : Theme.loss.opacity(0.25), lineWidth: 1)
+                                    )
                                 }
                                 .buttonStyle(.plain)
                             }
                         }
+                        .padding(.bottom, 4)
                     }
-                    .padding(.horizontal, 18)
-                    .padding(.bottom, 40)
+
+                    // MARK: Recent Posts
+                    Text("RECENT POSTS")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundStyle(Theme.text3)
+                        .kerning(1.3)
+                        .padding(.top, 24)
+                        .padding(.bottom, 10)
+
+                    VStack(spacing: 10) {
+                        if !trader.take.isEmpty {
+                            recentPostCard(text: trader.take, time: trader.time, likes: trader.likes)
+                        }
+                        if !trader.text.isEmpty {
+                            recentPostCard(text: trader.text, time: "5h ago", likes: max(trader.likes - 8, 1))
+                        }
+                        // Synthetic older post
+                        recentPostCard(
+                            text: "Portfolio update: holding strong through the volatility. Conviction > panic selling.",
+                            time: "1d ago",
+                            likes: max(trader.likes - 20, 1)
+                        )
+                    }
                 }
+                .padding(.horizontal, 18)
+                .padding(.bottom, 50)
             }
-            .background(Theme.bg)
+        }
+        .background(Theme.bg)
+        .sheet(isPresented: $showCopySheet) {
+            copyTradeSheet()
         }
     }
 
-    func profilePerfItem(_ label: String, _ value: Double) -> some View {
-        VStack(alignment: .leading, spacing: 5) {
+    // MARK: - Sub-views
+
+    @ViewBuilder
+    private func profileStatItem(_ value: String, _ label: String) -> some View {
+        VStack(spacing: 2) {
+            Text(value)
+                .font(.system(size: 18, weight: .bold))
+                .foregroundStyle(Theme.text)
+            Text(label)
+                .font(.system(size: 10))
+                .foregroundStyle(Theme.text3)
+        }
+    }
+
+    @ViewBuilder
+    private func returnsTableHeader() -> some View {
+        HStack {
+            Text("Trader")
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(Theme.text3)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            Text("TODAY")
+                .font(.system(size: 10, weight: .bold))
+                .foregroundStyle(Theme.text3)
+                .kerning(0.5)
+                .frame(width: 68, alignment: .trailing)
+            Text(selectedPeriod.rawValue)
+                .font(.system(size: 10, weight: .bold))
+                .foregroundStyle(Theme.text3)
+                .kerning(0.5)
+                .frame(width: 68, alignment: .trailing)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+    }
+
+    @ViewBuilder
+    private func returnsRow(icon: String, label: String, todayVal: Double, periodVal: Double) -> some View {
+        HStack {
+            Text(icon)
+                .font(.system(size: 15))
+            Text(label)
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(Theme.text)
+                .lineLimit(1)
+            Spacer()
+            Text(pctString(todayVal))
+                .font(.system(size: 13, weight: .bold))
+                .foregroundStyle(todayVal >= 0 ? Theme.gain : Theme.loss)
+                .frame(width: 68, alignment: .trailing)
+            Text(pctString(periodVal))
+                .font(.system(size: 13, weight: .bold))
+                .foregroundStyle(periodVal >= 0 ? Theme.gain : Theme.loss)
+                .frame(width: 68, alignment: .trailing)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
+    }
+
+    @ViewBuilder
+    private func returnsBarChart() -> some View {
+        let values = [traderReturn, youReturn, spReturn]
+        let maxAbs = max(values.map { abs($0) }.max() ?? 1, 1)
+        let labels = [trader.name, "You", "S&P 500"]
+        let icons  = ["🏆", "👤", "📈"]
+        let colors: [Color] = [trader.color, Theme.accent, Color(hex: "#22C55E")]
+
+        VStack(alignment: .leading, spacing: 10) {
+            ForEach(0..<3, id: \.self) { i in
+                let val = values[i]
+                HStack(spacing: 8) {
+                    Text(icons[i])
+                        .font(.system(size: 13))
+                    Text(labels[i])
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(Theme.text2)
+                        .frame(width: 70, alignment: .leading)
+                    GeometryReader { geo in
+                        let barWidth = CGFloat(abs(val) / maxAbs) * geo.size.width
+                        ZStack(alignment: .leading) {
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(Theme.card)
+                                .frame(height: 18)
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(val >= 0 ? colors[i] : Theme.loss)
+                                .frame(width: max(barWidth, 4), height: 18)
+                        }
+                    }
+                    .frame(height: 18)
+                    Text(pctString(val))
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundStyle(val >= 0 ? Theme.gain : Theme.loss)
+                        .frame(width: 52, alignment: .trailing)
+                }
+            }
+        }
+        .padding(.top, 4)
+    }
+
+    @ViewBuilder
+    private func recentPostCard(text: String, time: String, likes: Int) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 10) {
+                Circle()
+                    .fill(trader.color)
+                    .frame(width: 34, height: 34)
+                    .overlay(
+                        Text(trader.initial)
+                            .font(.system(size: 13, weight: .black))
+                            .foregroundStyle(.white)
+                    )
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(trader.name)
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundStyle(Theme.text)
+                    Text("\(trader.handle) · \(time)")
+                        .font(.system(size: 11))
+                        .foregroundStyle(Theme.text3)
+                }
+                Spacer()
+            }
+            Text(text)
+                .font(.system(size: 13))
+                .foregroundStyle(Theme.text2)
+                .fixedSize(horizontal: false, vertical: true)
+            HStack(spacing: 4) {
+                Image(systemName: "heart")
+                    .font(.system(size: 11))
+                    .foregroundStyle(Theme.text3)
+                Text("\(likes)")
+                    .font(.system(size: 11))
+                    .foregroundStyle(Theme.text3)
+            }
+        }
+        .padding(14)
+        .background(Theme.card)
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Theme.border, lineWidth: 1))
+    }
+
+    @ViewBuilder
+    private func copyTradeSheet() -> some View {
+        NavigationStack {
+            VStack(spacing: 0) {
+                // Step indicator
+                HStack(spacing: 0) {
+                    ForEach(1...3, id: \.self) { step in
+                        HStack(spacing: 0) {
+                            ZStack {
+                                Circle()
+                                    .fill(copyStep >= step ? AnyShapeStyle(Theme.accentGradient) : AnyShapeStyle(Theme.bg3))
+                                    .frame(width: 28, height: 28)
+                                Text("\(step)")
+                                    .font(.system(size: 12, weight: .black))
+                                    .foregroundStyle(copyStep >= step ? .white : Theme.text3)
+                            }
+                            if step < 3 {
+                                Rectangle()
+                                    .fill(copyStep > step ? Theme.accent : Theme.bg3)
+                                    .frame(height: 2)
+                                    .frame(maxWidth: .infinity)
+                            }
+                        }
+                    }
+                }
+                .padding(.horizontal, 36)
+                .padding(.vertical, 16)
+
+                Divider()
+
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 0) {
+                        if copyStep == 1 {
+                            copyStep1()
+                        } else if copyStep == 2 {
+                            copyStep2()
+                        } else {
+                            copyStep3()
+                        }
+                    }
+                }
+
+                // Navigation buttons
+                HStack(spacing: 12) {
+                    if copyStep > 1 {
+                        Button {
+                            withAnimation(.spring(response: 0.35, dampingFraction: 0.75)) { copyStep -= 1 }
+                        } label: {
+                            Text("Back")
+                                .font(.system(size: 15, weight: .semibold))
+                                .foregroundStyle(Theme.text2)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 15)
+                                .background(Theme.card)
+                                .clipShape(RoundedRectangle(cornerRadius: 14))
+                                .overlay(RoundedRectangle(cornerRadius: 14).stroke(Theme.border, lineWidth: 1))
+                        }
+                        .buttonStyle(.plain)
+                        .frame(maxWidth: 100)
+                    }
+
+                    Button {
+                        if copyStep < 3 {
+                            withAnimation(.spring(response: 0.35, dampingFraction: 0.75)) { copyStep += 1 }
+                        } else {
+                            appState.toggleCopyTrade(trader.id)
+                            appState.copiedAmounts[trader.id] = copyAmount
+                            showCopySheet = false
+                            copyStep = 1
+                        }
+                    } label: {
+                        HStack(spacing: 8) {
+                            if copyStep == 3 {
+                                Image(systemName: "checkmark.circle.fill").font(.system(size: 14))
+                            }
+                            Text(copyStep == 3 ? "Confirm & Start Copying" : "Continue")
+                                .font(.system(size: 16, weight: .bold))
+                        }
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 15)
+                        .background(copyStep == 3 ? AnyShapeStyle(LinearGradient(colors: [Theme.gain, Color(hex: "#16A34A")], startPoint: .leading, endPoint: .trailing)) : AnyShapeStyle(Theme.accentGradient))
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
+                    }
+                }
+                .padding(.horizontal, 18)
+                .padding(.top, 12)
+                .padding(.bottom, 34)
+            }
+            .background(Theme.bg)
+            .navigationBarTitleDisplayMode(.inline)
+            .navigationTitle("Copy \(trader.name)")
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        showCopySheet = false
+                        copyStep = 1
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 20))
+                            .foregroundStyle(Theme.text3)
+                    }
+                }
+            }
+        }
+    }
+
+    // Step 1: Risk warning + amount slider
+    @ViewBuilder
+    private func copyStep1() -> some View {
+        VStack(alignment: .leading, spacing: 16) {
+            // Risk banner
+            HStack(spacing: 12) {
+                ZStack {
+                    Circle().fill(riskColor.opacity(0.15)).frame(width: 44, height: 44)
+                    Text("\(trader.riskScore)")
+                        .font(.system(size: 18, weight: .black))
+                        .foregroundStyle(riskColor)
+                }
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Risk Score: \(trader.riskScore)/10")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundStyle(Theme.text)
+                    Text(trader.riskScore <= 3 ? "Low risk — suitable for conservative investors"
+                       : trader.riskScore <= 6 ? "Medium risk — some volatility expected"
+                       : "High risk — significant drawdowns possible")
+                        .font(.system(size: 12))
+                        .foregroundStyle(Theme.text3)
+                        .lineSpacing(2)
+                }
+            }
+            .padding(14)
+            .background(riskColor.opacity(0.08))
+            .clipShape(RoundedRectangle(cornerRadius: 14))
+            .overlay(RoundedRectangle(cornerRadius: 14).stroke(riskColor.opacity(0.25), lineWidth: 1))
+
+            Text("Investment Amount")
+                .font(.system(size: 11, weight: .black))
+                .foregroundStyle(Theme.text3)
+                .kerning(1.5)
+
+            Text("$\(Int(copyAmount).formatted())")
+                .font(.system(size: 40, weight: .black))
+                .foregroundStyle(Theme.nanoBanana)
+                .monospacedDigit()
+                .kerning(-1)
+
+            Slider(value: $copyAmount, in: 100...10000, step: 100)
+                .tint(Theme.nanoBanana)
+
+            // Quick-select chips
+            HStack(spacing: 8) {
+                ForEach([500, 1000, 2500, 5000], id: \.self) { amt in
+                    Button {
+                        withAnimation(.spring(response: 0.25, dampingFraction: 0.7)) { copyAmount = Double(amt) }
+                    } label: {
+                        Text("$\(amt.formatted())")
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundStyle(Int(copyAmount) == amt ? .white : Theme.text2)
+                            .padding(.horizontal, 12).padding(.vertical, 7)
+                            .background(Int(copyAmount) == amt ? Theme.accent : Theme.bg3)
+                            .clipShape(Capsule())
+                            .overlay(Capsule().stroke(Int(copyAmount) == amt ? Theme.accent : Theme.border, lineWidth: 1))
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+
+            // Drawdown protection toggle
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Stop Loss Protection")
+                    .font(.system(size: 11, weight: .black))
+                    .foregroundStyle(Theme.text3)
+                    .kerning(1.5)
+
+                HStack {
+                    Text("Stop copying if loss exceeds \(Int(stopLossPct))%")
+                        .font(.system(size: 13))
+                        .foregroundStyle(Theme.text2)
+                    Spacer()
+                    Text("-\(Int(stopLossPct))%")
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundStyle(Theme.loss)
+                }
+                Slider(value: $stopLossPct, in: 5...50, step: 5)
+                    .tint(Theme.loss)
+            }
+            .padding(14)
+            .background(Theme.card)
+            .clipShape(RoundedRectangle(cornerRadius: 14))
+            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Theme.border, lineWidth: 1))
+
+            // Max drawdown warning
+            HStack(alignment: .top, spacing: 10) {
+                Image(systemName: "info.circle.fill")
+                    .font(.system(size: 14)).foregroundStyle(Theme.text3).padding(.top, 1)
+                Text("This trader's maximum historical drawdown was \(String(format: "%.1f", trader.maxDrawdown))%. This is a portfolio tracker — no real trades are executed.")
+                    .font(.system(size: 12)).foregroundStyle(Theme.text3).lineSpacing(3)
+            }
+            .padding(12)
+            .background(Theme.card)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .overlay(RoundedRectangle(cornerRadius: 12).stroke(Theme.border, lineWidth: 1))
+        }
+        .padding(18)
+    }
+
+    // Step 2: Holdings preview breakdown
+    @ViewBuilder
+    private func copyStep2() -> some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Portfolio Breakdown")
+                .font(.system(size: 16, weight: .black))
+                .foregroundStyle(Theme.text)
+            Text("How $\(Int(copyAmount).formatted()) splits across \(trader.name)'s holdings")
+                .font(.system(size: 13))
+                .foregroundStyle(Theme.text3)
+
+            let total = Double(trader.holdingDetails.count)
+            VStack(spacing: 0) {
+                ForEach(Array(trader.holdingDetails.enumerated()), id: \.element.id) { i, h in
+                    let portion = copyAmount / total
+                    HStack(spacing: 12) {
+                        // Nano banana allocation bar
+                        GeometryReader { geo in
+                            RoundedRectangle(cornerRadius: 3)
+                                .fill(Theme.bg3)
+                                .overlay(alignment: .leading) {
+                                    RoundedRectangle(cornerRadius: 3)
+                                        .fill(LinearGradient(colors: [Theme.nanoBanana, Color(hex: "#A8D020")], startPoint: .leading, endPoint: .trailing))
+                                        .frame(width: geo.size.width * CGFloat(1.0 / total))
+                                }
+                        }
+                        .frame(height: 6)
+                        .frame(width: 60)
+
+                        Text(h.ticker)
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundStyle(Theme.text)
+                            .frame(width: 54, alignment: .leading)
+
+                        Spacer()
+
+                        Text("$\(Int(portion).formatted())")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(Theme.text)
+                            .monospacedDigit()
+
+                        Text(pctString(h.pct))
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundStyle(h.pct >= 0 ? Theme.gain : Theme.loss)
+                            .frame(width: 56, alignment: .trailing)
+                            .monospacedDigit()
+                    }
+                    .padding(.horizontal, 16).padding(.vertical, 13)
+                    if i < trader.holdingDetails.count - 1 {
+                        Divider().padding(.leading, 16)
+                    }
+                }
+            }
+            .background(Theme.card)
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+            .overlay(RoundedRectangle(cornerRadius: 16).stroke(Theme.border, lineWidth: 1))
+
+            // Summary
+            HStack {
+                Text("Total investment")
+                    .font(.system(size: 14)).foregroundStyle(Theme.text2)
+                Spacer()
+                Text("$\(Int(copyAmount).formatted())")
+                    .font(.system(size: 16, weight: .black)).foregroundStyle(Theme.nanoBanana)
+            }
+            .padding(14)
+            .background(Theme.nanoBananaBg)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .overlay(RoundedRectangle(cornerRadius: 12).stroke(Theme.nanoBanana.opacity(0.3), lineWidth: 1))
+        }
+        .padding(18)
+    }
+
+    // Step 3: Confirmation
+    @ViewBuilder
+    private func copyStep3() -> some View {
+        VStack(spacing: 20) {
+            // Big success-style card
+            VStack(spacing: 16) {
+                ZStack {
+                    Circle()
+                        .fill(LinearGradient(colors: [Theme.gain.opacity(0.25), Theme.gain.opacity(0.08)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                        .frame(width: 80, height: 80)
+                    Image(systemName: "doc.on.doc.fill")
+                        .font(.system(size: 32, weight: .semibold))
+                        .foregroundStyle(Theme.gain)
+                }
+
+                Text("Ready to copy \(trader.name)")
+                    .font(.system(size: 20, weight: .black))
+                    .foregroundStyle(Theme.text)
+                    .multilineTextAlignment(.center)
+
+                Text("You're about to mirror $\(Int(copyAmount).formatted()) across \(trader.holdingDetails.count) positions. Stop-loss set at -\(Int(stopLossPct))%.")
+                    .font(.system(size: 14))
+                    .foregroundStyle(Theme.text3)
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(4)
+            }
+            .padding(24)
+            .background(Theme.card)
+            .clipShape(RoundedRectangle(cornerRadius: 20))
+            .overlay(RoundedRectangle(cornerRadius: 20).stroke(Theme.gain.opacity(0.25), lineWidth: 1))
+
+            // Summary stats
+            VStack(spacing: 0) {
+                confirmRow("Investment", "$\(Int(copyAmount).formatted())", Theme.nanoBanana)
+                Divider().padding(.leading, 16)
+                confirmRow("Win Rate", "\(String(format: "%.1f", trader.winRate))%", Theme.gain)
+                Divider().padding(.leading, 16)
+                confirmRow("Max Drawdown (hist.)", "\(String(format: "%.1f", trader.maxDrawdown))%", Theme.loss)
+                Divider().padding(.leading, 16)
+                confirmRow("Stop-Loss", "-\(Int(stopLossPct))%", Theme.text2)
+            }
+            .background(Theme.card)
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+            .overlay(RoundedRectangle(cornerRadius: 16).stroke(Theme.border, lineWidth: 1))
+        }
+        .padding(18)
+    }
+
+    @ViewBuilder
+    private func confirmRow(_ label: String, _ value: String, _ color: Color) -> some View {
+        HStack {
+            Text(label).font(.system(size: 14)).foregroundStyle(Theme.text2)
+            Spacer()
+            Text(value).font(.system(size: 14, weight: .bold)).foregroundStyle(color)
+        }
+        .padding(.horizontal, 16).padding(.vertical, 13)
+    }
+
+    // MARK: - Helpers
+
+    private func pctString(_ v: Double) -> String {
+        "\(v >= 0 ? "+" : "")\(String(format: "%.1f", v))%"
+    }
+
+    @ViewBuilder
+    private func etoroStatCell(_ label: String, _ value: String, subtitle: String, color: Color) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
             Text(label)
                 .font(.system(size: 9, weight: .bold))
                 .foregroundStyle(Theme.text3)
                 .textCase(.uppercase)
                 .kerning(0.5)
-            Text("\(value >= 0 ? "+" : "")\(String(format: "%.1f", value))%")
-                .font(.system(size: 22, weight: .bold))
-                .foregroundStyle(value >= 0 ? Theme.gain : Theme.loss)
+            Text(value)
+                .font(.system(size: 18, weight: .black))
+                .foregroundStyle(color)
+                .monospacedDigit()
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+            Text(subtitle)
+                .font(.system(size: 9))
+                .foregroundStyle(Theme.text4)
+                .lineLimit(1)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(13)
-        .background(Theme.bg)
-        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .padding(10)
+        .background(color.opacity(0.07))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .overlay(RoundedRectangle(cornerRadius: 12).stroke(color.opacity(0.18), lineWidth: 1))
+    }
+}
+
+// MARK: - Comments Sheet
+
+struct CommentsSheet: View {
+    @Environment(AppState.self) var appState
+    @Environment(\.dismiss) var dismiss
+    let trader: Trader
+    @State private var replyText = ""
+
+    private let mockComments: [Comment] = [
+        Comment(authorName: "Priya N.", authorHandle: "@priyainvests", text: "Totally agree — NVDA has so much runway left with the data center buildout.", likes: 14, timeAgo: "1h ago"),
+        Comment(authorName: "David K.", authorHandle: "@davidk_trades", text: "I've been saying this for months. AI infrastructure is just getting started.", likes: 8, timeAgo: "2h ago"),
+        Comment(authorName: "Nina H.",  authorHandle: "@ninaHTrades",   text: "Added 50 more shares after reading this. Let's go!", likes: 5, timeAgo: "3h ago"),
+        Comment(authorName: "James T.", authorHandle: "@jtrades",       text: "Risk/reward looks amazing at current levels. Nice call.", likes: 21, timeAgo: "4h ago"),
+    ]
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 0) {
+                // Original post preview
+                HStack(spacing: 10) {
+                    Circle()
+                        .fill(trader.color)
+                        .frame(width: 38, height: 38)
+                        .overlay(Text(trader.initial).font(.system(size: 14, weight: .black)).foregroundStyle(.white))
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(trader.name).font(.system(size: 13, weight: .bold)).foregroundStyle(Theme.text)
+                        Text(trader.take.isEmpty ? trader.text : trader.take)
+                            .font(.system(size: 12))
+                            .foregroundStyle(Theme.text3)
+                            .lineLimit(2)
+                    }
+                    Spacer()
+                }
+                .padding(14)
+                .background(Theme.card)
+
+                Divider()
+
+                // Comments list
+                ScrollView {
+                    VStack(spacing: 0) {
+                        ForEach(mockComments) { comment in
+                            CommentRow(comment: comment)
+                            Divider().padding(.leading, 66)
+                        }
+                    }
+                }
+
+                // Reply bar
+                HStack(spacing: 10) {
+                    Circle()
+                        .fill(Theme.accentGradient)
+                        .frame(width: 34, height: 34)
+                        .overlay(
+                            Text(String(appState.settings.displayName.prefix(1)).uppercased())
+                                .font(.system(size: 13, weight: .black))
+                                .foregroundStyle(.white)
+                        )
+                    HStack {
+                        TextField("Add a comment…", text: $replyText)
+                            .font(.system(size: 14))
+                            .foregroundStyle(Theme.text)
+                        if !replyText.isEmpty {
+                            Button {
+                                replyText = ""
+                            } label: {
+                                Image(systemName: "paperplane.fill")
+                                    .font(.system(size: 16, weight: .semibold))
+                                    .foregroundStyle(Theme.accent)
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 14).padding(.vertical, 10)
+                    .background(Theme.bg3)
+                    .clipShape(Capsule())
+                    .overlay(Capsule().stroke(Theme.border, lineWidth: 1))
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+                .background(Theme.card)
+                .overlay(Rectangle().fill(Theme.border).frame(height: 1), alignment: .top)
+            }
+            .background(Theme.bg)
+            .navigationTitle("Comments")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button { dismiss() } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 22))
+                            .foregroundStyle(Theme.text3)
+                    }
+                }
+            }
+        }
+    }
+}
+
+struct CommentRow: View {
+    let comment: Comment
+    @State private var liked = false
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 12) {
+            Circle()
+                .fill(Theme.accentBg)
+                .frame(width: 38, height: 38)
+                .overlay(Text(String(comment.authorName.prefix(1))).font(.system(size: 14, weight: .black)).foregroundStyle(Theme.accent))
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(spacing: 6) {
+                    Text(comment.authorName).font(.system(size: 13, weight: .bold)).foregroundStyle(Theme.text)
+                    Text(comment.authorHandle).font(.system(size: 12)).foregroundStyle(Theme.text3)
+                    Spacer()
+                    Text(comment.timeAgo).font(.system(size: 11)).foregroundStyle(Theme.text4)
+                }
+                Text(comment.text).font(.system(size: 13)).foregroundStyle(Theme.text2).lineSpacing(3)
+                Button {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) { liked.toggle() }
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: liked ? "heart.fill" : "heart")
+                            .font(.system(size: 11))
+                            .foregroundStyle(liked ? Theme.loss : Theme.text3)
+                        Text("\(comment.likes + (liked ? 1 : 0))")
+                            .font(.system(size: 11))
+                            .foregroundStyle(liked ? Theme.loss : Theme.text3)
+                    }
+                }
+                .buttonStyle(.plain)
+                .padding(.top, 2)
+            }
+        }
+        .padding(.horizontal, 16).padding(.vertical, 14)
     }
 }
 

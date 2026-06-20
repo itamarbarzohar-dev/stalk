@@ -97,6 +97,10 @@ class AppState {
     var followed: Set<Int> = []
     var likedPosts: Set<Int> = []
     var userPosts: [UserPost] = []
+    var notifications: [ActivityItem] = ACTIVITY_ITEMS
+    var joinedCommunities: Set<String> = []
+    var copiedAmounts: [Int: Double] = [:]
+    var postComments: [UUID: [Comment]] = [:]
 
     // MARK: Market
     var marketQuotes: [String: Quote] = [:]
@@ -153,6 +157,9 @@ class AppState {
         if let data = UserDefaults.standard.data(forKey: "stalk_userposts"),
            let saved = try? JSONDecoder().decode([UserPost].self, from: data) {
             userPosts = saved
+        }
+        if let c = UserDefaults.standard.array(forKey: "stalk_copied") as? [Int] {
+            copiedTraders = Set(c)
         }
     }
 
@@ -231,6 +238,13 @@ class AppState {
     func toggleLike(_ id: Int) {
         if likedPosts.contains(id) { likedPosts.remove(id) } else { likedPosts.insert(id) }
         UserDefaults.standard.set(Array(likedPosts), forKey: "stalk_liked")
+    }
+
+    var copiedTraders: Set<Int> = []
+
+    func toggleCopyTrade(_ id: Int) {
+        if copiedTraders.contains(id) { copiedTraders.remove(id) } else { copiedTraders.insert(id) }
+        UserDefaults.standard.set(Array(copiedTraders), forKey: "stalk_copied")
     }
 
     // MARK: - Portfolio Computed
@@ -366,5 +380,5 @@ class AppState {
 }
 
 enum Tab: String, CaseIterable {
-    case market, portfolio, search, feed, forYou
+    case market, portfolio, ai, feed, forYou
 }

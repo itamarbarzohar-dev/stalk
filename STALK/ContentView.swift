@@ -10,7 +10,7 @@ struct ContentView: View {
             switch appState.selectedTab {
             case .market:    MarketView(onTicker: { chartTicker = $0 })
             case .portfolio: PortfolioView(onTicker: { chartTicker = $0 }, onAdd: { addingPosition = true })
-            case .search:    SearchView(onTicker: { chartTicker = $0 })
+            case .ai:        AIHubView(onTicker: { chartTicker = $0 })
             case .feed:      FeedView(onTicker: { chartTicker = $0 })
             case .forYou:    ForYouView(onTicker: { chartTicker = $0 })
             }
@@ -62,34 +62,85 @@ extension String: @retroactive Identifiable {
 struct CustomTabBar: View {
     @Environment(AppState.self) var appState
     @Binding var addingPosition: Bool
+    @State private var aiPulse = false
 
     var body: some View {
         HStack(spacing: 0) {
-            TabBarButton(icon: "chart.line.uptrend.xyaxis", label: "Market", tab: .market)
-            TabBarButton(icon: "briefcase.fill", label: "Portfolio", tab: .portfolio)
+            TabBarButton(
+                icon: "chart.line.uptrend.xyaxis",
+                label: "Market",
+                tab: .market,
+                activeColor: Color(hex: "#0A84FF")
+            )
+            TabBarButton(
+                icon: "briefcase.fill",
+                label: "Portfolio",
+                tab: .portfolio,
+                activeColor: Color(hex: "#5B5BD6")
+            )
 
-            // Center FAB
+            // ── AI Center Button ──────────────────────────────────────────
             Button {
-                appState.selectedTab = .search
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                    appState.selectedTab = .ai
+                }
             } label: {
-                ZStack {
-                    Circle()
-                        .fill(Theme.accentGradient)
-                        .frame(width: 56, height: 56)
-                        .shadow(color: Theme.accent.opacity(0.45), radius: 10, y: 4)
-                    Image(systemName: "magnifyingglass")
-                        .font(.system(size: 22, weight: .semibold))
-                        .foregroundStyle(.white)
+                VStack(spacing: 4) {
+                    ZStack {
+                        if appState.selectedTab == .ai {
+                            Circle()
+                                .fill(
+                                    LinearGradient(
+                                        colors: [Color(hex: "#5B5BD6"), Color(hex: "#7C7CF0")],
+                                        startPoint: .topLeading, endPoint: .bottomTrailing
+                                    )
+                                )
+                                .frame(width: 58, height: 58)
+                                .shadow(color: Color(hex: "#5B5BD6").opacity(0.55), radius: 14, y: 4)
+                                .scaleEffect(aiPulse ? 1.05 : 1.0)
+                                .animation(.easeInOut(duration: 1.4).repeatForever(autoreverses: true), value: aiPulse)
+                        } else {
+                            Circle()
+                                .fill(
+                                    LinearGradient(
+                                        colors: [Color(hex: "#5B5BD6"), Color(hex: "#9C8FF5")],
+                                        startPoint: .topLeading, endPoint: .bottomTrailing
+                                    )
+                                )
+                                .frame(width: 54, height: 54)
+                                .shadow(color: Color(hex: "#5B5BD6").opacity(0.35), radius: 10, y: 3)
+                        }
+                        Image(systemName: "sparkles")
+                            .font(.system(size: appState.selectedTab == .ai ? 24 : 22, weight: .semibold))
+                            .foregroundStyle(.white)
+                    }
+                    Text("AI")
+                        .font(.system(size: 9, weight: .black))
+                        .foregroundStyle(appState.selectedTab == .ai ? Color(hex: "#5B5BD6") : Color(hex: "#8A8A9A"))
+                        .textCase(.uppercase)
+                        .kerning(0.4)
                 }
             }
-            .offset(y: -8)
+            .offset(y: -6)
             .frame(maxWidth: .infinity)
+            .buttonStyle(.plain)
+            .onAppear { aiPulse = true }
 
-            TabBarButton(icon: "person.2.fill", label: "Feed", tab: .feed)
-            TabBarButton(icon: "bolt.fill", label: "For You", tab: .forYou)
+            TabBarButton(
+                icon: "person.2.fill",
+                label: "Feed",
+                tab: .feed,
+                activeColor: Color(hex: "#FF375F")
+            )
+            TabBarButton(
+                icon: "bolt.fill",
+                label: "For You",
+                tab: .forYou,
+                activeColor: Color(hex: "#FF9500")
+            )
         }
-        .padding(.horizontal, 8)
-        .padding(.top, 12)
+        .padding(.horizontal, 4)
+        .padding(.top, 10)
         .padding(.bottom, 8)
         .background(Theme.tabBar)
         .background(.ultraThinMaterial.opacity(0.3))
@@ -107,22 +158,36 @@ struct TabBarButton: View {
     let icon: String
     let label: String
     let tab: Tab
+    let activeColor: Color
 
     var isActive: Bool { appState.selectedTab == tab }
 
     var body: some View {
         Button {
-            appState.selectedTab = tab
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                appState.selectedTab = tab
+            }
         } label: {
-            VStack(spacing: 3) {
+            VStack(spacing: 4) {
                 Image(systemName: icon)
-                    .font(.system(size: 18))
-                    .foregroundStyle(isActive ? Theme.accent : Color(hex: "#8A8A9A"))
+                    .font(.system(size: 18, weight: isActive ? .bold : .regular))
+                    .foregroundStyle(isActive ? activeColor : Color(hex: "#8A8A9A"))
+                    .scaleEffect(isActive ? 1.12 : 1.0)
+                    .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isActive)
+
                 Text(label)
-                    .font(.system(size: 9, weight: .semibold))
-                    .foregroundStyle(isActive ? Theme.accent : Color(hex: "#8A8A9A"))
+                    .font(.system(size: 9, weight: isActive ? .bold : .semibold))
+                    .foregroundStyle(isActive ? activeColor : Color(hex: "#8A8A9A"))
                     .textCase(.uppercase)
                     .kerning(0.4)
+
+                // Active indicator dot
+                Circle()
+                    .fill(activeColor)
+                    .frame(width: 4, height: 4)
+                    .opacity(isActive ? 1 : 0)
+                    .scaleEffect(isActive ? 1 : 0)
+                    .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isActive)
             }
             .frame(maxWidth: .infinity)
         }

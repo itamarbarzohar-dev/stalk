@@ -27,13 +27,13 @@ enum Theme {
     }
     static var border: Color {
         Color(UIColor { t in t.userInterfaceStyle == .dark
-            ? UIColor.white.withAlphaComponent(0.06)
-            : UIColor.black.withAlphaComponent(0.08) })
+            ? UIColor.white.withAlphaComponent(0.09)
+            : UIColor.black.withAlphaComponent(0.10) })
     }
     static var borderActive: Color {
         Color(UIColor { t in t.userInterfaceStyle == .dark
-            ? UIColor.white.withAlphaComponent(0.14)
-            : UIColor.black.withAlphaComponent(0.15) })
+            ? UIColor.white.withAlphaComponent(0.18)
+            : UIColor.black.withAlphaComponent(0.18) })
     }
 
     // MARK: - Tab bar
@@ -62,22 +62,45 @@ enum Theme {
     }
 
     // MARK: - Semantic (work on both modes)
-    static let accent  = Color(hex: "#5B5BD6")
-    static let accent2 = Color(hex: "#7C7CF0")
-    static let gain    = Color(hex: "#00D26A")
-    static let loss    = Color(hex: "#FF4757")
-    static let gold    = Color(hex: "#F5A623")
+    static let accent     = Color(hex: "#5B5BD6")
+    static let accent2    = Color(hex: "#7C7CF0")
+    static let gain       = Color(hex: "#00D26A")
+    static let loss       = Color(hex: "#FF4757")
+    static let gold       = Color(hex: "#F5A623")
+    static let nanoBanana = Color(hex: "#D4F03C")
 
     // MARK: - Semantic dim fills
-    static var gainBg:   Color { gain.opacity(0.12) }
-    static var lossBg:   Color { loss.opacity(0.12) }
-    static var accentBg: Color { accent.opacity(0.12) }
-    static var goldBg:   Color { gold.opacity(0.15) }
+    static var gainBg:         Color { gain.opacity(0.12) }
+    static var lossBg:         Color { loss.opacity(0.12) }
+    static var accentBg:       Color { accent.opacity(0.12) }
+    static var goldBg:         Color { gold.opacity(0.15) }
+    static var nanoBananaBg:   Color { nanoBanana.opacity(0.12) }
 
-    // MARK: - Alloc bar
+    // MARK: - Shadow & Overlay
+    static var shadow: Color {
+        Color(UIColor { t in t.userInterfaceStyle == .dark
+            ? UIColor.black.withAlphaComponent(0.50)
+            : UIColor.black.withAlphaComponent(0.12) })
+    }
+    static var overlay: Color {
+        Color(UIColor { t in t.userInterfaceStyle == .dark
+            ? UIColor.black.withAlphaComponent(0.40)
+            : UIColor.black.withAlphaComponent(0.15) })
+    }
+
+    // MARK: - Spacing
+    enum Spacing {
+        static let xs: CGFloat = 4
+        static let sm: CGFloat = 8
+        static let md: CGFloat = 16
+        static let lg: CGFloat = 24
+        static let xl: CGFloat = 32
+    }
+
+    // MARK: - Alloc bar — nano banana leads
     static let allocColors: [Color] = [
-        Color(hex: "#5B5BD6"), Color(hex: "#7C7CF0"), Color(hex: "#A78BFA"),
-        Color(hex: "#818CF8"), Color(hex: "#60A5FA"), Color(hex: "#34D399"),
+        Color(hex: "#D4F03C"), Color(hex: "#5B5BD6"), Color(hex: "#7C7CF0"),
+        Color(hex: "#A78BFA"), Color(hex: "#60A5FA"), Color(hex: "#34D399"),
     ]
 
     // MARK: - Gradients
@@ -96,6 +119,28 @@ enum Theme {
     static let goldGradient = LinearGradient(
         colors: [Color(hex: "#F5A623"), Color(hex: "#E8952A")],
         startPoint: .leading, endPoint: .trailing
+    )
+    static let nanoBananaGradient = LinearGradient(
+        colors: [Color(hex: "#D4F03C"), Color(hex: "#A8D020")],
+        startPoint: .topLeading, endPoint: .bottomTrailing
+    )
+    static let aiHeroGradient = LinearGradient(
+        colors: [
+            Color(hex: "#1A1060"),
+            Color(hex: "#2D2B8F"),
+            Color(hex: "#5B5BD6"),
+            Color(hex: "#8B72F8"),
+        ],
+        startPoint: .topLeading, endPoint: .bottomTrailing
+    )
+    static let autopilotHeroGradient = LinearGradient(
+        colors: [
+            Color(hex: "#0D0726"),
+            Color(hex: "#1A0938"),
+            Color(hex: "#2D1B6B"),
+            Color(hex: "#5B3BA8"),
+        ],
+        startPoint: .topLeading, endPoint: .bottomTrailing
     )
 }
 
@@ -161,6 +206,29 @@ extension UIColor {
         let g = CGFloat((rgb >> 8) & 0xFF) / 255
         let b = CGFloat(rgb & 0xFF) / 255
         self.init(red: r, green: g, blue: b, alpha: 1)
+    }
+}
+
+// MARK: - Premium Icon Container
+
+struct PremiumIconView: View {
+    let symbol: String
+    let colors: [Color]
+    var size: CGFloat = 44
+    var iconSize: CGFloat = 20
+    var radius: CGFloat? = nil
+
+    var body: some View {
+        let r = radius ?? size * 0.26
+        ZStack {
+            RoundedRectangle(cornerRadius: r)
+                .fill(LinearGradient(colors: colors, startPoint: .topLeading, endPoint: .bottomTrailing))
+                .frame(width: size, height: size)
+            Image(systemName: symbol)
+                .font(.system(size: iconSize, weight: .semibold))
+                .foregroundStyle(.white)
+                .symbolRenderingMode(.hierarchical)
+        }
     }
 }
 

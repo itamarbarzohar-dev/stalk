@@ -37,6 +37,57 @@ struct UserPost: Identifiable, Codable {
     var timestamp: Date = Date()
 }
 
+// MARK: - Comments
+
+struct Comment: Identifiable, Codable {
+    var id = UUID()
+    let authorName: String
+    let authorHandle: String
+    let text: String
+    let likes: Int
+    let timeAgo: String
+}
+
+// MARK: - Activity Feed
+
+enum ActivityType: String, Codable {
+    case copied, followed, copyPnl, earnings, whale, friendPost
+}
+
+struct ActivityItem: Identifiable {
+    var id = UUID()
+    let type: ActivityType
+    let actor: String
+    let detail: String
+    let value: String?
+    let timeAgo: String
+    let isToday: Bool
+}
+
+// MARK: - Communities
+
+struct Community: Identifiable {
+    var id = UUID()
+    let icon: String
+    let name: String
+    let members: Int
+    let activity24h: Int
+    let topHoldings: [String]
+    let color: Color
+    let description: String
+}
+
+// MARK: - Trade History
+
+struct TradeHistoryItem: Identifiable {
+    var id = UUID()
+    let ticker: String
+    let action: String
+    let pct: Double
+    let daysHeld: Int
+    let date: String
+}
+
 // MARK: - Social / Feed
 
 struct TraderHolding: Identifiable {
@@ -63,6 +114,12 @@ struct Trader: Identifiable {
     // New social fields
     var isPro: Bool = false
     var take: String = ""
+    var riskScore: Int = 5
+    var maxDrawdown: Double = -14.0
+    var winRate: Double = 62.0
+    var copiers: Int = 0
+    var avgHoldingDays: Int = 12
+    var tradeHistory: [TradeHistoryItem] = []
     // Computed
     var todayPct: Double { perf.day }
     var allTimeReturn: Double { perf.allTime }
@@ -94,28 +151,55 @@ let TRADERS: [Trader] = [
            holdings: ["NVDA", "AAPL", "MSFT", "GOOGL"],
            text: "Loaded up on NVDA again — AI infrastructure is just getting started 🚀",
            time: "2h ago", likes: 47, weekPct: 4.7,
-           isPro: true, take: "AI infrastructure spend is accelerating — every hyperscaler is doubling capex. NVDA is the toll booth. I'm adding on every dip."),
+           isPro: true, take: "AI infrastructure spend is accelerating — every hyperscaler is doubling capex. NVDA is the toll booth. I'm adding on every dip.",
+           riskScore: 7, maxDrawdown: -18.4, winRate: 71.0, copiers: 1247, avgHoldingDays: 8,
+           tradeHistory: [
+               TradeHistoryItem(ticker: "NVDA", action: "BUY", pct: 34.2, daysHeld: 5, date: "Jun 15"),
+               TradeHistoryItem(ticker: "MSFT", action: "BUY", pct: 8.1, daysHeld: 12, date: "May 28"),
+               TradeHistoryItem(ticker: "AAPL", action: "SELL", pct: -2.3, daysHeld: 4, date: "May 15"),
+               TradeHistoryItem(ticker: "AMD", action: "BUY", pct: 19.7, daysHeld: 18, date: "Apr 22"),
+           ]),
     Trader(id: 2, name: "Sara Kim", handle: "@saratrades", initial: "S", color: Color(hex: "#F472B6"),
            followers: 8903, following: 94,
            perf: TraderPerf(day: -0.3, sixMonth: 9.7, ytd: 14.2, allTime: 38.5),
            holdings: ["TSLA", "META", "AMZN"],
            text: "Trimmed my Tesla position after the run-up. Taking profits at $250 🎯",
            time: "4h ago", likes: 123, weekPct: 2.1,
-           isPro: true, take: "Trimmed TSLA at $250 — that's a 40% gain from my cost basis. Cash is a position too. Waiting for re-entry around $210."),
+           isPro: true, take: "Trimmed TSLA at $250 — that's a 40% gain from my cost basis. Cash is a position too. Waiting for re-entry around $210.",
+           riskScore: 5, maxDrawdown: -11.2, winRate: 64.3, copiers: 3891, avgHoldingDays: 21,
+           tradeHistory: [
+               TradeHistoryItem(ticker: "TSLA", action: "SELL", pct: 41.0, daysHeld: 45, date: "Jun 12"),
+               TradeHistoryItem(ticker: "META", action: "BUY", pct: 22.4, daysHeld: 30, date: "May 20"),
+               TradeHistoryItem(ticker: "AMZN", action: "SELL", pct: 11.8, daysHeld: 14, date: "Apr 30"),
+               TradeHistoryItem(ticker: "TSLA", action: "BUY", pct: -5.1, daysHeld: 7, date: "Apr 10"),
+           ]),
     Trader(id: 3, name: "Mike R.", handle: "@mikevalue", initial: "M", color: Color(hex: "#FBBF24"),
            followers: 1204, following: 312,
            perf: TraderPerf(day: 0.8, sixMonth: 5.1, ytd: 7.3, allTime: 29.1),
            holdings: ["BRK-B", "JPM", "V", "KO"],
            text: "Old school value investing still works. Berkshire + JPM = sleep well at night 💤",
            time: "6h ago", likes: 34, weekPct: 1.3,
-           isPro: false, take: "Everyone chasing AI hype. Meanwhile I'm sleeping soundly with BRK-B, JPM, V, KO. Boring wins long-term."),
+           isPro: false, take: "Everyone chasing AI hype. Meanwhile I'm sleeping soundly with BRK-B, JPM, V, KO. Boring wins long-term.",
+           riskScore: 2, maxDrawdown: -5.8, winRate: 58.0, copiers: 412, avgHoldingDays: 180,
+           tradeHistory: [
+               TradeHistoryItem(ticker: "KO",    action: "BUY",  pct: 3.2,  daysHeld: 180, date: "Jan 2"),
+               TradeHistoryItem(ticker: "JPM",   action: "BUY",  pct: 12.4, daysHeld: 90,  date: "Mar 15"),
+               TradeHistoryItem(ticker: "BRK-B", action: "BUY",  pct: 7.8,  daysHeld: 120, date: "Feb 28"),
+           ]),
     Trader(id: 4, name: "Lena V.", handle: "@lena_invest", initial: "L", color: Color(hex: "#6EE7B7"),
            followers: 4512, following: 201,
            perf: TraderPerf(day: 2.1, sixMonth: 31.2, ytd: 41.5, allTime: 89.2),
            holdings: ["NVDA", "AMD", "SMCI", "AVGO"],
            text: "Semis are on fire this week. My portfolio is up 2% just today 🔥",
            time: "8h ago", likes: 211, weekPct: 9.4,
-           isPro: true, take: "Semis up 2% just today. SMCI broke out of its consolidation. If you're not in semis right now you're missing the decade trade."),
+           isPro: true, take: "Semis up 2% just today. SMCI broke out of its consolidation. If you're not in semis right now you're missing the decade trade.",
+           riskScore: 8, maxDrawdown: -24.1, winRate: 78.2, copiers: 2673, avgHoldingDays: 11,
+           tradeHistory: [
+               TradeHistoryItem(ticker: "SMCI", action: "BUY",  pct: 47.3, daysHeld: 14, date: "Jun 10"),
+               TradeHistoryItem(ticker: "AMD",  action: "SELL", pct: 33.5, daysHeld: 11, date: "Jun 5"),
+               TradeHistoryItem(ticker: "NVDA", action: "BUY",  pct: 61.2, daysHeld: 7,  date: "Jun 1"),
+               TradeHistoryItem(ticker: "AVGO", action: "BUY",  pct: 28.1, daysHeld: 21, date: "May 25"),
+           ]),
 ]
 
 // Extended trader list for feed stories & leaderboard
@@ -318,4 +402,32 @@ let WORLD_GAINERS: [WorldGainer] = [
     WorldGainer(rank: 3, name: "Sofia R.",  flag: "🇧🇷", initial: "S", color: Color(hex: "#8B5CF6"), todayReturn: 11.7, value: "$1.1M",  followers: 6700,  holdings: [("META",45),("GOOGL",35),("SNAP",20)],               bio: "Social media & ad tech investor",          ytd: 78),
     WorldGainer(rank: 4, name: "Carlos D.", flag: "🇲🇽", initial: "C", color: Color(hex: "#10B981"), todayReturn: 9.3,  value: "$3.2M",  followers: 21000, holdings: [("SPY",40),("QQQ",30),("AAPL",30)],                  bio: "Index + momentum strategy · 8yr veteran",  ytd: 52),
     WorldGainer(rank: 5, name: "Priya K.",  flag: "🇮🇳", initial: "P", color: Color(hex: "#F472B6"), todayReturn: 8.6,  value: "$650K",  followers: 4300,  holdings: [("MSFT",40),("AMZN",35),("CRM",25)],                  bio: "Cloud & SaaS focus · ex-Goldman analyst",  ytd: 44),
+]
+
+// MARK: - Communities Mock Data
+
+let COMMUNITIES: [Community] = [
+    Community(icon: "cpu.fill",             name: "AI & Semiconductors", members: 48200,  activity24h: 1243, topHoldings: ["NVDA","AMD","AVGO"],  color: Color(hex: "#5B5BD6"), description: "The AI chip race — NVDA, AMD, SMCI and the picks & shovels play"),
+    Community(icon: "dollarsign.circle.fill", name: "Dividend Income",   members: 31700,  activity24h: 487,  topHoldings: ["O","KO","JNJ"],       color: Color(hex: "#22C55E"), description: "Build a passive income portfolio. Monthly payers, aristocrats and REITs"),
+    Community(icon: "flame.fill",           name: "Meme Stocks",         members: 22400,  activity24h: 3891, topHoldings: ["GME","AMC","BBBY"],    color: Color(hex: "#F97316"), description: "High risk, high reward. WSB-style momentum plays and short squeezes"),
+    Community(icon: "chart.bar.xaxis",      name: "Options Traders",     members: 19100,  activity24h: 2140, topHoldings: ["SPY","QQQ","AAPL"],   color: Color(hex: "#F43F5E"), description: "Calls, puts, spreads and income strategies for every skill level"),
+    Community(icon: "building.columns.fill", name: "Value Investing",    members: 15800,  activity24h: 312,  topHoldings: ["BRK-B","BAC","V"],    color: Color(hex: "#D97706"), description: "Buffett-inspired long-only fundamentals. P/E, moats, margin of safety"),
+    Community(icon: "globe.americas.fill",  name: "Macro Watchers",      members: 12300,  activity24h: 678,  topHoldings: ["GLD","TLT","DXY"],    color: Color(hex: "#38BDF8"), description: "Fed rates, CPI, yield curve, DXY. Top-down macro-driven investing"),
+]
+
+// MARK: - Activity Feed Mock Data
+
+let ACTIVITY_ITEMS: [ActivityItem] = [
+    ActivityItem(type: .copied,     actor: "Lena V.",       detail: "copied your portfolio",                  value: nil,      timeAgo: "2m ago",  isToday: true),
+    ActivityItem(type: .followed,   actor: "James T.",      detail: "started following you",                  value: nil,      timeAgo: "15m ago", isToday: true),
+    ActivityItem(type: .copyPnl,    actor: "Sara Kim",      detail: "your copy of Sara Kim is up",            value: "+8.4%",  timeAgo: "1h ago",  isToday: true),
+    ActivityItem(type: .whale,      actor: "NVDA",          detail: "unusual options activity detected on",   value: "$340M",  timeAgo: "2h ago",  isToday: true),
+    ActivityItem(type: .earnings,   actor: "MSFT",          detail: "reports earnings tomorrow — you hold",   value: nil,      timeAgo: "3h ago",  isToday: true),
+    ActivityItem(type: .friendPost, actor: "Alex Chen",     detail: "posted a new trade idea",                value: nil,      timeAgo: "4h ago",  isToday: true),
+    ActivityItem(type: .copied,     actor: "Priya N.",      detail: "copied your portfolio",                  value: nil,      timeAgo: "1d ago",  isToday: false),
+    ActivityItem(type: .followed,   actor: "David K.",      detail: "started following you",                  value: nil,      timeAgo: "1d ago",  isToday: false),
+    ActivityItem(type: .copyPnl,    actor: "Alex Chen",     detail: "your copy of Alex Chen is up",           value: "+12.1%", timeAgo: "2d ago",  isToday: false),
+    ActivityItem(type: .whale,      actor: "TSLA",          detail: "large block trade detected on",          value: "$220M",  timeAgo: "2d ago",  isToday: false),
+    ActivityItem(type: .earnings,   actor: "NVDA",          detail: "crushed earnings — you hold",            value: "+8% AH", timeAgo: "3d ago",  isToday: false),
+    ActivityItem(type: .friendPost, actor: "Nina H.",       detail: "posted about her SMCI trade",            value: nil,      timeAgo: "3d ago",  isToday: false),
 ]

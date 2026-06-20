@@ -101,6 +101,7 @@ class AppState {
     var joinedCommunities: Set<String> = []
     var copiedAmounts: [Int: Double] = [:]
     var postComments: [UUID: [Comment]] = [:]
+    var savedItems: Set<UUID> = []
 
     // MARK: Market
     var marketQuotes: [String: Quote] = [:]

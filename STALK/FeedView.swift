@@ -13,6 +13,8 @@ struct FeedView: View {
     @State private var showActivity = false
     @State private var showCommunities = false
     @State private var commentsTrader: Trader? = nil
+    @State private var commentsDiscoverItem: DiscoverItem? = nil
+    @State private var showTagSheet = false
 
     var totalValue: Double { appState.totalValue }
     var totalCost: Double { appState.totalCost }
@@ -52,6 +54,11 @@ struct FeedView: View {
 
                     // ── Navigation Header ───────────────────────────────────
                     feedHeader
+
+                    if feedTab == "Discover" {
+                        // ── Discover Feed ────────────────────────────────────
+                        DiscoverFeedSection(onTicker: onTicker)
+                    } else {
 
                     // ── Stories Row ─────────────────────────────────────────
                     StoriesRow(
@@ -198,6 +205,8 @@ struct FeedView: View {
                         .padding(.horizontal, 14)
                     }
 
+                    } // end normal feed
+
                     Color.clear.frame(height: 100)
                 }
             }
@@ -236,6 +245,14 @@ struct FeedView: View {
         }
         .sheet(item: $commentsTrader) { trader in
             CommentsSheet(trader: trader).environment(appState)
+        }
+        .sheet(item: $commentsDiscoverItem) { item in
+            CommentsSheet(trader: item.trader).environment(appState)
+        }
+        .alert("Tag People", isPresented: $showTagSheet) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("Tagging is coming in a future update.")
         }
     }
 
@@ -2011,6 +2028,613 @@ struct TraderProfileView: View {
         .background(color.opacity(0.07))
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .overlay(RoundedRectangle(cornerRadius: 12).stroke(color.opacity(0.18), lineWidth: 1))
+    }
+}
+
+// MARK: - Discover Feed Section
+
+struct DiscoverFeedSection: View {
+    @Environment(AppState.self) var appState
+    let onTicker: (String) -> Void
+    @State private var commentsItem: DiscoverItem? = nil
+    @State private var showTagSheet = false
+
+    var body: some View {
+        VStack(spacing: 16) {
+            // Discover header
+            HStack(spacing: 8) {
+                Image(systemName: "sparkles")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(Theme.nanoBanana)
+                Text("Discover")
+                    .font(.system(size: 11, weight: .black))
+                    .foregroundStyle(Theme.text3)
+                    .textCase(.uppercase)
+                    .kerning(2.0)
+                Spacer()
+                Text("\(DISCOVER_ITEMS.count) items")
+                    .font(.system(size: 10))
+                    .foregroundStyle(Theme.text4)
+            }
+            .padding(.horizontal, 18)
+            .padding(.top, 8)
+
+            ForEach(Array(DISCOVER_ITEMS.enumerated()), id: \.element.id) { i, item in
+                Group {
+                    switch item.type {
+                    case .short:
+                        DiscoverShortCard(item: item, onTicker: onTicker,
+                                          onComments: { commentsItem = item },
+                                          onTag: { showTagSheet = true })
+                    case .video:
+                        DiscoverVideoCard(item: item, onTicker: onTicker,
+                                          onComments: { commentsItem = item },
+                                          onTag: { showTagSheet = true })
+                    case .post:
+                        DiscoverPostCard(item: item, onTicker: onTicker,
+                                         onComments: { commentsItem = item },
+                                         onTag: { showTagSheet = true })
+                    }
+                }
+                .staggerEntrance(index: i)
+            }
+        }
+        .sheet(item: $commentsItem) { item in
+            CommentsSheet(trader: item.trader).environment(appState)
+        }
+        .alert("Tag People", isPresented: $showTagSheet) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("Tagging is coming in a future update.")
+        }
+    }
+}
+
+// MARK: - Short Card (TikTok-style)
+
+struct DiscoverShortCard: View {
+    @Environment(AppState.self) var appState
+    let item: DiscoverItem
+    let onTicker: (String) -> Void
+    let onComments: () -> Void
+    let onTag: () -> Void
+
+    @State private var liked = false
+    @State private var likeCount: Int
+    @State private var appeared = false
+
+    init(item: DiscoverItem, onTicker: @escaping (String) -> Void,
+         onComments: @escaping () -> Void, onTag: @escaping () -> Void) {
+        self.item = item
+        self.onTicker = onTicker
+        self.onComments = onComments
+        self.onTag = onTag
+        self._likeCount = State(initialValue: item.saves)
+    }
+
+    var isSaved: Bool { appState.savedItems.contains(item.id) }
+
+    var body: some View {
+        ZStack(alignment: .bottom) {
+            // Gradient background (simulated video frame)
+            RoundedRectangle(cornerRadius: 20)
+                .fill(LinearGradient(
+                    colors: item.gradientColors.isEmpty
+                        ? [Color(hex: "#1A1A2E"), Color(hex: "#16213E"), Color(hex: "#0F3460")]
+                        : item.gradientColors,
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                ))
+                .frame(height: 400)
+                .overlay(alignment: .topLeading) {
+                    // "SHORT" badge + duration
+                    HStack(spacing: 8) {
+                        Text("SHORT")
+                            .font(.system(size: 9, weight: .black))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 8).padding(.vertical, 4)
+                            .background(.white.opacity(0.20))
+                            .clipShape(Capsule())
+                        if let dur = item.duration {
+                            Text(dur)
+                                .font(.system(size: 9, weight: .bold))
+                                .foregroundStyle(.white.opacity(0.8))
+                        }
+                    }
+                    .padding(14)
+                }
+                .overlay(alignment: .center) {
+                    // Abstract "video" visual — animated chart lines
+                    shortVisualOverlay()
+                }
+
+            // Bottom overlay: trader info + caption
+            VStack(alignment: .leading, spacing: 0) {
+                // Gradient fade-in
+                LinearGradient(
+                    colors: [Color.clear, Color.black.opacity(0.85)],
+                    startPoint: .top, endPoint: .bottom
+                )
+                .frame(height: 80)
+
+                VStack(alignment: .leading, spacing: 10) {
+                    // Trader row
+                    HStack(spacing: 10) {
+                        Circle()
+                            .fill(item.trader.color)
+                            .frame(width: 36, height: 36)
+                            .overlay(Text(item.trader.initial).font(.system(size: 14, weight: .black)).foregroundStyle(.white))
+                            .overlay(Circle().stroke(.white.opacity(0.4), lineWidth: 1.5))
+
+                        VStack(alignment: .leading, spacing: 1) {
+                            HStack(spacing: 6) {
+                                Text(item.trader.name)
+                                    .font(.system(size: 13, weight: .bold))
+                                    .foregroundStyle(.white)
+                                if item.trader.isPro {
+                                    Text("PRO")
+                                        .font(.system(size: 8, weight: .black))
+                                        .foregroundStyle(Theme.nanoBanana)
+                                        .padding(.horizontal, 5).padding(.vertical, 2)
+                                        .background(Theme.nanoBanana.opacity(0.20))
+                                        .clipShape(Capsule())
+                                }
+                            }
+                            Text("\(item.trader.handle) · \(formatViews(item.views)) views")
+                                .font(.system(size: 11))
+                                .foregroundStyle(.white.opacity(0.7))
+                        }
+                        Spacer()
+
+                        // Today return badge
+                        Text(item.trader.todayPct.fmtPct())
+                            .font(.system(size: 14, weight: .black))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 10).padding(.vertical, 5)
+                            .background((item.trader.todayPct >= 0 ? Theme.gain : Theme.loss).opacity(0.85))
+                            .clipShape(Capsule())
+                    }
+
+                    // Caption
+                    Text(item.caption)
+                        .font(.system(size: 13))
+                        .foregroundStyle(.white.opacity(0.92))
+                        .lineSpacing(4)
+                        .lineLimit(3)
+
+                    // Ticker chips
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 6) {
+                            ForEach(item.tickers, id: \.self) { t in
+                                Button { onTicker(t) } label: {
+                                    Text(t)
+                                        .font(.system(size: 11, weight: .bold))
+                                        .foregroundStyle(Theme.nanoBanana)
+                                        .padding(.horizontal, 10).padding(.vertical, 5)
+                                        .background(.white.opacity(0.12))
+                                        .clipShape(Capsule())
+                                        .overlay(Capsule().stroke(Theme.nanoBanana.opacity(0.5), lineWidth: 1))
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.bottom, 16)
+                .background(.black.opacity(0.85))
+            }
+
+            // Right-side TikTok action stack
+            VStack(spacing: 20) {
+                Spacer()
+                // Like
+                shortActionButton(
+                    icon: liked ? "heart.fill" : "heart",
+                    label: formatViews(likeCount + (liked ? 1 : 0)),
+                    color: liked ? Color(hex: "#F43F5E") : .white
+                ) {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.5)) { liked.toggle() }
+                }
+                // Comment
+                shortActionButton(icon: "bubble.left.fill", label: "\(item.comments)", color: .white, action: onComments)
+                // Share
+                ShareLink(item: "Check out this trade idea on STALK: \(item.caption.prefix(80))...") {
+                    VStack(spacing: 4) {
+                        Image(systemName: "arrowshape.turn.up.right.fill")
+                            .font(.system(size: 24, weight: .semibold))
+                            .foregroundStyle(.white)
+                            .shadow(color: .black.opacity(0.4), radius: 4)
+                        Text("Share")
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundStyle(.white.opacity(0.85))
+                    }
+                }
+                .buttonStyle(.plain)
+                // Save
+                shortActionButton(
+                    icon: isSaved ? "bookmark.fill" : "bookmark",
+                    label: "Save",
+                    color: isSaved ? Theme.nanoBanana : .white
+                ) {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                        if isSaved { appState.savedItems.remove(item.id) }
+                        else        { appState.savedItems.insert(item.id) }
+                    }
+                }
+                // Tag
+                shortActionButton(icon: "person.badge.plus.fill", label: "Tag", color: .white, action: onTag)
+            }
+            .padding(.trailing, 14)
+            .padding(.bottom, 110)
+            .frame(maxWidth: .infinity, alignment: .trailing)
+        }
+        .clipShape(RoundedRectangle(cornerRadius: 20))
+        .shadow(color: .black.opacity(0.5), radius: 16, y: 6)
+        .padding(.horizontal, 14)
+        .opacity(appeared ? 1 : 0)
+        .scaleEffect(appeared ? 1 : 0.96)
+        .onAppear {
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.75)) { appeared = true }
+        }
+    }
+
+    @ViewBuilder
+    private func shortActionButton(icon: String, label: String, color: Color, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            VStack(spacing: 4) {
+                Image(systemName: icon)
+                    .font(.system(size: 26, weight: .semibold))
+                    .foregroundStyle(color)
+                    .shadow(color: .black.opacity(0.5), radius: 4)
+                Text(label)
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(.white.opacity(0.85))
+            }
+        }
+        .buttonStyle(.plain)
+    }
+
+    @ViewBuilder
+    private func shortVisualOverlay() -> some View {
+        // Abstract wave / chart visual in the background
+        GeometryReader { geo in
+            Canvas { ctx, size in
+                let w = size.width
+                let h = size.height
+                var path = Path()
+                let amplitude: CGFloat = 28
+                let freq: CGFloat = 0.018
+                let midY = h * 0.42
+                path.move(to: CGPoint(x: 0, y: midY))
+                for x in stride(from: 0, to: w, by: 2) {
+                    let y = midY + sin(x * freq) * amplitude + cos(x * freq * 0.7) * 14
+                    path.addLine(to: CGPoint(x: x, y: y))
+                }
+                ctx.stroke(path, with: .color(.white.opacity(0.08)), lineWidth: 2)
+
+                var path2 = Path()
+                let midY2 = h * 0.60
+                path2.move(to: CGPoint(x: 0, y: midY2))
+                for x in stride(from: 0, to: w, by: 2) {
+                    let y = midY2 + sin(x * freq * 1.3 + 1.2) * 20 + cos(x * freq * 0.5 + 0.8) * 10
+                    path2.addLine(to: CGPoint(x: x, y: y))
+                }
+                ctx.stroke(path2, with: .color(.white.opacity(0.05)), lineWidth: 1.5)
+            }
+        }
+        .allowsHitTesting(false)
+    }
+
+    private func formatViews(_ n: Int) -> String {
+        if n >= 1_000_000 { return String(format: "%.1fM", Double(n)/1_000_000) }
+        if n >= 1_000     { return String(format: "%.1fK", Double(n)/1_000) }
+        return "\(n)"
+    }
+}
+
+// MARK: - Video Card
+
+struct DiscoverVideoCard: View {
+    @Environment(AppState.self) var appState
+    let item: DiscoverItem
+    let onTicker: (String) -> Void
+    let onComments: () -> Void
+    let onTag: () -> Void
+
+    @State private var liked = false
+    var isSaved: Bool { appState.savedItems.contains(item.id) }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            // Thumbnail (16:9 mock)
+            ZStack(alignment: .bottomTrailing) {
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(LinearGradient(
+                        colors: item.gradientColors.isEmpty
+                            ? [Color(hex: "#0F172A"), Color(hex: "#1E293B")]
+                            : item.gradientColors,
+                        startPoint: .topLeading, endPoint: .bottomTrailing
+                    ))
+                    .frame(height: 210)
+                    .overlay(alignment: .center) {
+                        // Play button
+                        ZStack {
+                            Circle()
+                                .fill(.black.opacity(0.4))
+                                .frame(width: 56, height: 56)
+                                .overlay(Circle().stroke(.white.opacity(0.3), lineWidth: 1))
+                            Image(systemName: "play.fill")
+                                .font(.system(size: 22, weight: .semibold))
+                                .foregroundStyle(.white)
+                                .offset(x: 2)
+                        }
+                    }
+                    .overlay(alignment: .topLeading) {
+                        Text("VIDEO")
+                            .font(.system(size: 9, weight: .black))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 8).padding(.vertical, 4)
+                            .background(.black.opacity(0.5))
+                            .clipShape(Capsule())
+                            .padding(12)
+                    }
+
+                // Duration badge
+                if let dur = item.duration {
+                    Text(dur)
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 8).padding(.vertical, 4)
+                        .background(.black.opacity(0.65))
+                        .clipShape(RoundedRectangle(cornerRadius: 6))
+                        .padding(10)
+                }
+            }
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+
+            // Info row
+            HStack(alignment: .top, spacing: 12) {
+                Circle()
+                    .fill(item.trader.color)
+                    .frame(width: 38, height: 38)
+                    .overlay(Text(item.trader.initial).font(.system(size: 14, weight: .black)).foregroundStyle(.white))
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(item.caption)
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(Theme.text)
+                        .lineLimit(2)
+                        .lineSpacing(3)
+
+                    HStack(spacing: 5) {
+                        Text(item.trader.handle)
+                        Text("·")
+                        Text(formatViews(item.views) + " views")
+                    }
+                    .font(.system(size: 11))
+                    .foregroundStyle(Theme.text3)
+
+                    // Ticker chips
+                    HStack(spacing: 5) {
+                        ForEach(item.tickers, id: \.self) { t in
+                            Button { onTicker(t) } label: {
+                                Text(t)
+                                    .font(.system(size: 10, weight: .bold))
+                                    .foregroundStyle(Theme.accent)
+                                    .padding(.horizontal, 8).padding(.vertical, 3)
+                                    .background(Theme.accentBg)
+                                    .clipShape(Capsule())
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    .padding(.top, 2)
+                }
+
+                Spacer()
+
+                // Save button
+                Button {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                        if isSaved { appState.savedItems.remove(item.id) }
+                        else        { appState.savedItems.insert(item.id) }
+                    }
+                } label: {
+                    Image(systemName: isSaved ? "bookmark.fill" : "bookmark")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(isSaved ? Theme.nanoBanana : Theme.text3)
+                }
+                .buttonStyle(.plain)
+            }
+            .padding(.horizontal, 4)
+            .padding(.top, 12)
+
+            // Action bar
+            Divider().padding(.top, 10)
+            HStack(spacing: 0) {
+                videoAction(liked ? "heart.fill" : "heart",
+                            "\(item.saves + (liked ? 1 : 0))",
+                            liked ? Color(hex: "#F43F5E") : Theme.text3) {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.5)) { liked.toggle() }
+                }
+                videoAction("bubble.left.fill",   "\(item.comments)", Theme.text3, action: onComments)
+                videoAction("arrowshape.turn.up.right.fill", "Share", Theme.text3) {}
+                videoAction("person.badge.plus.fill", "Tag", Theme.text3, action: onTag)
+            }
+            .padding(.top, 4)
+        }
+        .padding(14)
+        .background(Theme.card)
+        .clipShape(RoundedRectangle(cornerRadius: 20))
+        .overlay(RoundedRectangle(cornerRadius: 20).stroke(Theme.border, lineWidth: 1))
+        .shadow(color: .black.opacity(0.3), radius: 10, y: 4)
+        .padding(.horizontal, 14)
+    }
+
+    @ViewBuilder
+    private func videoAction(_ icon: String, _ label: String, _ color: Color, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: 5) {
+                Image(systemName: icon).font(.system(size: 14, weight: .semibold)).foregroundStyle(color)
+                Text(label).font(.system(size: 12, weight: .semibold)).foregroundStyle(color)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 8)
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func formatViews(_ n: Int) -> String {
+        if n >= 1_000_000 { return String(format: "%.1fM", Double(n)/1_000_000) }
+        if n >= 1_000     { return String(format: "%.1fK", Double(n)/1_000) }
+        return "\(n)"
+    }
+}
+
+// MARK: - Discover Post Card (with save + tag + share)
+
+struct DiscoverPostCard: View {
+    @Environment(AppState.self) var appState
+    let item: DiscoverItem
+    let onTicker: (String) -> Void
+    let onComments: () -> Void
+    let onTag: () -> Void
+
+    @State private var liked = false
+    @State private var sharePresented = false
+    var isSaved: Bool { appState.savedItems.contains(item.id) }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            // Header
+            HStack(spacing: 10) {
+                Circle()
+                    .fill(LinearGradient(
+                        colors: [item.trader.color, item.trader.color.opacity(0.6)],
+                        startPoint: .topLeading, endPoint: .bottomTrailing
+                    ))
+                    .frame(width: 42, height: 42)
+                    .overlay(Text(item.trader.initial).font(.system(size: 16, weight: .black)).foregroundStyle(.white))
+                    .shadow(color: item.trader.color.opacity(0.4), radius: 5, y: 2)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack(spacing: 6) {
+                        Text(item.trader.name)
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundStyle(Theme.text)
+                        if item.trader.isPro {
+                            Text("PRO")
+                                .font(.system(size: 9, weight: .black))
+                                .foregroundStyle(Theme.accent)
+                                .padding(.horizontal, 5).padding(.vertical, 2)
+                                .background(Theme.accentBg)
+                                .clipShape(Capsule())
+                        }
+                    }
+                    Text("\(item.trader.handle) · \(formatViews(item.views)) views")
+                        .font(.system(size: 12))
+                        .foregroundStyle(Theme.text3)
+                }
+
+                Spacer()
+
+                // Today badge
+                Text(item.trader.todayPct.fmtPct())
+                    .font(.system(size: 14, weight: .black))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 10).padding(.vertical, 5)
+                    .background((item.trader.todayPct >= 0 ? Theme.gain : Theme.loss).opacity(0.88))
+                    .clipShape(Capsule())
+            }
+            .padding(.horizontal, 16).padding(.top, 16)
+
+            // Caption
+            Text(item.caption)
+                .font(.system(size: 15))
+                .foregroundStyle(Theme.text)
+                .lineSpacing(5)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+
+            // Tickers
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 6) {
+                    ForEach(item.tickers, id: \.self) { t in
+                        Button { onTicker(t) } label: {
+                            Text(t)
+                                .font(.system(size: 11, weight: .bold))
+                                .foregroundStyle(Theme.accent)
+                                .padding(.horizontal, 10).padding(.vertical, 5)
+                                .background(Theme.accentBg)
+                                .clipShape(Capsule())
+                                .overlay(Capsule().stroke(Theme.accent.opacity(0.3), lineWidth: 1))
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(.horizontal, 16)
+            }
+            .padding(.bottom, 10)
+
+            // Action bar
+            Divider().overlay(Theme.border)
+            HStack(spacing: 0) {
+                // Like
+                postDiscoverAction(liked ? "heart.fill" : "heart",
+                                   "\(item.saves + (liked ? 1 : 0))",
+                                   liked ? Color(hex: "#F43F5E") : Theme.text3) {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.5)) { liked.toggle() }
+                }
+                // Comment
+                postDiscoverAction("bubble.left.fill", "\(item.comments)", Theme.text3, action: onComments)
+                // Share
+                ShareLink(item: "Check out this trade idea on STALK: \(item.caption.prefix(80))...") {
+                    HStack(spacing: 5) {
+                        Image(systemName: "arrowshape.turn.up.right.fill").font(.system(size: 13, weight: .semibold)).foregroundStyle(Theme.text3)
+                        Text("Share").font(.system(size: 12, weight: .semibold)).foregroundStyle(Theme.text3)
+                    }
+                    .frame(maxWidth: .infinity).padding(.vertical, 10)
+                }
+                .buttonStyle(.plain)
+                // Save
+                postDiscoverAction(isSaved ? "bookmark.fill" : "bookmark",
+                                   "Save",
+                                   isSaved ? Theme.nanoBanana : Theme.text3) {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                        if isSaved { appState.savedItems.remove(item.id) }
+                        else        { appState.savedItems.insert(item.id) }
+                    }
+                }
+                // Tag
+                postDiscoverAction("person.badge.plus.fill", "Tag", Theme.text3, action: onTag)
+            }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 2)
+        }
+        .background(Theme.card)
+        .clipShape(RoundedRectangle(cornerRadius: 20))
+        .overlay(RoundedRectangle(cornerRadius: 20).stroke(Theme.border, lineWidth: 1))
+        .shadow(color: .black.opacity(0.3), radius: 10, y: 4)
+        .padding(.horizontal, 14)
+    }
+
+    @ViewBuilder
+    private func postDiscoverAction(_ icon: String, _ label: String, _ color: Color, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: 4) {
+                Image(systemName: icon).font(.system(size: 13, weight: .semibold)).foregroundStyle(color)
+                Text(label).font(.system(size: 11, weight: .semibold)).foregroundStyle(color)
+            }
+            .frame(maxWidth: .infinity).padding(.vertical, 10)
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func formatViews(_ n: Int) -> String {
+        if n >= 1_000_000 { return String(format: "%.1fM", Double(n)/1_000_000) }
+        if n >= 1_000     { return String(format: "%.1fK", Double(n)/1_000) }
+        return "\(n)"
     }
 }
 

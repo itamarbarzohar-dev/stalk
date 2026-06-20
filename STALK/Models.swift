@@ -77,6 +77,25 @@ struct Community: Identifiable {
     let description: String
 }
 
+// MARK: - Discover Feed
+
+enum DiscoverContentType: String {
+    case post, short, video
+}
+
+struct DiscoverItem: Identifiable {
+    var id = UUID()
+    let type: DiscoverContentType
+    let trader: Trader
+    let caption: String
+    let tickers: [String]
+    let views: Int
+    let saves: Int
+    let comments: Int
+    let duration: String?
+    let gradientColors: [Color]
+}
+
 // MARK: - Trade History
 
 struct TradeHistoryItem: Identifiable {
@@ -430,4 +449,46 @@ let ACTIVITY_ITEMS: [ActivityItem] = [
     ActivityItem(type: .whale,      actor: "TSLA",          detail: "large block trade detected on",          value: "$220M",  timeAgo: "2d ago",  isToday: false),
     ActivityItem(type: .earnings,   actor: "NVDA",          detail: "crushed earnings — you hold",            value: "+8% AH", timeAgo: "3d ago",  isToday: false),
     ActivityItem(type: .friendPost, actor: "Nina H.",       detail: "posted about her SMCI trade",            value: nil,      timeAgo: "3d ago",  isToday: false),
+]
+
+let DISCOVER_ITEMS: [DiscoverItem] = [
+    DiscoverItem(type: .short, trader: FEED_TRADERS[3],
+                 caption: "SMCI just cleared $800 resistance on massive volume — this is the setup I've been waiting for all month 🔥 Full breakdown in the comments.",
+                 tickers: ["SMCI","NVDA","AMD"], views: 84200, saves: 1847, comments: 312, duration: "0:47",
+                 gradientColors: [Color(hex: "#1A0A2E"), Color(hex: "#2D1B69"), Color(hex: "#4C2E9A")]),
+
+    DiscoverItem(type: .short, trader: FEED_TRADERS[0],
+                 caption: "The NVDA double bottom setup is textbook perfect. Entry zone is right here — this is my full technical breakdown 🚀",
+                 tickers: ["NVDA"], views: 127000, saves: 3241, comments: 891, duration: "1:12",
+                 gradientColors: [Color(hex: "#0A1628"), Color(hex: "#1E3A5F"), Color(hex: "#2B5282")]),
+
+    DiscoverItem(type: .video, trader: FEED_TRADERS[4],
+                 caption: "Is NVDA worth a $3 trillion valuation? Full deep-dive: earnings, moat, competition & fair value",
+                 tickers: ["NVDA","AMD","INTC"], views: 234000, saves: 7832, comments: 1204, duration: "8:34",
+                 gradientColors: [Color(hex: "#0F172A"), Color(hex: "#1E293B")]),
+
+    DiscoverItem(type: .post, trader: FEED_TRADERS[1],
+                 caption: "Just trimmed TSLA at $250 — here's exactly why and the price levels I'd re-enter. Thread below 🧵 The risk/reward at current multiples doesn't justify holding through the delivery miss.",
+                 tickers: ["TSLA","RIVN"], views: 18400, saves: 421, comments: 87, duration: nil,
+                 gradientColors: []),
+
+    DiscoverItem(type: .short, trader: FEED_TRADERS[7],
+                 caption: "Top 3 AI plays under $50 that nobody is talking about yet 👀 These are flying under the radar but the fundamentals are screaming buy.",
+                 tickers: ["SOUN","BBAI","AI"], views: 56700, saves: 2143, comments: 445, duration: "2:08",
+                 gradientColors: [Color(hex: "#1A0A1A"), Color(hex: "#3D1A3D"), Color(hex: "#6B2D6B")]),
+
+    DiscoverItem(type: .video, trader: FEED_TRADERS[2],
+                 caption: "Value investing in 2024 — 3 boring stocks that will outperform everyone in the next 5 years",
+                 tickers: ["BRK-B","KO","JPM"], views: 89000, saves: 3120, comments: 234, duration: "12:47",
+                 gradientColors: [Color(hex: "#0D1F0D"), Color(hex: "#1A3D1A")]),
+
+    DiscoverItem(type: .post, trader: FEED_TRADERS[5],
+                 caption: "Fed's 'higher for longer' is bad news for stretched tech valuations. Here's how I'm repositioning before the next FOMC. Moving 20% from QQQ into TLT + dividend names.",
+                 tickers: ["QQQ","SPY","TLT"], views: 31200, saves: 892, comments: 176, duration: nil,
+                 gradientColors: []),
+
+    DiscoverItem(type: .short, trader: FEED_TRADERS[6],
+                 caption: "Market open in 10 mins — here's my live watchlist and the exact levels I'm watching on AAPL & MSFT 📊",
+                 tickers: ["AAPL","MSFT"], views: 44100, saves: 1102, comments: 267, duration: "3:20",
+                 gradientColors: [Color(hex: "#0A1A2E"), Color(hex: "#1A3A5F"), Color(hex: "#0E4D6B")]),
 ]

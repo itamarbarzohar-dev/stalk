@@ -110,6 +110,24 @@ struct ForYouView: View {
             .padding(.horizontal, 14)
             .padding(.bottom, 10)
 
+        // Macro Pulse Card
+        MacroPulseCard()
+            .padding(.horizontal, 14)
+            .padding(.bottom, 10)
+
+        // AI Earnings Prediction
+        if !appState.positions.isEmpty {
+            sectionLabel("AI Earnings Predictions")
+            AIEarningsPredictionCard(userTickers: appState.positions.map(\.ticker))
+                .padding(.horizontal, 14)
+                .padding(.bottom, 10)
+        }
+
+        // Sector Rotation Signal
+        SectorRotationCard(portfolioTickers: appState.positions.map(\.ticker))
+            .padding(.horizontal, 14)
+            .padding(.bottom, 10)
+
         // Earnings Calendar Card
         sectionLabel("Earnings This Week")
         EarningsCalendarCard(userTickers: Set(appState.positions.map(\.ticker)), onTicker: onTicker)
@@ -1294,6 +1312,279 @@ struct AIMarketContextCard: View {
                 insightOpacity = 1
             }
         }
+    }
+}
+
+// MARK: - Macro Pulse Card
+
+struct MacroPulseCard: View {
+    private let indicators: [(name: String, value: String, change: String, isUp: Bool)] = [
+        ("Fed Rate",     "5.25%",  "Unchanged",  true),
+        ("CPI YoY",      "3.1%",   "-0.2% MoM",  true),
+        ("Unemployment", "3.8%",   "+0.1%",      false),
+        ("10Y Yield",    "4.42%",  "+0.08",      false),
+        ("DXY",          "104.2",  "+0.3",       false),
+        ("VIX",          "14.8",   "-1.2",       true),
+    ]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 8) {
+                Image(systemName: "chart.xyaxis.line")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(Theme.nanoBanana)
+                Text("Macro Pulse")
+                    .font(.system(size: 11, weight: .black))
+                    .foregroundStyle(Theme.text3)
+                    .textCase(.uppercase)
+                    .kerning(1.5)
+                Spacer()
+                Text("Real-time")
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(Theme.text4)
+            }
+
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
+                ForEach(indicators, id: \.name) { ind in
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(ind.name)
+                            .font(.system(size: 9, weight: .bold))
+                            .foregroundStyle(Theme.text4)
+                            .textCase(.uppercase)
+                            .kerning(0.3)
+                        Text(ind.value)
+                            .font(.system(size: 16, weight: .black))
+                            .foregroundStyle(Theme.text)
+                            .monospacedDigit()
+                        HStack(spacing: 3) {
+                            Image(systemName: ind.isUp ? "arrow.up" : "arrow.down")
+                                .font(.system(size: 8, weight: .bold))
+                                .foregroundStyle(ind.isUp ? Theme.gain : Theme.loss)
+                            Text(ind.change)
+                                .font(.system(size: 9, weight: .semibold))
+                                .foregroundStyle(ind.isUp ? Theme.gain : Theme.loss)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(10)
+                    .background(Theme.card)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(Theme.border, lineWidth: 1))
+                }
+            }
+        }
+        .padding(16)
+        .background(
+            LinearGradient(
+                colors: [Theme.nanoBanana.opacity(0.07), Theme.nanoBanana.opacity(0.02)],
+                startPoint: .topLeading, endPoint: .bottomTrailing
+            )
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 18))
+        .overlay(RoundedRectangle(cornerRadius: 18).stroke(Theme.nanoBanana.opacity(0.20), lineWidth: 1))
+    }
+}
+
+// MARK: - AI Earnings Prediction Card
+
+struct AIEarningsPredictionCard: View {
+    let userTickers: [String]
+
+    private struct EarningsPrediction: Identifiable {
+        let id = UUID()
+        let ticker: String
+        let company: String
+        let probability: Int
+        let direction: String
+        let rationale: String
+        let epsConsensus: String
+        let whisper: String
+    }
+
+    private let predictions: [EarningsPrediction] = [
+        EarningsPrediction(ticker: "NVDA", company: "NVIDIA",    probability: 87, direction: "BEAT", rationale: "Options flow bullish, analyst whisper +12% above consensus, data center demand remains exceptional",       epsConsensus: "$5.81", whisper: "$6.20"),
+        EarningsPrediction(ticker: "AAPL", company: "Apple",     probability: 58, direction: "MEET", rationale: "iPhone cycle maturing but services growth offsetting. Supply chain commentary mixed. Neutral options flow.", epsConsensus: "$1.34", whisper: "$1.38"),
+        EarningsPrediction(ticker: "MSFT", company: "Microsoft", probability: 74, direction: "BEAT", rationale: "Azure AI services momentum strong. Copilot enterprise adoption accelerating. Positive pre-announcement tone.", epsConsensus: "$3.10", whisper: "$3.22"),
+        EarningsPrediction(ticker: "META", company: "Meta",      probability: 71, direction: "BEAT", rationale: "Ad spend recovery continuing. Cost discipline maintained. Llama momentum creates AI premium narrative.",        epsConsensus: "$4.75", whisper: "$4.98"),
+        EarningsPrediction(ticker: "TSLA", company: "Tesla",     probability: 64, direction: "MISS", rationale: "Delivery miss priced in but margin compression from price cuts likely to disappoint. China headwinds persist.", epsConsensus: "$0.62", whisper: "$0.55"),
+    ]
+
+    private var relevant: [EarningsPrediction] {
+        let upper = userTickers.map { $0.uppercased() }
+        let found = predictions.filter { upper.contains($0.ticker) }
+        return found.isEmpty ? Array(predictions.prefix(2)) : found
+    }
+
+    var body: some View {
+        VStack(spacing: 8) {
+            ForEach(relevant.prefix(3)) { pred in
+                HStack(spacing: 14) {
+                    VStack(spacing: 4) {
+                        Text("\(pred.probability)%")
+                            .font(.system(size: 18, weight: .black))
+                            .foregroundStyle(pred.direction == "BEAT" ? Theme.gain : pred.direction == "MISS" ? Theme.loss : Theme.gold)
+                            .monospacedDigit()
+                        Text(pred.direction)
+                            .font(.system(size: 8, weight: .black))
+                            .foregroundStyle(pred.direction == "BEAT" ? Theme.gain : pred.direction == "MISS" ? Theme.loss : Theme.gold)
+                            .textCase(.uppercase)
+                            .kerning(0.5)
+                    }
+                    .frame(width: 54)
+                    .padding(.vertical, 8)
+                    .background((pred.direction == "BEAT" ? Theme.gain : pred.direction == "MISS" ? Theme.loss : Theme.gold).opacity(0.10))
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack(spacing: 6) {
+                            Text(pred.ticker)
+                                .font(.system(size: 14, weight: .black))
+                                .foregroundStyle(Theme.text)
+                            Text(pred.company)
+                                .font(.system(size: 11))
+                                .foregroundStyle(Theme.text3)
+                            Spacer()
+                            VStack(alignment: .trailing, spacing: 1) {
+                                Text("Whisper")
+                                    .font(.system(size: 8, weight: .bold))
+                                    .foregroundStyle(Theme.text4)
+                                    .textCase(.uppercase)
+                                    .kerning(0.3)
+                                Text(pred.whisper)
+                                    .font(.system(size: 12, weight: .black))
+                                    .foregroundStyle(Theme.nanoBanana)
+                            }
+                        }
+                        Text(pred.rationale)
+                            .font(.system(size: 11))
+                            .foregroundStyle(Theme.text3)
+                            .lineLimit(2)
+                            .lineSpacing(2)
+                    }
+                }
+                .padding(12)
+                .background(Theme.card)
+                .clipShape(RoundedRectangle(cornerRadius: 14))
+                .overlay(RoundedRectangle(cornerRadius: 14).stroke(Theme.border, lineWidth: 1))
+            }
+
+            HStack(spacing: 6) {
+                Image(systemName: "sparkles")
+                    .font(.system(size: 10)).foregroundStyle(Theme.nanoBanana)
+                Text("AI predictions based on options flow, analyst whispers & sentiment data · Not financial advice")
+                    .font(.system(size: 10))
+                    .foregroundStyle(Theme.text4)
+            }
+            .padding(.top, 2)
+        }
+    }
+}
+
+// MARK: - Sector Rotation Signal Card
+
+struct SectorRotationCard: View {
+    let portfolioTickers: [String]
+
+    private var techExposure: Int {
+        let techTickers = Set(["NVDA","AAPL","MSFT","GOOGL","META","AMD","AVGO","SMCI","TSLA","AMZN","NFLX","CRM","NOW","SNOW"])
+        let overlap = portfolioTickers.filter { techTickers.contains($0.uppercased()) }.count
+        guard !portfolioTickers.isEmpty else { return 68 }
+        return Int(Double(overlap) / Double(portfolioTickers.count) * 100)
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(spacing: 8) {
+                Image(systemName: "arrow.triangle.2.circlepath")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(Theme.accent)
+                Text("Sector Rotation Signal")
+                    .font(.system(size: 11, weight: .black))
+                    .foregroundStyle(Theme.text3)
+                    .textCase(.uppercase)
+                    .kerning(1.5)
+                Spacer()
+                Text("AI Signal")
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundStyle(Theme.accent)
+                    .padding(.horizontal, 8).padding(.vertical, 3)
+                    .background(Theme.accentBg)
+                    .clipShape(Capsule())
+            }
+
+            Text("Smart money rotating **Tech → Energy** this week. Institutional 13F filings show $4.2B moving out of large-cap tech into energy majors and defensive names.")
+                .font(.system(size: 13))
+                .foregroundStyle(Theme.text2)
+                .lineSpacing(4)
+
+            // Tech exposure bar
+            VStack(alignment: .leading, spacing: 6) {
+                HStack {
+                    Text("Your Tech Exposure")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(Theme.text3)
+                    Spacer()
+                    Text("\(techExposure)%")
+                        .font(.system(size: 13, weight: .black))
+                        .foregroundStyle(techExposure > 60 ? Theme.loss : Theme.gain)
+                }
+
+                GeometryReader { geo in
+                    ZStack(alignment: .leading) {
+                        RoundedRectangle(cornerRadius: 4).fill(Theme.bg3).frame(height: 8)
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(LinearGradient(
+                                colors: techExposure > 60
+                                    ? [Theme.loss, Color(hex: "#DC2626")]
+                                    : [Theme.nanoBanana, Color(hex: "#A8D020")],
+                                startPoint: .leading, endPoint: .trailing
+                            ))
+                            .frame(width: geo.size.width * CGFloat(techExposure) / 100, height: 8)
+                        // Target line at 40%
+                        Rectangle()
+                            .fill(Theme.gold)
+                            .frame(width: 2, height: 16)
+                            .offset(x: geo.size.width * 0.40)
+                    }
+                }
+                .frame(height: 8)
+
+                HStack {
+                    Text("Target: ≤40% tech")
+                        .font(.system(size: 10))
+                        .foregroundStyle(Theme.text4)
+                    Spacer()
+                    if techExposure > 60 {
+                        Text("Consider rebalancing into energy, utilities, or value")
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundStyle(Theme.gold)
+                    }
+                }
+            }
+
+            // Rotation signal chips
+            HStack(spacing: 6) {
+                rotationChip("Tech", isOut: true)
+                Image(systemName: "arrow.right").font(.system(size: 11, weight: .bold)).foregroundStyle(Theme.text3)
+                rotationChip("Energy", isOut: false)
+                rotationChip("Utilities", isOut: false)
+                rotationChip("Value", isOut: false)
+            }
+        }
+        .padding(16)
+        .background(Theme.card)
+        .clipShape(RoundedRectangle(cornerRadius: 18))
+        .overlay(RoundedRectangle(cornerRadius: 18).stroke(Theme.border, lineWidth: 1))
+    }
+
+    @ViewBuilder
+    private func rotationChip(_ label: String, isOut: Bool) -> some View {
+        Text(label)
+            .font(.system(size: 11, weight: .bold))
+            .foregroundStyle(isOut ? Theme.loss : Theme.gain)
+            .padding(.horizontal, 9).padding(.vertical, 4)
+            .background((isOut ? Theme.loss : Theme.gain).opacity(0.12))
+            .clipShape(Capsule())
     }
 }
 

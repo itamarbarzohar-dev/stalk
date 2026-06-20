@@ -97,6 +97,10 @@ class AppState {
     var followed: Set<Int> = []
     var likedPosts: Set<Int> = []
     var userPosts: [UserPost] = []
+    var notifications: [ActivityItem] = ACTIVITY_ITEMS
+    var joinedCommunities: Set<String> = []
+    var copiedAmounts: [Int: Double] = [:]
+    var postComments: [UUID: [Comment]] = [:]
 
     // MARK: Market
     var marketQuotes: [String: Quote] = [:]

@@ -27,13 +27,13 @@ enum Theme {
     }
     static var border: Color {
         Color(UIColor { t in t.userInterfaceStyle == .dark
-            ? UIColor.white.withAlphaComponent(0.06)
-            : UIColor.black.withAlphaComponent(0.08) })
+            ? UIColor.white.withAlphaComponent(0.09)
+            : UIColor.black.withAlphaComponent(0.10) })
     }
     static var borderActive: Color {
         Color(UIColor { t in t.userInterfaceStyle == .dark
-            ? UIColor.white.withAlphaComponent(0.14)
-            : UIColor.black.withAlphaComponent(0.15) })
+            ? UIColor.white.withAlphaComponent(0.18)
+            : UIColor.black.withAlphaComponent(0.18) })
     }
 
     // MARK: - Tab bar
@@ -62,17 +62,19 @@ enum Theme {
     }
 
     // MARK: - Semantic (work on both modes)
-    static let accent  = Color(hex: "#5B5BD6")
-    static let accent2 = Color(hex: "#7C7CF0")
-    static let gain    = Color(hex: "#00D26A")
-    static let loss    = Color(hex: "#FF4757")
-    static let gold    = Color(hex: "#F5A623")
+    static let accent     = Color(hex: "#5B5BD6")
+    static let accent2    = Color(hex: "#7C7CF0")
+    static let gain       = Color(hex: "#00D26A")
+    static let loss       = Color(hex: "#FF4757")
+    static let gold       = Color(hex: "#F5A623")
+    static let nanoBanana = Color(hex: "#D4F03C")
 
     // MARK: - Semantic dim fills
-    static var gainBg:   Color { gain.opacity(0.12) }
-    static var lossBg:   Color { loss.opacity(0.12) }
-    static var accentBg: Color { accent.opacity(0.12) }
-    static var goldBg:   Color { gold.opacity(0.15) }
+    static var gainBg:         Color { gain.opacity(0.12) }
+    static var lossBg:         Color { loss.opacity(0.12) }
+    static var accentBg:       Color { accent.opacity(0.12) }
+    static var goldBg:         Color { gold.opacity(0.15) }
+    static var nanoBananaBg:   Color { nanoBanana.opacity(0.12) }
 
     // MARK: - Shadow & Overlay
     static var shadow: Color {
@@ -95,10 +97,10 @@ enum Theme {
         static let xl: CGFloat = 32
     }
 
-    // MARK: - Alloc bar
+    // MARK: - Alloc bar — nano banana leads
     static let allocColors: [Color] = [
-        Color(hex: "#5B5BD6"), Color(hex: "#7C7CF0"), Color(hex: "#A78BFA"),
-        Color(hex: "#818CF8"), Color(hex: "#60A5FA"), Color(hex: "#34D399"),
+        Color(hex: "#D4F03C"), Color(hex: "#5B5BD6"), Color(hex: "#7C7CF0"),
+        Color(hex: "#A78BFA"), Color(hex: "#60A5FA"), Color(hex: "#34D399"),
     ]
 
     // MARK: - Gradients
@@ -117,6 +119,10 @@ enum Theme {
     static let goldGradient = LinearGradient(
         colors: [Color(hex: "#F5A623"), Color(hex: "#E8952A")],
         startPoint: .leading, endPoint: .trailing
+    )
+    static let nanoBananaGradient = LinearGradient(
+        colors: [Color(hex: "#D4F03C"), Color(hex: "#A8D020")],
+        startPoint: .topLeading, endPoint: .bottomTrailing
     )
     static let aiHeroGradient = LinearGradient(
         colors: [

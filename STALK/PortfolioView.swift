@@ -92,7 +92,7 @@ struct PortfolioHero: View {
                 Text("PORTFOLIO")
                     .font(.system(size: 11, weight: .black))
                     .foregroundStyle(Theme.text3)
-                    .kerning(2)
+                    .kerning(2.5)
                 Spacer()
                 Button { appState.showDailyBrief = true } label: {
                     HStack(spacing: 5) {
@@ -104,6 +104,7 @@ struct PortfolioHero: View {
                     .clipShape(Capsule())
                     .overlay(Capsule().stroke(Theme.border, lineWidth: 1))
                 }
+                .accessibilityLabel("Open Daily Brief")
                 Button { appState.showSettings = true } label: {
                     Image(systemName: "gearshape.fill").font(.system(size: 15))
                         .foregroundStyle(Theme.text3)
@@ -112,6 +113,7 @@ struct PortfolioHero: View {
                         .clipShape(Circle())
                         .overlay(Circle().stroke(Theme.border, lineWidth: 1))
                 }
+                .accessibilityLabel("Settings")
             }
             .padding(.horizontal, 20)
             .padding(.top, 52)
@@ -131,13 +133,16 @@ struct PortfolioHero: View {
 
                 VStack(alignment: .leading, spacing: 2) {
                 Text(appState.totalValue.fmtPrice())
-                    .font(.system(size: 52, weight: .black))
+                    .font(.system(size: 58, weight: .black))
                     .foregroundStyle(Theme.text)
                     .monospacedDigit()
+                    .kerning(-1)
                     .contentTransition(.numericText())
                     .animation(.spring(response: 0.4, dampingFraction: 0.8), value: appState.totalValue)
-                    .minimumScaleFactor(0.45)
+                    .minimumScaleFactor(0.40)
                     .lineLimit(1)
+                    .accessibilityLabel("Total portfolio value")
+                    .accessibilityValue(appState.totalValue.fmtPrice())
 
                 // P&L + market status on one line
                 if appState.totalCost > 0 {
@@ -314,18 +319,19 @@ struct AllocBar: View {
 
     var body: some View {
         let tv = appState.totalValue
-        HStack(spacing: 2) {
+        HStack(spacing: 3) {
             ForEach(Array(appState.positions.enumerated()), id: \.element.id) { i, p in
                 let price = appState.quotes[p.ticker]?.price ?? p.avgCost
                 let pct = tv > 0 ? (price * p.shares / tv) : 0
                 Theme.allocColors[i % Theme.allocColors.count]
-                    .frame(height: 5)
+                    .frame(height: 7)
                     .frame(maxWidth: .infinity)
                     .scaleEffect(x: pct, anchor: .leading)
                     .clipShape(Capsule())
             }
         }
-        .frame(height: 5)
+        .frame(height: 7)
+        .accessibilityLabel("Portfolio allocation bar")
     }
 }
 
@@ -352,7 +358,7 @@ struct PositionsList: View {
                     Text("POSITIONS")
                         .font(.system(size: 10, weight: .black))
                         .foregroundStyle(Theme.text3)
-                        .kerning(1.5)
+                        .kerning(2.5)
                     Spacer()
                     Text("\(appState.positions.count) stocks")
                         .font(.system(size: 10, weight: .semibold))
@@ -493,6 +499,8 @@ struct PositionCard: View {
         .shadow(color: .black.opacity(0.08), radius: 10, y: 4)
         .scaleEffect(pressing ? 0.98 : 1)
         .animation(.easeInOut(duration: 0.1), value: pressing)
+        .accessibilityLabel("\(position.ticker), \(isUp ? "up" : "down") \(String(format: "%.1f", abs(pnlPct))) percent, value \(value.fmtPrice())")
+        .accessibilityHint("Double-tap to view chart")
         .onTapGesture { onTap() }
         .onLongPressGesture(minimumDuration: 0.6) {
             showDeleteConfirm = true
@@ -1020,7 +1028,7 @@ struct VsMarketCard: View {
             let allVals = ([my] + indices.map { marketReturn($0.ticker) }).map { abs($0) }
             let maxVal = max(allVals.max() ?? 1, 0.01)
 
-            compRow(icon: "briefcase.fill", name: "My Portfolio", ret: my, color: appState.accentColor, isMe: true, maxVal: maxVal)
+            compRow(icon: "briefcase.fill", name: "My Portfolio", ret: my, color: Theme.nanoBanana, isMe: true, maxVal: maxVal)
 
             ForEach(indices, id: \.ticker) { idx in
                 Divider().padding(.vertical, 10)
@@ -1048,7 +1056,7 @@ struct VsMarketCard: View {
                 .frame(width: 26)
             Text(name)
                 .font(.system(size: 13, weight: isMe ? .black : .semibold))
-                .foregroundStyle(isMe ? appState.accentColor : Theme.text)
+                .foregroundStyle(isMe ? Theme.nanoBanana : Theme.text)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
             GeometryReader { geo in
@@ -1056,7 +1064,7 @@ struct VsMarketCard: View {
                     RoundedRectangle(cornerRadius: 4).fill(Theme.bg2).frame(height: 6)
                     RoundedRectangle(cornerRadius: 4)
                         .fill(ret >= 0
-                              ? (isMe ? AnyShapeStyle(appState.accentGradient) : AnyShapeStyle(Theme.gain))
+                              ? (isMe ? AnyShapeStyle(Theme.nanoBananaGradient) : AnyShapeStyle(Theme.gain))
                               : AnyShapeStyle(Theme.loss))
                         .frame(width: max(4, geo.size.width * CGFloat(abs(ret) / maxVal)), height: 6)
                 }
@@ -1447,12 +1455,7 @@ struct PortfolioHealthCard: View {
         return HealthResult(score: clamped, label: label, insights: insights)
     }
 
-    var scoreColor: Color {
-        let s = health.score
-        if s >= 80 { return Color(hex: "#00D26A") }
-        if s >= 50 { return Color(hex: "#F5A623") }
-        return Color(hex: "#FF4757")
-    }
+    var scoreColor: Color { Theme.nanoBanana }
 
     var body: some View {
         let result = health
@@ -1463,7 +1466,7 @@ struct PortfolioHealthCard: View {
                     Text("PORTFOLIO HEALTH")
                         .font(.system(size: 10, weight: .black))
                         .foregroundStyle(Theme.text3)
-                        .kerning(1.5)
+                        .kerning(2.5)
                     Text("Personalized score based on your holdings")
                         .font(.system(size: 11))
                         .foregroundStyle(Theme.text3)
@@ -1477,34 +1480,37 @@ struct PortfolioHealthCard: View {
                 ZStack {
                     // Background ring
                     Circle()
-                        .stroke(Theme.bg2, lineWidth: 12)
-                        .frame(width: 100, height: 100)
+                        .stroke(Theme.bg2, lineWidth: 14)
+                        .frame(width: 104, height: 104)
 
-                    // Filled arc — animated entrance
+                    // Filled arc — animated entrance with nano banana
                     Circle()
                         .trim(from: 0, to: ringAppeared ? CGFloat(result.score) / 100.0 : 0)
                         .stroke(
                             scoreColor,
-                            style: StrokeStyle(lineWidth: 12, lineCap: .round)
+                            style: StrokeStyle(lineWidth: 14, lineCap: .round)
                         )
-                        .frame(width: 100, height: 100)
+                        .frame(width: 104, height: 104)
                         .rotationEffect(.degrees(-90))
-                        .shadow(color: scoreColor.opacity(0.4), radius: 16)
+                        .shadow(color: scoreColor.opacity(0.5), radius: 20)
                         .animation(.spring(response: 1.0, dampingFraction: 0.72).delay(0.15), value: ringAppeared)
 
                     // Score label
                     VStack(spacing: 1) {
                         Text("\(result.score)")
-                            .font(.system(size: 32, weight: .black))
+                            .font(.system(size: 34, weight: .black))
                             .foregroundStyle(scoreColor)
+                            .monospacedDigit()
                         Text(result.label)
-                            .font(.system(size: 8, weight: .bold))
+                            .font(.system(size: 8, weight: .black))
                             .foregroundStyle(Theme.text3)
                             .textCase(.uppercase)
-                            .kerning(0.5)
+                            .kerning(0.8)
                     }
                 }
                 .onAppear { ringAppeared = true }
+                .accessibilityLabel("Portfolio health score")
+                .accessibilityValue("\(result.score) out of 100, \(result.label)")
 
                 // Insights
                 VStack(alignment: .leading, spacing: 8) {
@@ -1622,5 +1628,6 @@ struct AddFAB: View {
                 .clipShape(Circle())
                 .shadow(color: Theme.accent.opacity(0.4), radius: 12, y: 4)
         }
+        .accessibilityLabel("Add new position")
     }
 }

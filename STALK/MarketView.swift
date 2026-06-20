@@ -108,10 +108,10 @@ struct MarketView: View {
 
     func marketSectionLabel(_ text: String) -> some View {
         Text(text)
-            .font(.system(size: 10, weight: .bold))
+            .font(.system(size: 10, weight: .black))
             .foregroundStyle(Theme.text3)
             .textCase(.uppercase)
-            .kerning(1.3)
+            .kerning(2.5)
             .padding(.horizontal, 14)
             .padding(.bottom, 9)
     }
@@ -239,6 +239,7 @@ struct TopMoversGrid: View {
                     ))
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel("\(mover.ticker), \(mover.change >= 0 ? "up" : "down") \(String(format: "%.1f", abs(mover.change))) percent today")
             }
         }
     }
@@ -377,13 +378,12 @@ struct SectorHeatMapView: View {
         let gain = Color(hex: "#00D26A")
         let loss = Color(hex: "#FF4757")
         let flat = Color(hex: "#1A1A2E")
-        // Deep range: -3% to +3% full saturation
-        if change >= 3.0      { return Color(hex: "#00C853") }
-        if change >= 1.5      { return gain }
-        if change >= 0.5      { return gain.opacity(0.55) }
-        if change > -0.5      { return flat }
-        if change >= -1.5     { return loss.opacity(0.55) }
-        if change >= -3.0     { return loss }
+        if change >= 3.0  { return Color(hex: "#00C853") }
+        if change >= 1.5  { return gain }
+        if change >= 0.5  { return gain.opacity(0.55) }
+        if change > -0.5  { return flat }
+        if change >= -1.5 { return loss.opacity(0.55) }
+        if change >= -3.0 { return loss }
         return Color(hex: "#CC0000")
     }
 
@@ -394,12 +394,22 @@ struct SectorHeatMapView: View {
                     RoundedRectangle(cornerRadius: 14)
                         .fill(tileColor(tile.change))
 
-                    // Inner glow for positive sectors
-                    if tile.change > 0 {
+                    // Nano banana glow for strongly positive sectors
+                    if tile.change >= 1.5 {
                         RoundedRectangle(cornerRadius: 14)
                             .fill(
                                 RadialGradient(
-                                    colors: [Color(hex: "#00D26A").opacity(0.25), Color.clear],
+                                    colors: [Theme.nanoBanana.opacity(tile.change >= 3.0 ? 0.30 : 0.18), Color.clear],
+                                    center: .center,
+                                    startRadius: 0,
+                                    endRadius: 55
+                                )
+                            )
+                    } else if tile.change > 0 {
+                        RoundedRectangle(cornerRadius: 14)
+                            .fill(
+                                RadialGradient(
+                                    colors: [Color(hex: "#00D26A").opacity(0.18), Color.clear],
                                     center: .center,
                                     startRadius: 0,
                                     endRadius: 50
@@ -408,7 +418,12 @@ struct SectorHeatMapView: View {
                     }
 
                     RoundedRectangle(cornerRadius: 14)
-                        .stroke(Color.white.opacity(tile.change > 0 ? 0.15 : 0.06), lineWidth: 1)
+                        .stroke(
+                            tile.change >= 1.5
+                                ? Theme.nanoBanana.opacity(0.35)
+                                : Color.white.opacity(tile.change > 0 ? 0.15 : 0.06),
+                            lineWidth: 1
+                        )
 
                     VStack(spacing: 5) {
                         Image(systemName: tile.icon)
@@ -424,12 +439,13 @@ struct SectorHeatMapView: View {
 
                         Text(tile.change.fmtPct())
                             .font(.system(size: 18, weight: .black))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(tile.change >= 1.5 ? Theme.nanoBanana : .white)
                     }
                     .padding(.horizontal, 6)
                     .padding(.vertical, 12)
                 }
                 .frame(minHeight: 100)
+                .accessibilityLabel("\(tile.name), \(tile.change.fmtPct()) today")
             }
         }
     }
@@ -470,10 +486,10 @@ struct TrendingTickersFeedView: View {
             ForEach(Array(trendingTickersData.enumerated()), id: \.element.id) { i, item in
                 Button { onTicker(item.ticker) } label: {
                     HStack(spacing: 12) {
-                        // Rank badge
+                        // Rank badge — nano banana for #1
                         Text("#\(i + 1)")
                             .font(.system(size: 12, weight: .black))
-                            .foregroundStyle(Theme.text3)
+                            .foregroundStyle(i == 0 ? Theme.nanoBanana : Theme.text3)
                             .frame(width: 24)
 
                         // Ticker + name

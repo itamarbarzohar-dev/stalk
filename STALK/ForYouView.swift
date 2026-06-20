@@ -254,10 +254,10 @@ struct ForYouView: View {
 
     func sectionLabel(_ text: String) -> some View {
         Text(text)
-            .font(.system(size: 10, weight: .bold))
+            .font(.system(size: 10, weight: .black))
             .foregroundStyle(Theme.text3)
             .textCase(.uppercase)
-            .kerning(1.3)
+            .kerning(2.5)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 14)
             .padding(.bottom, 10)
@@ -407,7 +407,7 @@ struct ForYouView: View {
                     HStack(spacing: 12) {
                         Text("#\(gainer.rank)")
                             .font(.system(size: 13, weight: .black))
-                            .foregroundStyle(Theme.text3)
+                            .foregroundStyle(gainer.rank == 1 ? Theme.nanoBanana : Theme.text3)
                             .frame(width: 20)
 
                         Circle()
@@ -528,7 +528,7 @@ struct ForYouView: View {
                                         .foregroundStyle(Theme.accent)
                                         .padding(.horizontal, 6)
                                         .padding(.vertical, 1)
-                                        .background(Color(hex: "#EDEDFF"))
+                                        .background(Theme.accentBg)
                                         .clipShape(RoundedRectangle(cornerRadius: 8))
                                 }
                             }
@@ -604,7 +604,7 @@ struct ForYouView: View {
                                         .foregroundStyle(Theme.accent)
                                         .padding(.horizontal, 7)
                                         .padding(.vertical, 2)
-                                        .background(Color(hex: "#EDEDFF"))
+                                        .background(Theme.accentBg)
                                         .clipShape(RoundedRectangle(cornerRadius: 8))
                                 }
                             }
@@ -861,7 +861,7 @@ struct EarningsCard: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(10)
-        .background(hasBeat ? (cell.beat == true ? Theme.gainBg : Theme.lossBg) : Theme.card)
+        .background(hasBeat ? (cell.beat == true ? Theme.nanoBananaBg : Theme.lossBg) : Theme.card)
     }
 
     func guidanceCell() -> some View {

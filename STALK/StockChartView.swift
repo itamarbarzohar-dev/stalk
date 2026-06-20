@@ -15,10 +15,7 @@ struct StockChartView: View {
 
     var quote: Quote? { appState.quotes[ticker] }
 
-    var lineColor: Color {
-        guard chartData.count >= 2 else { return Theme.accent }
-        return chartData.last!.value >= chartData.first!.value ? Theme.gain : Theme.loss
-    }
+    var lineColor: Color { Theme.nanoBanana }
 
     let analysts: [(firm: String, rating: String, pt: String)] = [
         ("Goldman", "Buy", "$220"),
@@ -60,11 +57,14 @@ struct StockChartView: View {
 
                     if let q = quote {
                         Text("$\(String(format: "%.2f", q.price))")
-                            .font(.system(size: 40, weight: .bold))
-                            .kerning(-1)
+                            .font(.system(size: 44, weight: .black))
+                            .kerning(-1.5)
                             .foregroundStyle(Theme.text)
+                            .monospacedDigit()
                             .padding(.top, 6)
                             .padding(.horizontal, 20)
+                            .accessibilityLabel("Current price")
+                            .accessibilityValue("$\(String(format: "%.2f", q.price))")
 
                         Text("\(q.change >= 0 ? "+" : "")\(String(format: "%.2f", q.change)) (\(q.changePercent.fmtPct()))")
                             .font(.system(size: 16))
@@ -164,8 +164,8 @@ struct StockChartView: View {
                     x: .value("Index", point.index),
                     y: .value("Price", point.value)
                 )
-                .foregroundStyle(lineColor)
-                .lineStyle(StrokeStyle(lineWidth: 2))
+                .foregroundStyle(Theme.nanoBanana)
+                .lineStyle(StrokeStyle(lineWidth: 2.5))
                 .interpolationMethod(.catmullRom)
 
                 AreaMark(
@@ -175,7 +175,7 @@ struct StockChartView: View {
                 )
                 .foregroundStyle(
                     LinearGradient(
-                        colors: [lineColor.opacity(0.2), lineColor.opacity(0)],
+                        colors: [Theme.nanoBanana.opacity(0.22), Theme.nanoBanana.opacity(0)],
                         startPoint: .top,
                         endPoint: .bottom
                     )

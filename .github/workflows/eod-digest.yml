@@ -1,0 +1,103 @@
+name: End of Day Digest
+
+on:
+  schedule:
+    - cron: '0 15 * * 0-6'   # 5pm Israel (3pm UTC) every day including weekends
+  workflow_dispatch:           # also run manually anytime
+
+permissions:
+  contents: write
+  issues: read
+  pull-requests: read
+
+jobs:
+  digest:
+    name: Write EOD Summary
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config user.name "STALK EOD Digest"
+          git config user.email "digest@stalk.app"
+
+      - name: Generate digest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TODAY=$(date +%Y-%m-%d)
+          DAY=$(date +%A)
+          TIME=$(date +"%H:%M UTC")
+
+          # ── Git activity today ──────────────────────────────────────────────
+          COMMITS=$(git log --since="midnight" --oneline --format="- %s (%an)" 2>/dev/null || echo "- No commits today")
+          COMMIT_COUNT=$(git log --since="midnight" --oneline | wc -l | tr -d ' ')
+
+          # ── Files changed today ─────────────────────────────────────────────
+          FILES=$(git diff --name-only $(git log --since="midnight" --format="%H" | tail -1) HEAD 2>/dev/null | head -20 | sed 's/^/- /' || echo "- No files changed")
+
+          # ── Open PRs ────────────────────────────────────────────────────────
+          PRS=$(gh pr list --repo itamarbarzohar-dev/stalk --state open --json number,title,author --template '{{range .}}- PR #{{.number}}: {{.title}} ({{.author.login}})
+          {{end}}' 2>/dev/null || echo "- None open")
+
+          # ── PRs merged today ────────────────────────────────────────────────
+          MERGED=$(gh pr list --repo itamarbarzohar-dev/stalk --state merged --json number,title,mergedAt --template '{{range .}}{{if .mergedAt}}- PR #{{.number}}: {{.title}}
+          {{end}}{{end}}' 2>/dev/null | head -5 || echo "- None today")
+
+          # ── Open issues ─────────────────────────────────────────────────────
+          ISSUES=$(gh issue list --repo itamarbarzohar-dev/stalk --state open --limit 5 --json number,title --template '{{range .}}- #{{.number}}: {{.title}}
+          {{end}}' 2>/dev/null || echo "- No open issues")
+
+          # ── Agent reports from today ─────────────────────────────────────────
+          AGENT_REPORT=""
+          if [ -f "agents/reports/daily_$TODAY.md" ]; then
+            AGENT_REPORT=$(head -40 "agents/reports/daily_$TODAY.md")
+          else
+            AGENT_REPORT="No agent run today. Trigger one at: github.com/itamarbarzohar-dev/stalk/actions"
+          fi
+
+          # ── Write the digest ─────────────────────────────────────────────────
+          mkdir -p agents/reports
+          cat > "agents/reports/eod_$TODAY.md" << REPORT
+          # End of Day Digest — $DAY, $TODAY
+          > Generated at $TIME
+
+          ---
+
+          ## Commits Today ($COMMIT_COUNT)
+          $COMMITS
+
+          ## Files Changed
+          $FILES
+
+          ## Open Pull Requests
+          $PRS
+
+          ## PRs Merged Today
+          $MERGED
+
+          ## Open Issues
+          $ISSUES
+
+          ---
+
+          ## Agent Report
+          $AGENT_REPORT
+
+          ---
+          *This digest is generated automatically every day at 5pm Israel time.*
+          *To run the agents: [Click here](https://github.com/itamarbarzohar-dev/stalk/actions/workflows/agents-daily.yml)*
+          REPORT
+
+          echo "Digest written to agents/reports/eod_$TODAY.md"
+
+      - name: Commit digest
+        run: |
+          TODAY=$(date +%Y-%m-%d)
+          git add agents/reports/eod_$TODAY.md
+          git diff --staged --quiet || git commit -m "EOD Digest: $TODAY [skip ci]"
+          git push

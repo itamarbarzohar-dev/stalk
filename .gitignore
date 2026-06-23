@@ -53,3 +53,8 @@ fastlane/test_output
 .vscode/
 *.swp
 *.swo
+
+# Environment / secrets — NEVER commit these
+.env
+.env.local
+.env.*

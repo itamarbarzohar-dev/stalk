@@ -1,0 +1,792 @@
+{
+  "source": "/Users/yaronr/Documents/STALK/STALK/FeedView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Tag People",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 252
+        }
+      },
+      {
+        "comment": "",
+        "key": "+%lld XP",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 83
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld-day streak",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 75
+        }
+      },
+      {
+        "comment": "",
+        "key": "You've checked STALK %lld days in a row. Keep it up!",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 78
+        }
+      },
+      {
+        "comment": "",
+        "key": "My Performance",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 110
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld posts",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 160
+        }
+      },
+      {
+        "comment": "",
+        "key": "👀",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 181
+        }
+      },
+      {
+        "comment": "",
+        "key": "No posts yet",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 183
+        }
+      },
+      {
+        "comment": "",
+        "key": "Follow some traders to see their posts here.",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 186
+        }
+      },
+      {
+        "comment": "",
+        "key": "OK",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 253
+        }
+      },
+      {
+        "comment": "",
+        "key": "Tagging is coming in a future update.",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 255
+        }
+      },
+      {
+        "comment": "",
+        "key": "Feed",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 265
+        }
+      },
+      {
+        "comment": "",
+        "key": "—",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 355
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@%@%%",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 355
+        }
+      },
+      {
+        "comment": "",
+        "key": "My Holdings Allocation",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 375
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld%%",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 403
+        }
+      },
+      {
+        "comment": "",
+        "key": "PRO",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 454
+        }
+      },
+      {
+        "comment": "",
+        "key": "·",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 467
+        }
+      },
+      {
+        "comment": "",
+        "key": "today",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 482
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@%@%%",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 512
+        }
+      },
+      {
+        "comment": "",
+        "key": "Comment",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 543
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 707
+        }
+      },
+      {
+        "comment": "",
+        "key": "Leaderboard",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 750
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 835
+        }
+      },
+      {
+        "comment": "",
+        "key": "Achievements",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 900
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@ · %@ · %@ followers",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 988
+        }
+      },
+      {
+        "comment": "",
+        "key": "Following",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 998
+        }
+      },
+      {
+        "comment": "",
+        "key": "Follow",
+        "location": {
+          "startingColumn": 53,
+          "startingLine": 998
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1053
+        }
+      },
+      {
+        "comment": "",
+        "key": "❤️",
+        "location": {
+          "startingColumn": 40,
+          "startingLine": 1052
+        }
+      },
+      {
+        "comment": "",
+        "key": "🤍",
+        "location": {
+          "startingColumn": 51,
+          "startingLine": 1052
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@%@%%",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 1077
+        }
+      },
+      {
+        "comment": "",
+        "key": "Back",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 1176
+        }
+      },
+      {
+        "comment": "",
+        "key": "TRADE HISTORY",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1359
+        }
+      },
+      {
+        "comment": "",
+        "key": "TOP HOLDINGS",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1453
+        }
+      },
+      {
+        "comment": "",
+        "key": "RECENT POSTS",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1491
+        }
+      },
+      {
+        "comment": "",
+        "key": "PRO",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 1223
+        }
+      },
+      {
+        "comment": "",
+        "key": "Coming soon",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 1313
+        }
+      },
+      {
+        "comment": "",
+        "key": "Following",
+        "location": {
+          "startingColumn": 47,
+          "startingLine": 1265
+        }
+      },
+      {
+        "comment": "",
+        "key": "Follow",
+        "location": {
+          "startingColumn": 61,
+          "startingLine": 1265
+        }
+      },
+      {
+        "comment": "",
+        "key": "Copying",
+        "location": {
+          "startingColumn": 50,
+          "startingLine": 1290
+        }
+      },
+      {
+        "comment": "",
+        "key": "Copy",
+        "location": {
+          "startingColumn": 62,
+          "startingLine": 1290
+        }
+      },
+      {
+        "comment": "",
+        "key": "OK",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 1314
+        }
+      },
+      {
+        "comment": "",
+        "key": "Direct messages are coming in a future update.",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 1316
+        }
+      },
+      {
+        "comment": "",
+        "key": "TRADING STATS",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1323
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lldd held",
+        "location": {
+          "startingColumn": 46,
+          "startingLine": 1382
+        }
+      },
+      {
+        "comment": "",
+        "key": "RETURNS COMPARISON",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1411
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@%@%%",
+        "location": {
+          "startingColumn": 46,
+          "startingLine": 1471
+        }
+      },
+      {
+        "comment": "",
+        "key": "Trader",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 1540
+        }
+      },
+      {
+        "comment": "",
+        "key": "TODAY",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 1544
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@ · %@",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1638
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1652
+        }
+      },
+      {
+        "comment": "",
+        "key": "Copy %@",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1754
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 1675
+        }
+      },
+      {
+        "comment": "",
+        "key": "Back",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 1711
+        }
+      },
+      {
+        "comment": "",
+        "key": "Confirm & Start Copying",
+        "location": {
+          "startingColumn": 50,
+          "startingLine": 1738
+        }
+      },
+      {
+        "comment": "",
+        "key": "Continue",
+        "location": {
+          "startingColumn": 78,
+          "startingLine": 1738
+        }
+      },
+      {
+        "comment": "",
+        "key": "Investment Amount",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 1799
+        }
+      },
+      {
+        "comment": "",
+        "key": "$%@",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 1804
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1778
+        }
+      },
+      {
+        "comment": "",
+        "key": "Risk Score: %lld/10",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1783
+        }
+      },
+      {
+        "comment": "",
+        "key": "Low risk — suitable for conservative investors",
+        "location": {
+          "startingColumn": 50,
+          "startingLine": 1786
+        }
+      },
+      {
+        "comment": "",
+        "key": "Medium risk — some volatility expected",
+        "location": {
+          "startingColumn": 50,
+          "startingLine": 1787
+        }
+      },
+      {
+        "comment": "",
+        "key": "High risk — significant drawdowns possible",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1788
+        }
+      },
+      {
+        "comment": "",
+        "key": "$%@",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1819
+        }
+      },
+      {
+        "comment": "",
+        "key": "Stop Loss Protection",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1833
+        }
+      },
+      {
+        "comment": "",
+        "key": "Stop copying if loss exceeds %lld%%",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1839
+        }
+      },
+      {
+        "comment": "",
+        "key": "-%lld%%",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1843
+        }
+      },
+      {
+        "comment": "",
+        "key": "This trader's maximum historical drawdown was %@%%. This is a portfolio tracker — no real trades are executed.",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1859
+        }
+      },
+      {
+        "comment": "",
+        "key": "Portfolio Breakdown",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 1874
+        }
+      },
+      {
+        "comment": "",
+        "key": "How $%@ splits across %@'s holdings",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 1877
+        }
+      },
+      {
+        "comment": "",
+        "key": "$%@",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1906
+        }
+      },
+      {
+        "comment": "",
+        "key": "Total investment",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1929
+        }
+      },
+      {
+        "comment": "",
+        "key": "$%@",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1932
+        }
+      },
+      {
+        "comment": "",
+        "key": "Ready to copy %@",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1958
+        }
+      },
+      {
+        "comment": "",
+        "key": "You're about to mirror $%@ across %lld positions. Stop-loss set at -%lld%%.",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1963
+        }
+      },
+      {
+        "comment": "",
+        "key": "Tag People",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 2085
+        }
+      },
+      {
+        "comment": "",
+        "key": "Discover",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 2049
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld items",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 2055
+        }
+      },
+      {
+        "comment": "",
+        "key": "OK",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 2086
+        }
+      },
+      {
+        "comment": "",
+        "key": "Tagging is coming in a future update.",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 2088
+        }
+      },
+      {
+        "comment": "",
+        "key": "SHORT",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 2131
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@ · %@ views",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 2189
+        }
+      },
+      {
+        "comment": "",
+        "key": "PRO",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 2181
+        }
+      },
+      {
+        "comment": "",
+        "key": "Share",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 2252
+        }
+      },
+      {
+        "comment": "",
+        "key": "VIDEO",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 2380
+        }
+      },
+      {
+        "comment": "",
+        "key": "·",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 2418
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@ · %@ views",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 2541
+        }
+      },
+      {
+        "comment": "",
+        "key": "PRO",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 2533
+        }
+      },
+      {
+        "comment": "",
+        "key": "Share",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 2601
+        }
+      },
+      {
+        "comment": "",
+        "key": "Comments",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 2730
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add a comment…",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 2706
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 2770
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@ · %@",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 2831
+        }
+      },
+      {
+        "comment": "",
+        "key": "YOU",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 2824
+        }
+      },
+      {
+        "comment": "",
+        "key": "$%@",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 2862
+        }
+      },
+      {
+        "comment": "",
+        "key": "0",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 2882
+        }
+      },
+      {
+        "comment": "",
+        "key": "0",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 2889
+        }
+      }
+    ]
+  },
+  "version": 1
+}

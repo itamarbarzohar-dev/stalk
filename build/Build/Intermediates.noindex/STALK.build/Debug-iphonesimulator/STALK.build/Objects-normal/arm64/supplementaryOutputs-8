@@ -1,0 +1,23 @@
+{
+  "/Users/yaronr/Documents/STALK/STALK/QuoteService.swift" : {
+    "const-values" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/QuoteService.swiftconstvalues",
+    "dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/QuoteService.d",
+    "diagnostics" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/QuoteService.dia",
+    "object" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/QuoteService.o",
+    "swift-dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/QuoteService.swiftdeps"
+  },
+  "/Users/yaronr/Documents/STALK/STALK/SearchView.swift" : {
+    "const-values" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/SearchView.swiftconstvalues",
+    "dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/SearchView.d",
+    "diagnostics" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/SearchView.dia",
+    "object" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/SearchView.o",
+    "swift-dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/SearchView.swiftdeps"
+  },
+  "/Users/yaronr/Documents/STALK/STALK/SettingsView.swift" : {
+    "const-values" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/SettingsView.swiftconstvalues",
+    "dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/SettingsView.d",
+    "diagnostics" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/SettingsView.dia",
+    "object" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/SettingsView.o",
+    "swift-dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/SettingsView.swiftdeps"
+  }
+}

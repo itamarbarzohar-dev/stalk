@@ -1,0 +1,72 @@
+{
+  "source": "/Users/yaronr/Documents/STALK/STALK/DailyBriefView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "📋 Daily Brief",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 59
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@ shares · avg %@ · %@%% of portfolio",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 285
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@%@ today",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 294
+        }
+      },
+      {
+        "comment": "",
+        "key": "🔍 Why it moved",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 306
+        }
+      },
+      {
+        "comment": "",
+        "key": "🤖 STALK AI Says",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 325
+        }
+      },
+      {
+        "comment": "",
+        "key": "All-time:",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 345
+        }
+      },
+      {
+        "comment": "",
+        "key": "·",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 351
+        }
+      },
+      {
+        "comment": "",
+        "key": "Value: %@",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 354
+        }
+      }
+    ]
+  },
+  "version": 1
+}

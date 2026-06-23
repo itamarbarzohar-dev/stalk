@@ -1,0 +1,184 @@
+{
+  "source": "/Users/yaronr/Documents/STALK/STALK/CreatePostView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Create",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 117
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 97
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 121
+        }
+      },
+      {
+        "comment": "",
+        "key": "·",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 191
+        }
+      },
+      {
+        "comment": "",
+        "key": "0:15",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 287
+        }
+      },
+      {
+        "comment": "",
+        "key": "Tap to change",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 268
+        }
+      },
+      {
+        "comment": "",
+        "key": "Short ready",
+        "location": {
+          "startingColumn": 54,
+          "startingLine": 265
+        }
+      },
+      {
+        "comment": "",
+        "key": "Video ready",
+        "location": {
+          "startingColumn": 70,
+          "startingLine": 265
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add Short Video",
+        "location": {
+          "startingColumn": 54,
+          "startingLine": 308
+        }
+      },
+      {
+        "comment": "",
+        "key": "Upload Video",
+        "location": {
+          "startingColumn": 74,
+          "startingLine": 308
+        }
+      },
+      {
+        "comment": "",
+        "key": "Up to 60 seconds · Shot vertically",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 313
+        }
+      },
+      {
+        "comment": "",
+        "key": "Up to 10 minutes · MP4 or MOV",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 314
+        }
+      },
+      {
+        "comment": "",
+        "key": "What's your market take?",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 348
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add a caption…",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 350
+        }
+      },
+      {
+        "comment": "",
+        "key": "Describe your video…",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 351
+        }
+      },
+      {
+        "comment": "",
+        "key": "TAG STOCKS",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 375
+        }
+      },
+      {
+        "comment": "",
+        "key": "Your holdings",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 435
+        }
+      },
+      {
+        "comment": "",
+        "key": "$%@",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 385
+        }
+      },
+      {
+        "comment": "",
+        "key": "$",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 406
+        }
+      },
+      {
+        "comment": "",
+        "key": "AAPL, NVDA…",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 409
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 421
+        }
+      },
+      {
+        "comment": "",
+        "key": "$%@",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 445
+        }
+      }
+    ]
+  },
+  "version": 1
+}

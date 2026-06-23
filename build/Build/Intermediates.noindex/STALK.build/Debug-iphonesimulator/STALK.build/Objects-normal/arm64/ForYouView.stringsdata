@@ -1,0 +1,640 @@
+{
+  "source": "/Users/yaronr/Documents/STALK/STALK/ForYouView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "🔔 3 of your stocks report earnings this week",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 88
+        }
+      },
+      {
+        "comment": "",
+        "key": "View",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 92
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 338
+        }
+      },
+      {
+        "comment": "",
+        "key": "users added this week",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 341
+        }
+      },
+      {
+        "comment": "",
+        "key": "not in your portfolio",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 382
+        }
+      },
+      {
+        "comment": "",
+        "key": "+%@%%",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 392
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lldd",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 395
+        }
+      },
+      {
+        "comment": "",
+        "key": "#%lld",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 426
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@ %@",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 441
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@ followers · %@",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 447
+        }
+      },
+      {
+        "comment": "",
+        "key": "+%@%%",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 454
+        }
+      },
+      {
+        "comment": "",
+        "key": "YTD +%@%%",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 457
+        }
+      },
+      {
+        "comment": "",
+        "key": "Copy →",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 460
+        }
+      },
+      {
+        "comment": "",
+        "key": "\"%@\"",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 610
+        }
+      },
+      {
+        "comment": "",
+        "key": "T",
+        "location": {
+          "startingColumn": 43,
+          "startingLine": 598
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@ · %@",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 604
+        }
+      },
+      {
+        "comment": "",
+        "key": "📰",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 729
+        }
+      },
+      {
+        "comment": "",
+        "key": "TODAY'S SUMMARY",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 731
+        }
+      },
+      {
+        "comment": "",
+        "key": "AI",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 739
+        }
+      },
+      {
+        "comment": "",
+        "key": "Full Daily Brief",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 761
+        }
+      },
+      {
+        "comment": "",
+        "key": "View Portfolio",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 775
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@%@",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 871
+        }
+      },
+      {
+        "comment": "",
+        "key": "Est.",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 875
+        }
+      },
+      {
+        "comment": "",
+        "key": "Guidance",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 887
+        }
+      },
+      {
+        "comment": "",
+        "key": "⬆ Raised",
+        "location": {
+          "startingColumn": 48,
+          "startingLine": 895
+        }
+      },
+      {
+        "comment": "",
+        "key": "⬇ Lowered",
+        "location": {
+          "startingColumn": 94,
+          "startingLine": 895
+        }
+      },
+      {
+        "comment": "",
+        "key": "➡ Met",
+        "location": {
+          "startingColumn": 110,
+          "startingLine": 895
+        }
+      },
+      {
+        "comment": "",
+        "key": "Unlock with Pro",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 933
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 1108
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@ %@",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 975
+        }
+      },
+      {
+        "comment": "",
+        "key": "Portfolio Value",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 994
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld%%",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 1018
+        }
+      },
+      {
+        "comment": "",
+        "key": "💰 How much do you want to invest?",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 1033
+        }
+      },
+      {
+        "comment": "",
+        "key": "Funds distributed proportionally across holdings",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 1072
+        }
+      },
+      {
+        "comment": "",
+        "key": "$",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 1056
+        }
+      },
+      {
+        "comment": "",
+        "key": "1000",
+        "location": {
+          "startingColumn": 43,
+          "startingLine": 1059
+        }
+      },
+      {
+        "comment": "",
+        "key": "📈 If YTD performance repeats",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1083
+        }
+      },
+      {
+        "comment": "",
+        "key": "+$%@",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1087
+        }
+      },
+      {
+        "comment": "",
+        "key": "🚀 Copy This Portfolio",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1099
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 1119
+        }
+      },
+      {
+        "comment": "",
+        "key": "AI Market Context",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1211
+        }
+      },
+      {
+        "comment": "",
+        "key": "LIVE",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1220
+        }
+      },
+      {
+        "comment": "",
+        "key": "Full Analysis",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 1283
+        }
+      },
+      {
+        "comment": "",
+        "key": "Macro Pulse",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1336
+        }
+      },
+      {
+        "comment": "",
+        "key": "Real-time",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1342
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld%%",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1423
+        }
+      },
+      {
+        "comment": "",
+        "key": "Whisper",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 1448
+        }
+      },
+      {
+        "comment": "",
+        "key": "AI predictions based on options flow, analyst whispers & sentiment data · Not financial advice",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1474
+        }
+      },
+      {
+        "comment": "",
+        "key": "Smart money rotating **Tech → Energy** this week. Institutional 13F filings show $4.2B moving out of large-cap tech into energy majors and defensive names.",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 1515
+        }
+      },
+      {
+        "comment": "",
+        "key": "Sector Rotation Signal",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1501
+        }
+      },
+      {
+        "comment": "",
+        "key": "AI Signal",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1507
+        }
+      },
+      {
+        "comment": "",
+        "key": "Your Tech Exposure",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1523
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld%%",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1527
+        }
+      },
+      {
+        "comment": "",
+        "key": "Target: ≤40% tech",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1553
+        }
+      },
+      {
+        "comment": "",
+        "key": "Consider rebalancing into energy, utilities, or value",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1558
+        }
+      },
+      {
+        "comment": "",
+        "key": "YOUR STOCK",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 1648
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 1662
+        }
+      },
+      {
+        "comment": "",
+        "key": "·",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 1665
+        }
+      },
+      {
+        "comment": "",
+        "key": "vs %@",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 1682
+        }
+      },
+      {
+        "comment": "",
+        "key": "Purchase Failed",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 1967
+        }
+      },
+      {
+        "comment": "",
+        "key": "STALK Pro Activated!",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 1972
+        }
+      },
+      {
+        "comment": "",
+        "key": "Then %@ · Cancel anytime",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1926
+        }
+      },
+      {
+        "comment": "",
+        "key": "7-day free trial. Payment charged to your Apple ID at end of trial. Cancel anytime in Settings > Subscriptions. Subscription auto-renews unless cancelled at least 24 hours before the end of the current period.",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1957
+        }
+      },
+      {
+        "comment": "",
+        "key": "STALK Pro",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1751
+        }
+      },
+      {
+        "comment": "",
+        "key": "Trade smarter. Stay obsessed.",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1755
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@/yr · %@/mo · Save 40%%",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 1826
+        }
+      },
+      {
+        "comment": "",
+        "key": "Annual",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 1815
+        }
+      },
+      {
+        "comment": "",
+        "key": "BEST VALUE",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 1818
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@/mo",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 1857
+        }
+      },
+      {
+        "comment": "",
+        "key": "Monthly",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 1849
+        }
+      },
+      {
+        "comment": "",
+        "key": "Billed monthly, cancel anytime",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 1852
+        }
+      },
+      {
+        "comment": "",
+        "key": "Start 7-Day Free Trial",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 1905
+        }
+      },
+      {
+        "comment": "",
+        "key": "Restore Purchases",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 1933
+        }
+      },
+      {
+        "comment": "",
+        "key": "Maybe later",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 1939
+        }
+      },
+      {
+        "comment": "",
+        "key": "256-bit encryption · App Store verified",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1950
+        }
+      },
+      {
+        "comment": "",
+        "key": "OK",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 1968
+        }
+      },
+      {
+        "comment": "",
+        "key": "Something went wrong. Please try again.",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 1970
+        }
+      },
+      {
+        "comment": "",
+        "key": "Let's go!",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 1973
+        }
+      },
+      {
+        "comment": "",
+        "key": "Enjoy your 7-day trial. Welcome to the pro side.",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 1975
+        }
+      }
+    ]
+  },
+  "version": 1
+}

@@ -1,0 +1,248 @@
+{
+  "source": "/Users/yaronr/Documents/STALK/STALK/OnboardingView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "STALK",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 101
+        }
+      },
+      {
+        "comment": "",
+        "key": "Your portfolio.",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 104
+        }
+      },
+      {
+        "comment": "",
+        "key": "Live. Obsessive. Personal.",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 107
+        }
+      },
+      {
+        "comment": "",
+        "key": "What should we call you?",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 117
+        }
+      },
+      {
+        "comment": "",
+        "key": "Letters, numbers, and underscores only",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 158
+        }
+      },
+      {
+        "comment": "",
+        "key": "Your name",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 123
+        }
+      },
+      {
+        "comment": "",
+        "key": "@",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 133
+        }
+      },
+      {
+        "comment": "",
+        "key": "username",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 137
+        }
+      },
+      {
+        "comment": "",
+        "key": "Skip",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 188
+        }
+      },
+      {
+        "comment": "",
+        "key": "Continue →",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 177
+        }
+      },
+      {
+        "comment": "",
+        "key": "Already have a portfolio somewhere? You can import a CSV in Settings → Portfolio",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 304
+        }
+      },
+      {
+        "comment": "",
+        "key": "Hey %@,",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 243
+        }
+      },
+      {
+        "comment": "",
+        "key": "let's build your portfolio.",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 246
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add 1–3 stocks you own or want to track.",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 250
+        }
+      },
+      {
+        "comment": "",
+        "key": "Search stocks...",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 266
+        }
+      },
+      {
+        "comment": "",
+        "key": "...",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 379
+        }
+      },
+      {
+        "comment": "",
+        "key": "Fetching live prices...",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 451
+        }
+      },
+      {
+        "comment": "",
+        "key": "This is just the beginning.",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 488
+        }
+      },
+      {
+        "comment": "",
+        "key": "Your portfolio is live.",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 461
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@%@ today",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 473
+        }
+      },
+      {
+        "comment": "",
+        "key": "🔥",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 495
+        }
+      },
+      {
+        "comment": "",
+        "key": "Day %lld of your streak started",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 496
+        }
+      },
+      {
+        "comment": "",
+        "key": "📊",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 506
+        }
+      },
+      {
+        "comment": "",
+        "key": "Your portfolio is waiting.",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 508
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add your first stock whenever you're ready.",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 511
+        }
+      },
+      {
+        "comment": "",
+        "key": "Go to my portfolio →",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 526
+        }
+      },
+      {
+        "comment": "",
+        "key": "Stay one step ahead.",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 621
+        }
+      },
+      {
+        "comment": "",
+        "key": "Get alerts when your\nstocks make a big move.",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 626
+        }
+      },
+      {
+        "comment": "",
+        "key": "Not now",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 674
+        }
+      },
+      {
+        "comment": "",
+        "key": "Enable Alerts",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 661
+        }
+      }
+    ]
+  },
+  "version": 1
+}

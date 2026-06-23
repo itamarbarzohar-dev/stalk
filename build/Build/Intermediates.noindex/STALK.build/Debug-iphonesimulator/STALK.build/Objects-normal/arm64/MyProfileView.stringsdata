@@ -1,0 +1,152 @@
+{
+  "source": "/Users/yaronr/Documents/STALK/STALK/MyProfileView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Back",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 70
+        }
+      },
+      {
+        "comment": "",
+        "key": "PRO",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 144
+        }
+      },
+      {
+        "comment": "",
+        "key": "Edit Profile",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 227
+        }
+      },
+      {
+        "comment": "",
+        "key": "Share Profile",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 245
+        }
+      },
+      {
+        "comment": "",
+        "key": "No posts yet",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 355
+        }
+      },
+      {
+        "comment": "",
+        "key": "Share your market takes and\nticker analysis with the community.",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 358
+        }
+      },
+      {
+        "comment": "",
+        "key": "Create First Post",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 370
+        }
+      },
+      {
+        "comment": "",
+        "key": "PORTFOLIO PERFORMANCE",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 421
+        }
+      },
+      {
+        "comment": "",
+        "key": "No positions yet",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 469
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add your first stock to track\nyour portfolio performance.",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 472
+        }
+      },
+      {
+        "comment": "",
+        "key": "BIO",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 499
+        }
+      },
+      {
+        "comment": "",
+        "key": "No bio yet. Tap Edit Profile to add one.",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 505
+        }
+      },
+      {
+        "comment": "",
+        "key": "STATS",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 525
+        }
+      },
+      {
+        "comment": "",
+        "key": "PRO",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 611
+        }
+      },
+      {
+        "comment": "",
+        "key": "$%@",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 679
+        }
+      },
+      {
+        "comment": "",
+        "key": "0",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 694
+        }
+      },
+      {
+        "comment": "",
+        "key": "0",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 698
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@ shares",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 777
+        }
+      }
+    ]
+  },
+  "version": 1
+}

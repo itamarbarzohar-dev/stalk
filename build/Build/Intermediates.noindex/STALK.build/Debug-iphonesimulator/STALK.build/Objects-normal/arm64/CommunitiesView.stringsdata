@@ -1,0 +1,104 @@
+{
+  "source": "/Users/yaronr/Documents/STALK/STALK/CommunitiesView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Communities",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 33
+        }
+      },
+      {
+        "comment": "",
+        "key": "Find your tribe. Discuss, share trade ideas, and learn from investors who think like you.",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 12
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 90
+        }
+      },
+      {
+        "comment": "",
+        "key": "·",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 94
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 99
+        }
+      },
+      {
+        "comment": "",
+        "key": "Joined",
+        "location": {
+          "startingColumn": 37,
+          "startingLine": 127
+        }
+      },
+      {
+        "comment": "",
+        "key": "Join",
+        "location": {
+          "startingColumn": 48,
+          "startingLine": 127
+        }
+      },
+      {
+        "comment": "",
+        "key": "RECENT POSTS",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 241
+        }
+      },
+      {
+        "comment": "",
+        "key": "Joined Community",
+        "location": {
+          "startingColumn": 45,
+          "startingLine": 226
+        }
+      },
+      {
+        "comment": "",
+        "key": "Join Community",
+        "location": {
+          "startingColumn": 66,
+          "startingLine": 226
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@ · %@",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 293
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 298
+        }
+      }
+    ]
+  },
+  "version": 1
+}

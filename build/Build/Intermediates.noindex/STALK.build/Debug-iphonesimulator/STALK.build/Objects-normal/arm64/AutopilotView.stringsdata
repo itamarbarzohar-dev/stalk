@@ -1,0 +1,136 @@
+{
+  "source": "/Users/yaronr/Documents/STALK/STALK/AutopilotView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Upgrade to STALK Pro",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 156
+        }
+      },
+      {
+        "comment": "",
+        "key": "Upgrade",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 157
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 158
+        }
+      },
+      {
+        "comment": "",
+        "key": "Enable Autopilot to let AI automatically mirror this strategy in your portfolio. Available with STALK Pro.",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 160
+        }
+      },
+      {
+        "comment": "",
+        "key": "AI AUTOPILOT",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 190
+        }
+      },
+      {
+        "comment": "",
+        "key": "AI Autopilot",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 196
+        }
+      },
+      {
+        "comment": "",
+        "key": "Let AI manage your strategy",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 202
+        }
+      },
+      {
+        "comment": "",
+        "key": "5 AI Strategies",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 257
+        }
+      },
+      {
+        "comment": "",
+        "key": "$13.4M Tracking",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 261
+        }
+      },
+      {
+        "comment": "",
+        "key": "LIVE",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 274
+        }
+      },
+      {
+        "comment": "",
+        "key": "ACTIVE",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 332
+        }
+      },
+      {
+        "comment": "",
+        "key": " · ",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 476
+        }
+      },
+      {
+        "comment": "",
+        "key": "Following",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 598
+        }
+      },
+      {
+        "comment": "",
+        "key": "Follow Strategy",
+        "location": {
+          "startingColumn": 50,
+          "startingLine": 598
+        }
+      },
+      {
+        "comment": "",
+        "key": "Enable Autopilot",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 628
+        }
+      },
+      {
+        "comment": "",
+        "key": "AI strategies are for informational purposes only. STALK does not execute trades on your behalf.",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 658
+        }
+      }
+    ]
+  },
+  "version": 1
+}

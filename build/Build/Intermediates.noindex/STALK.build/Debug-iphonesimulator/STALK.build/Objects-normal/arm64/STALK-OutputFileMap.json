@@ -1,0 +1,289 @@
+{
+  "" : {
+    "diagnostics" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/STALK-primary.dia",
+    "emit-module-dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/STALK-primary-emit-module.d",
+    "emit-module-diagnostics" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/STALK-primary-emit-module.dia",
+    "pch" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/STALK-primary-Bridging-header.pch",
+    "swift-dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/STALK-primary.swiftdeps"
+  },
+  "/Users/yaronr/Documents/STALK/STALK/AIFullChatView.swift" : {
+    "const-values" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/AIFullChatView.swiftconstvalues",
+    "dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/AIFullChatView.d",
+    "diagnostics" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/AIFullChatView.dia",
+    "index-unit-output-path" : "/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/AIFullChatView.o",
+    "llvm-bc" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/AIFullChatView.bc",
+    "object" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/AIFullChatView.o",
+    "swift-dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/AIFullChatView.swiftdeps",
+    "swiftmodule" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/AIFullChatView~partial.swiftmodule"
+  },
+  "/Users/yaronr/Documents/STALK/STALK/AIHubView.swift" : {
+    "const-values" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/AIHubView.swiftconstvalues",
+    "dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/AIHubView.d",
+    "diagnostics" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/AIHubView.dia",
+    "index-unit-output-path" : "/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/AIHubView.o",
+    "llvm-bc" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/AIHubView.bc",
+    "object" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/AIHubView.o",
+    "swift-dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/AIHubView.swiftdeps",
+    "swiftmodule" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/AIHubView~partial.swiftmodule"
+  },
+  "/Users/yaronr/Documents/STALK/STALK/ActivityView.swift" : {
+    "const-values" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/ActivityView.swiftconstvalues",
+    "dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/ActivityView.d",
+    "diagnostics" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/ActivityView.dia",
+    "index-unit-output-path" : "/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/ActivityView.o",
+    "llvm-bc" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/ActivityView.bc",
+    "object" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/ActivityView.o",
+    "swift-dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/ActivityView.swiftdeps",
+    "swiftmodule" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/ActivityView~partial.swiftmodule"
+  },
+  "/Users/yaronr/Documents/STALK/STALK/AddPositionView.swift" : {
+    "const-values" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/AddPositionView.swiftconstvalues",
+    "dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/AddPositionView.d",
+    "diagnostics" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/AddPositionView.dia",
+    "index-unit-output-path" : "/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/AddPositionView.o",
+    "llvm-bc" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/AddPositionView.bc",
+    "object" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/AddPositionView.o",
+    "swift-dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/AddPositionView.swiftdeps",
+    "swiftmodule" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/AddPositionView~partial.swiftmodule"
+  },
+  "/Users/yaronr/Documents/STALK/STALK/AnimatedComponents.swift" : {
+    "const-values" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/AnimatedComponents.swiftconstvalues",
+    "dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/AnimatedComponents.d",
+    "diagnostics" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/AnimatedComponents.dia",
+    "index-unit-output-path" : "/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/AnimatedComponents.o",
+    "llvm-bc" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/AnimatedComponents.bc",
+    "object" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/AnimatedComponents.o",
+    "swift-dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/AnimatedComponents.swiftdeps",
+    "swiftmodule" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/AnimatedComponents~partial.swiftmodule"
+  },
+  "/Users/yaronr/Documents/STALK/STALK/AppState.swift" : {
+    "const-values" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/AppState.swiftconstvalues",
+    "dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/AppState.d",
+    "diagnostics" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/AppState.dia",
+    "index-unit-output-path" : "/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/AppState.o",
+    "llvm-bc" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/AppState.bc",
+    "object" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/AppState.o",
+    "swift-dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/AppState.swiftdeps",
+    "swiftmodule" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/AppState~partial.swiftmodule"
+  },
+  "/Users/yaronr/Documents/STALK/STALK/AutopilotView.swift" : {
+    "const-values" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/AutopilotView.swiftconstvalues",
+    "dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/AutopilotView.d",
+    "diagnostics" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/AutopilotView.dia",
+    "index-unit-output-path" : "/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/AutopilotView.o",
+    "llvm-bc" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/AutopilotView.bc",
+    "object" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/AutopilotView.o",
+    "swift-dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/AutopilotView.swiftdeps",
+    "swiftmodule" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/AutopilotView~partial.swiftmodule"
+  },
+  "/Users/yaronr/Documents/STALK/STALK/CommunitiesView.swift" : {
+    "const-values" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/CommunitiesView.swiftconstvalues",
+    "dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/CommunitiesView.d",
+    "diagnostics" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/CommunitiesView.dia",
+    "index-unit-output-path" : "/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/CommunitiesView.o",
+    "llvm-bc" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/CommunitiesView.bc",
+    "object" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/CommunitiesView.o",
+    "swift-dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/CommunitiesView.swiftdeps",
+    "swiftmodule" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/CommunitiesView~partial.swiftmodule"
+  },
+  "/Users/yaronr/Documents/STALK/STALK/ContentView.swift" : {
+    "const-values" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/ContentView.swiftconstvalues",
+    "dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/ContentView.d",
+    "diagnostics" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/ContentView.dia",
+    "index-unit-output-path" : "/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/ContentView.o",
+    "llvm-bc" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/ContentView.bc",
+    "object" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/ContentView.o",
+    "swift-dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/ContentView.swiftdeps",
+    "swiftmodule" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/ContentView~partial.swiftmodule"
+  },
+  "/Users/yaronr/Documents/STALK/STALK/CreatePostView.swift" : {
+    "const-values" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/CreatePostView.swiftconstvalues",
+    "dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/CreatePostView.d",
+    "diagnostics" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/CreatePostView.dia",
+    "index-unit-output-path" : "/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/CreatePostView.o",
+    "llvm-bc" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/CreatePostView.bc",
+    "object" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/CreatePostView.o",
+    "swift-dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/CreatePostView.swiftdeps",
+    "swiftmodule" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/CreatePostView~partial.swiftmodule"
+  },
+  "/Users/yaronr/Documents/STALK/STALK/DailyBriefView.swift" : {
+    "const-values" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/DailyBriefView.swiftconstvalues",
+    "dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/DailyBriefView.d",
+    "diagnostics" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/DailyBriefView.dia",
+    "index-unit-output-path" : "/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/DailyBriefView.o",
+    "llvm-bc" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/DailyBriefView.bc",
+    "object" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/DailyBriefView.o",
+    "swift-dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/DailyBriefView.swiftdeps",
+    "swiftmodule" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/DailyBriefView~partial.swiftmodule"
+  },
+  "/Users/yaronr/Documents/STALK/STALK/FeedView.swift" : {
+    "const-values" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/FeedView.swiftconstvalues",
+    "dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/FeedView.d",
+    "diagnostics" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/FeedView.dia",
+    "index-unit-output-path" : "/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/FeedView.o",
+    "llvm-bc" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/FeedView.bc",
+    "object" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/FeedView.o",
+    "swift-dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/FeedView.swiftdeps",
+    "swiftmodule" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/FeedView~partial.swiftmodule"
+  },
+  "/Users/yaronr/Documents/STALK/STALK/ForYouView.swift" : {
+    "const-values" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/ForYouView.swiftconstvalues",
+    "dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/ForYouView.d",
+    "diagnostics" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/ForYouView.dia",
+    "index-unit-output-path" : "/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/ForYouView.o",
+    "llvm-bc" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/ForYouView.bc",
+    "object" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/ForYouView.o",
+    "swift-dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/ForYouView.swiftdeps",
+    "swiftmodule" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/ForYouView~partial.swiftmodule"
+  },
+  "/Users/yaronr/Documents/STALK/STALK/KeychainHelper.swift" : {
+    "const-values" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/KeychainHelper.swiftconstvalues",
+    "dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/KeychainHelper.d",
+    "diagnostics" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/KeychainHelper.dia",
+    "index-unit-output-path" : "/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/KeychainHelper.o",
+    "llvm-bc" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/KeychainHelper.bc",
+    "object" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/KeychainHelper.o",
+    "swift-dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/KeychainHelper.swiftdeps",
+    "swiftmodule" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/KeychainHelper~partial.swiftmodule"
+  },
+  "/Users/yaronr/Documents/STALK/STALK/MarketCalendar.swift" : {
+    "const-values" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/MarketCalendar.swiftconstvalues",
+    "dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/MarketCalendar.d",
+    "diagnostics" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/MarketCalendar.dia",
+    "index-unit-output-path" : "/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/MarketCalendar.o",
+    "llvm-bc" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/MarketCalendar.bc",
+    "object" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/MarketCalendar.o",
+    "swift-dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/MarketCalendar.swiftdeps",
+    "swiftmodule" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/MarketCalendar~partial.swiftmodule"
+  },
+  "/Users/yaronr/Documents/STALK/STALK/MarketView.swift" : {
+    "const-values" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/MarketView.swiftconstvalues",
+    "dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/MarketView.d",
+    "diagnostics" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/MarketView.dia",
+    "index-unit-output-path" : "/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/MarketView.o",
+    "llvm-bc" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/MarketView.bc",
+    "object" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/MarketView.o",
+    "swift-dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/MarketView.swiftdeps",
+    "swiftmodule" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/MarketView~partial.swiftmodule"
+  },
+  "/Users/yaronr/Documents/STALK/STALK/Models.swift" : {
+    "const-values" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/Models.swiftconstvalues",
+    "dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/Models.d",
+    "diagnostics" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/Models.dia",
+    "index-unit-output-path" : "/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/Models.o",
+    "llvm-bc" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/Models.bc",
+    "object" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/Models.o",
+    "swift-dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/Models.swiftdeps",
+    "swiftmodule" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/Models~partial.swiftmodule"
+  },
+  "/Users/yaronr/Documents/STALK/STALK/MyProfileView.swift" : {
+    "const-values" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/MyProfileView.swiftconstvalues",
+    "dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/MyProfileView.d",
+    "diagnostics" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/MyProfileView.dia",
+    "index-unit-output-path" : "/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/MyProfileView.o",
+    "llvm-bc" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/MyProfileView.bc",
+    "object" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/MyProfileView.o",
+    "swift-dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/MyProfileView.swiftdeps",
+    "swiftmodule" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/MyProfileView~partial.swiftmodule"
+  },
+  "/Users/yaronr/Documents/STALK/STALK/NotificationService.swift" : {
+    "const-values" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/NotificationService.swiftconstvalues",
+    "dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/NotificationService.d",
+    "diagnostics" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/NotificationService.dia",
+    "index-unit-output-path" : "/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/NotificationService.o",
+    "llvm-bc" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/NotificationService.bc",
+    "object" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/NotificationService.o",
+    "swift-dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/NotificationService.swiftdeps",
+    "swiftmodule" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/NotificationService~partial.swiftmodule"
+  },
+  "/Users/yaronr/Documents/STALK/STALK/OnboardingView.swift" : {
+    "const-values" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/OnboardingView.swiftconstvalues",
+    "dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/OnboardingView.d",
+    "diagnostics" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/OnboardingView.dia",
+    "index-unit-output-path" : "/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/OnboardingView.o",
+    "llvm-bc" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/OnboardingView.bc",
+    "object" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/OnboardingView.o",
+    "swift-dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/OnboardingView.swiftdeps",
+    "swiftmodule" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/OnboardingView~partial.swiftmodule"
+  },
+  "/Users/yaronr/Documents/STALK/STALK/PortfolioView.swift" : {
+    "const-values" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/PortfolioView.swiftconstvalues",
+    "dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/PortfolioView.d",
+    "diagnostics" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/PortfolioView.dia",
+    "index-unit-output-path" : "/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/PortfolioView.o",
+    "llvm-bc" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/PortfolioView.bc",
+    "object" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/PortfolioView.o",
+    "swift-dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/PortfolioView.swiftdeps",
+    "swiftmodule" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/PortfolioView~partial.swiftmodule"
+  },
+  "/Users/yaronr/Documents/STALK/STALK/QuoteService.swift" : {
+    "const-values" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/QuoteService.swiftconstvalues",
+    "dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/QuoteService.d",
+    "diagnostics" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/QuoteService.dia",
+    "index-unit-output-path" : "/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/QuoteService.o",
+    "llvm-bc" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/QuoteService.bc",
+    "object" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/QuoteService.o",
+    "swift-dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/QuoteService.swiftdeps",
+    "swiftmodule" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/QuoteService~partial.swiftmodule"
+  },
+  "/Users/yaronr/Documents/STALK/STALK/STALKApp.swift" : {
+    "const-values" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/STALKApp.swiftconstvalues",
+    "dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/STALKApp.d",
+    "diagnostics" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/STALKApp.dia",
+    "index-unit-output-path" : "/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/STALKApp.o",
+    "llvm-bc" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/STALKApp.bc",
+    "object" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/STALKApp.o",
+    "swift-dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/STALKApp.swiftdeps",
+    "swiftmodule" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/STALKApp~partial.swiftmodule"
+  },
+  "/Users/yaronr/Documents/STALK/STALK/SearchView.swift" : {
+    "const-values" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/SearchView.swiftconstvalues",
+    "dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/SearchView.d",
+    "diagnostics" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/SearchView.dia",
+    "index-unit-output-path" : "/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/SearchView.o",
+    "llvm-bc" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/SearchView.bc",
+    "object" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/SearchView.o",
+    "swift-dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/SearchView.swiftdeps",
+    "swiftmodule" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/SearchView~partial.swiftmodule"
+  },
+  "/Users/yaronr/Documents/STALK/STALK/SettingsView.swift" : {
+    "const-values" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/SettingsView.swiftconstvalues",
+    "dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/SettingsView.d",
+    "diagnostics" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/SettingsView.dia",
+    "index-unit-output-path" : "/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/SettingsView.o",
+    "llvm-bc" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/SettingsView.bc",
+    "object" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/SettingsView.o",
+    "swift-dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/SettingsView.swiftdeps",
+    "swiftmodule" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/SettingsView~partial.swiftmodule"
+  },
+  "/Users/yaronr/Documents/STALK/STALK/StockChartView.swift" : {
+    "const-values" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/StockChartView.swiftconstvalues",
+    "dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/StockChartView.d",
+    "diagnostics" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/StockChartView.dia",
+    "index-unit-output-path" : "/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/StockChartView.o",
+    "llvm-bc" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/StockChartView.bc",
+    "object" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/StockChartView.o",
+    "swift-dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/StockChartView.swiftdeps",
+    "swiftmodule" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/StockChartView~partial.swiftmodule"
+  },
+  "/Users/yaronr/Documents/STALK/STALK/Theme.swift" : {
+    "const-values" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/Theme.swiftconstvalues",
+    "dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/Theme.d",
+    "diagnostics" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/Theme.dia",
+    "index-unit-output-path" : "/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/Theme.o",
+    "llvm-bc" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/Theme.bc",
+    "object" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/Theme.o",
+    "swift-dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/Theme.swiftdeps",
+    "swiftmodule" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/Theme~partial.swiftmodule"
+  },
+  "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/DerivedSources/GeneratedAssetSymbols.swift" : {
+    "const-values" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/GeneratedAssetSymbols.swiftconstvalues",
+    "dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/GeneratedAssetSymbols.d",
+    "diagnostics" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/GeneratedAssetSymbols.dia",
+    "index-unit-output-path" : "/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/GeneratedAssetSymbols.o",
+    "llvm-bc" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/GeneratedAssetSymbols.bc",
+    "object" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/GeneratedAssetSymbols.o",
+    "swift-dependencies" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/GeneratedAssetSymbols.swiftdeps",
+    "swiftmodule" : "/Users/yaronr/Documents/STALK/build/Build/Intermediates.noindex/STALK.build/Debug-iphonesimulator/STALK.build/Objects-normal/arm64/GeneratedAssetSymbols~partial.swiftmodule"
+  }
+}

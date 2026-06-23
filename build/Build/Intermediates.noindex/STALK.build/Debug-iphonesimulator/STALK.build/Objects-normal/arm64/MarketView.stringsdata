@@ -1,0 +1,64 @@
+{
+  "source": "/Users/yaronr/Documents/STALK/STALK/MarketView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "MARKETS",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 25
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@, %@ %@ percent today",
+        "location": {
+          "startingColumn": 37,
+          "startingLine": 242
+        }
+      },
+      {
+        "comment": "",
+        "key": "+%@%%",
+        "location": {
+          "startingColumn": 54,
+          "startingLine": 225
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@%%",
+        "location": {
+          "startingColumn": 100,
+          "startingLine": 225
+        }
+      },
+      {
+        "comment": "",
+        "key": "—",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 271
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@, %@ today",
+        "location": {
+          "startingColumn": 37,
+          "startingLine": 448
+        }
+      },
+      {
+        "comment": "",
+        "key": "#%lld",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 490
+        }
+      }
+    ]
+  },
+  "version": 1
+}

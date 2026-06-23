@@ -1,0 +1,144 @@
+{
+  "source": "/Users/yaronr/Documents/STALK/STALK/AIFullChatView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Connect Claude AI",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 58
+        }
+      },
+      {
+        "comment": "",
+        "key": "Enter your Anthropic API key to unlock\nunlimited AI portfolio analysis",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 63
+        }
+      },
+      {
+        "comment": "",
+        "key": "🤖",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 52
+        }
+      },
+      {
+        "comment": "",
+        "key": "Anthropic API Key",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 71
+        }
+      },
+      {
+        "comment": "",
+        "key": "sk-ant-...",
+        "location": {
+          "startingColumn": 33,
+          "startingLine": 77
+        }
+      },
+      {
+        "comment": "",
+        "key": "Get API Key",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 101
+        }
+      },
+      {
+        "comment": "",
+        "key": "Save Key",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 120
+        }
+      },
+      {
+        "comment": "",
+        "key": "1 free question remaining — Upgrade for unlimited AI analysis",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 229
+        }
+      },
+      {
+        "comment": "",
+        "key": "🤖",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 268
+        }
+      },
+      {
+        "comment": "",
+        "key": "STALK AI",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 274
+        }
+      },
+      {
+        "comment": "",
+        "key": "PRO",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 277
+        }
+      },
+      {
+        "comment": "",
+        "key": "Connected · Claude Haiku",
+        "location": {
+          "startingColumn": 54,
+          "startingLine": 289
+        }
+      },
+      {
+        "comment": "",
+        "key": "Mock mode · Tap key icon to connect",
+        "location": {
+          "startingColumn": 84,
+          "startingLine": 289
+        }
+      },
+      {
+        "comment": "",
+        "key": "Quick questions",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 373
+        }
+      },
+      {
+        "comment": "",
+        "key": "Ask anything about your portfolio...",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 416
+        }
+      },
+      {
+        "comment": "",
+        "key": "🤖",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 672
+        }
+      },
+      {
+        "comment": "",
+        "key": "🤖",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 733
+        }
+      }
+    ]
+  },
+  "version": 1
+}

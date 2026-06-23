@@ -1,0 +1,140 @@
+{
+  "identifier" : "746C3E5A-ADCD-4FA4-8572-B0A834A6F9F1",
+  "nonConsumableProducts" : [
+
+  ],
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+
+  ],
+  "settings" : {
+    "_applicationUsername" : "",
+    "_customerEmail" : "",
+    "_failTransactionsEnabled" : false,
+    "_locale" : "en_US",
+    "_storefront" : "USA",
+    "_storeKitErrors" : [
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Load Products"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Purchase"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Verification"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "App Store Sync"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Subscription Status"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "App Transaction"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Subscription Renewal"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Send Diagnostic Report"
+      }
+    ]
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "BE3F2A94-5D1C-43D0-B8E2-2C1AA7B6DE33",
+      "localizations" : [
+
+      ],
+      "name" : "STALK Pro",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "6.99",
+          "familyShareable" : false,
+          "groupNumber" : 2,
+          "internalID" : "D34A8F21-BBE7-49C8-BC27-5B6D0A3E7C10",
+          "introductoryOffer" : {
+            "displayPrice" : "0.00",
+            "duration" : 1,
+            "identifier" : "",
+            "offerMode" : "freeTrial",
+            "periodCount" : 7,
+            "periodUnit" : "day"
+          },
+          "localizations" : [
+            {
+              "description" : "Full access to STALK Pro features: Whale Alerts, AI Analysis, Short Squeeze Radar, Unlimited Price Alerts, and Premium Themes.",
+              "displayName" : "STALK Pro Monthly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.itamar.stalk.pro.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "STALK Pro Monthly",
+          "subscriptionGroupID" : "BE3F2A94-5D1C-43D0-B8E2-2C1AA7B6DE33",
+          "type" : "RecurringSubscription"
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "49.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "A12C5E38-2CD9-4F7A-8B1D-9E4C6A2B7F56",
+          "introductoryOffer" : {
+            "displayPrice" : "0.00",
+            "duration" : 1,
+            "identifier" : "",
+            "offerMode" : "freeTrial",
+            "periodCount" : 7,
+            "periodUnit" : "day"
+          },
+          "localizations" : [
+            {
+              "description" : "Full access to STALK Pro features: Whale Alerts, AI Analysis, Short Squeeze Radar, Unlimited Price Alerts, and Premium Themes. Save 40% vs monthly.",
+              "displayName" : "STALK Pro Annual",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.itamar.stalk.pro.annual",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "STALK Pro Annual",
+          "subscriptionGroupID" : "BE3F2A94-5D1C-43D0-B8E2-2C1AA7B6DE33",
+          "type" : "RecurringSubscription"
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 2,
+    "minor" : 0
+  }
+}

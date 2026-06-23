@@ -1,0 +1,16 @@
+{
+  "source": "/Users/yaronr/Documents/STALK/STALK/ContentView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "AI",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 117
+        }
+      }
+    ]
+  },
+  "version": 1
+}

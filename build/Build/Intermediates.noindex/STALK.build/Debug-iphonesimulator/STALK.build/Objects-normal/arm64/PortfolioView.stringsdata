@@ -1,0 +1,496 @@
+{
+  "source": "/Users/yaronr/Documents/STALK/STALK/PortfolioView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "PORTFOLIO",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 92
+        }
+      },
+      {
+        "comment": "",
+        "key": "Open Daily Brief",
+        "location": {
+          "startingColumn": 37,
+          "startingLine": 107
+        }
+      },
+      {
+        "comment": "",
+        "key": "Settings",
+        "location": {
+          "startingColumn": 37,
+          "startingLine": 116
+        }
+      },
+      {
+        "comment": "",
+        "key": "Brief",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 100
+        }
+      },
+      {
+        "comment": "",
+        "key": "Total portfolio value",
+        "location": {
+          "startingColumn": 41,
+          "startingLine": 144
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@%@ (%@) All-time",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 154
+        }
+      },
+      {
+        "comment": "",
+        "key": "TODAY",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 186
+        }
+      },
+      {
+        "comment": "",
+        "key": "NEW ATH",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 204
+        }
+      },
+      {
+        "comment": "",
+        "key": "From ATH",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 218
+        }
+      },
+      {
+        "comment": "",
+        "key": "-%@",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 221
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lldd",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 233
+        }
+      },
+      {
+        "comment": "",
+        "key": "Portfolio allocation bar",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 334
+        }
+      },
+      {
+        "comment": "",
+        "key": "No positions yet.",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 347
+        }
+      },
+      {
+        "comment": "",
+        "key": "Tap + to add your first stock.",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 349
+        }
+      },
+      {
+        "comment": "",
+        "key": "Long-press a card to delete",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 374
+        }
+      },
+      {
+        "comment": "",
+        "key": "POSITIONS",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 358
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld stocks",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 363
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@, %@ %@ percent, value %@",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 502
+        }
+      },
+      {
+        "comment": "",
+        "key": "Double-tap to view chart",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 503
+        }
+      },
+      {
+        "comment": "",
+        "key": "Delete %@?",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 520
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@ shares · avg %@",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 456
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@ %@%%",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 425
+        }
+      },
+      {
+        "comment": "",
+        "key": "EARNINGS",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 434
+        }
+      },
+      {
+        "comment": "",
+        "key": "Today %@",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 479
+        }
+      },
+      {
+        "comment": "",
+        "key": "Set Price Alert",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 512
+        }
+      },
+      {
+        "comment": "",
+        "key": "Delete Position",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 517
+        }
+      },
+      {
+        "comment": "",
+        "key": "Delete",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 521
+        }
+      },
+      {
+        "comment": "",
+        "key": "Set Price Alert",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 524
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 527
+        }
+      },
+      {
+        "comment": "",
+        "key": "Long-press actions for %@",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 529
+        }
+      },
+      {
+        "comment": "",
+        "key": "Price Alerts",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 572
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@ · Current: %@",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 575
+        }
+      },
+      {
+        "comment": "",
+        "key": "Clear",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 586
+        }
+      },
+      {
+        "comment": "",
+        "key": "Save Alerts",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 620
+        }
+      },
+      {
+        "comment": "",
+        "key": "$",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 653
+        }
+      },
+      {
+        "comment": "",
+        "key": "STALK AI",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 772
+        }
+      },
+      {
+        "comment": "",
+        "key": "Analyzing %lld position%@ in real-time",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 775
+        }
+      },
+      {
+        "comment": "",
+        "key": "Live",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 781
+        }
+      },
+      {
+        "comment": "",
+        "key": "Ask: 'Should I buy more AAPL?'",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 821
+        }
+      },
+      {
+        "comment": "",
+        "key": "Open Full AI Chat",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 859
+        }
+      },
+      {
+        "comment": "",
+        "key": "Non-daily figures are estimated from your all-time return",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1040
+        }
+      },
+      {
+        "comment": "",
+        "key": "VS MARKET",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 990
+        }
+      },
+      {
+        "comment": "",
+        "key": "How you stack up against major indices",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 994
+        }
+      },
+      {
+        "comment": "",
+        "key": "Outperforming",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 1001
+        }
+      },
+      {
+        "comment": "",
+        "key": "Tracking",
+        "location": {
+          "startingColumn": 56,
+          "startingLine": 1001
+        }
+      },
+      {
+        "comment": "",
+        "key": "VS FRIENDS",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1124
+        }
+      },
+      {
+        "comment": "",
+        "key": "#%lld",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1131
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@%@%%",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1203
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 1171
+        }
+      },
+      {
+        "comment": "",
+        "key": "LIVE FEED",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1309
+        }
+      },
+      {
+        "comment": "",
+        "key": "What's happening in your portfolio right now",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1313
+        }
+      },
+      {
+        "comment": "",
+        "key": "Show more (%lld)",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1357
+        }
+      },
+      {
+        "comment": "",
+        "key": "PORTFOLIO HEALTH",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1466
+        }
+      },
+      {
+        "comment": "",
+        "key": "Personalized score based on your holdings",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1470
+        }
+      },
+      {
+        "comment": "",
+        "key": "Portfolio health score",
+        "location": {
+          "startingColumn": 37,
+          "startingLine": 1512
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld out of 100, %@",
+        "location": {
+          "startingColumn": 37,
+          "startingLine": 1513
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1500
+        }
+      },
+      {
+        "comment": "",
+        "key": "Copy AI-managed strategies · 5 live strategies",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1581
+        }
+      },
+      {
+        "comment": "",
+        "key": "AI Autopilot",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1565
+        }
+      },
+      {
+        "comment": "",
+        "key": "NEW",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1569
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add new position",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 1631
+        }
+      }
+    ]
+  },
+  "version": 1
+}

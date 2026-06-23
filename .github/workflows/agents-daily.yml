@@ -15,12 +15,15 @@ permissions:
   pull-requests: write
   issues: write
 
+env:
+  RUN_ALL: ${{ github.event.inputs.agent == 'all' || github.event_name == 'schedule' }}
+
 jobs:
   # ── 1. CEO — Alex sets the agenda ──────────────────────────────────────────
   ceo:
     name: Alex (CEO)
     runs-on: ubuntu-latest
-    if: ${{ github.event.inputs.agent == 'all' || github.event.inputs.agent == 'ceo' || github.event_name == 'schedule' }}
+    if: ${{ always() && (github.event.inputs.agent == 'all' || github.event.inputs.agent == 'ceo' || github.event_name == 'schedule') }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -74,7 +77,7 @@ jobs:
     name: Maya (CTO)
     runs-on: ubuntu-latest
     needs: ceo
-    if: ${{ github.event.inputs.agent == 'all' || github.event.inputs.agent == 'cto' || github.event_name == 'schedule' }}
+    if: ${{ always() && (github.event.inputs.agent == 'all' || github.event.inputs.agent == 'cto' || github.event_name == 'schedule') }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -93,7 +96,7 @@ jobs:
           git config user.name "Maya — STALK CTO Agent"
           git config user.email "agent-maya@stalk.app"
 
-      - name: Pull latest (after CEO committed)
+      - name: Pull latest
         run: git pull origin main
 
       - name: Run Maya (CTO)
@@ -132,7 +135,7 @@ jobs:
     name: Jordan (iOS Dev)
     runs-on: ubuntu-latest
     needs: cto
-    if: ${{ github.event.inputs.agent == 'all' || github.event.inputs.agent == 'ios_dev' || github.event_name == 'schedule' }}
+    if: ${{ always() && (github.event.inputs.agent == 'all' || github.event.inputs.agent == 'ios_dev' || github.event_name == 'schedule') }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -191,7 +194,7 @@ jobs:
     name: Luna (UX)
     runs-on: ubuntu-latest
     needs: ios_dev
-    if: ${{ github.event.inputs.agent == 'all' || github.event.inputs.agent == 'ux' || github.event_name == 'schedule' }}
+    if: ${{ always() && (github.event.inputs.agent == 'all' || github.event.inputs.agent == 'ux' || github.event_name == 'schedule') }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -248,7 +251,7 @@ jobs:
     name: Sam (CPO)
     runs-on: ubuntu-latest
     needs: ux
-    if: ${{ github.event.inputs.agent == 'all' || github.event.inputs.agent == 'cpo' || github.event_name == 'schedule' }}
+    if: ${{ always() && (github.event.inputs.agent == 'all' || github.event.inputs.agent == 'cpo' || github.event_name == 'schedule') }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -306,7 +309,7 @@ jobs:
     name: Rex (CRO)
     runs-on: ubuntu-latest
     needs: cpo
-    if: ${{ github.event.inputs.agent == 'all' || github.event.inputs.agent == 'cro' || github.event_name == 'schedule' }}
+    if: ${{ always() && (github.event.inputs.agent == 'all' || github.event.inputs.agent == 'cro' || github.event_name == 'schedule') }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -362,7 +365,7 @@ jobs:
     name: Dana (Reporter)
     runs-on: ubuntu-latest
     needs: cro
-    if: ${{ github.event.inputs.agent == 'all' || github.event.inputs.agent == 'reporter' || github.event_name == 'schedule' }}
+    if: ${{ always() && (github.event.inputs.agent == 'all' || github.event.inputs.agent == 'reporter' || github.event_name == 'schedule') }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -381,7 +384,7 @@ jobs:
           git config user.name "Dana — STALK Reporter Agent"
           git config user.email "agent-dana@stalk.app"
 
-      - name: Pull latest (get all agent outputs first)
+      - name: Pull latest
         run: git pull origin main
 
       - name: Run Dana (Reporter)

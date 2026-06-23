@@ -1,8 +1,6 @@
 name: STALK Agent Network — Daily Run
 
 on:
-  schedule:
-    - cron: '0 8 * * 1-5'   # Weekdays 8am UTC (10am Israel)
   workflow_dispatch:
     inputs:
       agent:

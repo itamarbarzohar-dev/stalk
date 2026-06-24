@@ -95,14 +95,19 @@ struct PortfolioHero: View {
                     .kerning(2.5)
                 Spacer()
                 Button { appState.showDailyBrief = true } label: {
-                    HStack(spacing: 5) {
-                        Image(systemName: "doc.text.fill").font(.system(size: 12)).foregroundStyle(Theme.text3)
-                        Text("Brief").font(.system(size: 12, weight: .bold)).foregroundStyle(Theme.text2)
+                    HStack(spacing: 7) {
+                        Image(systemName: "doc.text.fill")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundStyle(Theme.accent)
+                        Text("Daily Brief")
+                            .font(.system(size: 15, weight: .bold))
+                            .foregroundStyle(Theme.text)
                     }
-                    .padding(.horizontal, 12).padding(.vertical, 6)
+                    .padding(.horizontal, 18).padding(.vertical, 11)
                     .background(Theme.card)
                     .clipShape(Capsule())
-                    .overlay(Capsule().stroke(Theme.border, lineWidth: 1))
+                    .overlay(Capsule().stroke(Theme.accent.opacity(0.25), lineWidth: 1))
+                    .shadow(color: Theme.accent.opacity(0.12), radius: 8, y: 3)
                 }
                 .accessibilityLabel("Open Daily Brief")
                 Button { appState.showSettings = true } label: {
@@ -423,12 +428,8 @@ struct PositionCard: View {
                         .foregroundStyle(Theme.text)
 
                     Text("\(isUp ? "▲" : "▼") \(String(format: "%.1f", abs(pnlPct)))%")
-                        .font(.system(size: 10, weight: .bold))
+                        .font(.system(size: 11, weight: .bold))
                         .foregroundStyle(isUp ? Theme.gain : Theme.loss)
-                        .padding(.horizontal, 7)
-                        .padding(.vertical, 2)
-                        .background(isUp ? Theme.gainBg : Theme.lossBg)
-                        .clipShape(RoundedRectangle(cornerRadius: 6))
 
                     if EARNINGS.contains(where: { $0.ticker == position.ticker }) {
                         Text("EARNINGS")
@@ -483,20 +484,14 @@ struct PositionCard: View {
                 }
             }
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 14)
-        .background(
-            ZStack {
-                Theme.card
-                bgTint.opacity(0.04)
-            }
-        )
-        .clipShape(RoundedRectangle(cornerRadius: 20))
+        .padding(.horizontal, 14)
+        .padding(.vertical, 13)
+        .background(Theme.card)
+        .clipShape(RoundedRectangle(cornerRadius: 14))
         .overlay(
-            RoundedRectangle(cornerRadius: 20)
-                .stroke(stripeColor.opacity(0.12), lineWidth: 1)
+            RoundedRectangle(cornerRadius: 14)
+                .stroke(stripeColor.opacity(0.18), lineWidth: 0.5)
         )
-        .shadow(color: .black.opacity(0.08), radius: 10, y: 4)
         .scaleEffect(pressing ? 0.98 : 1)
         .animation(.easeInOut(duration: 0.1), value: pressing)
         .accessibilityLabel("\(position.ticker), \(isUp ? "up" : "down") \(String(format: "%.1f", abs(pnlPct))) percent, value \(value.fmtPrice())")

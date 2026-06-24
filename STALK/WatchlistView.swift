@@ -46,7 +46,7 @@ struct WatchlistColumnPickerSheet: View {
     @Environment(AppState.self) var appState
     @Environment(\.dismiss) var dismiss
 
-    private let maxColumns = 3
+    private let maxColumns = 10
 
     var body: some View {
         NavigationStack {
@@ -410,53 +410,34 @@ struct WatchlistView: View {
 
     var columnHeader: some View {
         HStack(spacing: 0) {
-            // SYMBOL always on left
-            Button {
-                withAnimation(.easeInOut(duration: 0.15)) {
-                    if sortField == .symbol { sortOrder = sortOrder == .asc ? .desc : .asc }
-                    else { sortField = .symbol; sortOrder = .asc }
-                }
-            } label: {
-                HStack(spacing: 3) {
-                    Text("SYMBOL")
-                        .font(.system(size: 10, weight: .black))
-                        .foregroundStyle(sortField == .symbol ? Theme.accent : Theme.text3)
-                        .kerning(0.8)
-                    Image(systemName: sortField == .symbol ? (sortOrder == .asc ? "chevron.up" : "chevron.down") : "chevron.up.chevron.down")
-                        .font(.system(size: 8, weight: .bold))
-                        .foregroundStyle(sortField == .symbol ? Theme.accent : Theme.text4)
-                }
-            }
-            .buttonStyle(.plain)
-            .frame(maxWidth: .infinity, alignment: .leading)
-
-            // Dynamic stat columns
-            ForEach(appState.watchlistColumns) { col in
-                let isSortCol = (col == .last && sortField == .last) || (col == .changePct && sortField == .change)
-                Button {
-                    withAnimation(.easeInOut(duration: 0.15)) {
-                        let field: WatchlistSortField = col == .last ? .last : (col == .changePct ? .change : .symbol)
-                        if sortField == field { sortOrder = sortOrder == .asc ? .desc : .asc }
-                        else { sortField = field; sortOrder = .asc }
-                    }
-                } label: {
-                    HStack(spacing: 3) {
-                        Text(col.rawValue)
-                            .font(.system(size: 9, weight: .black))
-                            .foregroundStyle(isSortCol ? Theme.accent : Theme.text3)
-                            .kerning(0.6)
-                        Image(systemName: isSortCol ? (sortOrder == .asc ? "chevron.up" : "chevron.down") : "chevron.up.chevron.down")
-                            .font(.system(size: 7, weight: .bold))
-                            .foregroundStyle(isSortCol ? Theme.accent : Theme.text4)
-                    }
-                }
-                .buttonStyle(.plain)
-                .frame(width: col.columnWidth, alignment: .trailing)
-            }
+            sortBtn(.symbol, label: "SYMBOL").frame(maxWidth: .infinity, alignment: .leading)
+            sortBtn(.last, label: "LAST").frame(width: 80, alignment: .trailing)
+            sortBtn(.change, label: "CHG%").frame(width: 72, alignment: .trailing)
         }
         .padding(.horizontal, 16)
-        .padding(.vertical, 8)
+        .padding(.vertical, 7)
         .background(Theme.bg2)
+    }
+
+    @ViewBuilder
+    func sortBtn(_ field: WatchlistSortField, label: String) -> some View {
+        Button {
+            withAnimation(.easeInOut(duration: 0.15)) {
+                if sortField == field { sortOrder = sortOrder == .asc ? .desc : .asc }
+                else { sortField = field; sortOrder = .asc }
+            }
+        } label: {
+            HStack(spacing: 3) {
+                Text(label)
+                    .font(.system(size: 9, weight: .black))
+                    .foregroundStyle(sortField == field ? Theme.accent : Theme.text3)
+                    .kerning(0.7)
+                Image(systemName: sortField == field ? (sortOrder == .asc ? "chevron.up" : "chevron.down") : "chevron.up.chevron.down")
+                    .font(.system(size: 7, weight: .bold))
+                    .foregroundStyle(sortField == field ? Theme.accent : Theme.text4)
+            }
+        }
+        .buttonStyle(.plain)
     }
 
     var emptyState: some View {
@@ -505,62 +486,123 @@ struct WatchlistItemRow: View {
     @State private var editTags: Set<WatchlistTag> = []
 
     private var isGain: Bool { changePct >= 0 }
+    private let gridCols = Array(repeating: GridItem(.flexible(), spacing: 0), count: 4)
 
     var body: some View {
         VStack(spacing: 0) {
             Button(action: onTap) {
-                HStack(spacing: 0) {
-                    // Left: ticker + badges
-                    VStack(alignment: .leading, spacing: 3) {
+                VStack(alignment: .leading, spacing: 0) {
+                    // ── Top strip: ticker + right-side primary stats ──────
+                    HStack(spacing: 0) {
+                        // Ticker + note indicator
                         HStack(spacing: 6) {
                             Button(action: onTickerTap) {
                                 Text(item.ticker)
-                                    .font(.system(size: 15, weight: .bold))
+                                    .font(.system(size: 16, weight: .black))
                                     .foregroundStyle(Theme.text)
                             }
                             .buttonStyle(.plain)
                             if !item.note.isEmpty {
                                 Image(systemName: "note.text")
-                                    .font(.system(size: 10, weight: .semibold))
+                                    .font(.system(size: 9))
                                     .foregroundStyle(Theme.text4)
                             }
                         }
+
+                        // Tag dots
                         if !item.tags.isEmpty {
-                            HStack(spacing: 4) {
-                                ForEach(Array(item.tags.prefix(5)), id: \.self) { tag in
+                            HStack(spacing: 3) {
+                                ForEach(Array(item.tags.prefix(6)), id: \.self) { tag in
                                     Circle().fill(tag.color).frame(width: 5, height: 5)
                                 }
                             }
-                        } else {
-                            Color.clear.frame(height: 5)
+                            .padding(.leading, 8)
                         }
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
 
-                    // Right: dynamic stat columns
-                    ForEach(columns) { col in
-                        let val = statValues[col] ?? "—"
-                        let isChangeCol = col.isGainColored
-                        VStack(alignment: .trailing, spacing: 2) {
-                            if isChangeCol {
-                                Text(val)
-                                    .font(.system(size: 11, weight: .black).monospacedDigit())
-                                    .foregroundStyle(.white)
-                                    .padding(.horizontal, 7)
-                                    .padding(.vertical, 4)
-                                    .background(isGain ? Theme.gain.opacity(0.85) : Theme.loss.opacity(0.85))
-                                    .clipShape(Capsule())
-                            } else {
-                                Text(val)
-                                    .font(.system(size: 13, weight: .semibold).monospacedDigit())
-                                    .foregroundStyle(Theme.text)
+                        Spacer()
+
+                        // Show first 2 selected stats inline (right side of top row)
+                        HStack(spacing: 10) {
+                            ForEach(Array(columns.prefix(2))) { col in
+                                let val = statValues[col] ?? "—"
+                                if col.isGainColored {
+                                    Text(val)
+                                        .font(.system(size: 11, weight: .black).monospacedDigit())
+                                        .foregroundStyle(.white)
+                                        .padding(.horizontal, 8)
+                                        .padding(.vertical, 4)
+                                        .background(isGain ? Theme.gain.opacity(0.9) : Theme.loss.opacity(0.9))
+                                        .clipShape(Capsule())
+                                } else {
+                                    VStack(alignment: .trailing, spacing: 1) {
+                                        Text(col.rawValue)
+                                            .font(.system(size: 8, weight: .bold))
+                                            .foregroundStyle(Theme.text4)
+                                            .kerning(0.4)
+                                        Text(val)
+                                            .font(.system(size: 13, weight: .bold).monospacedDigit())
+                                            .foregroundStyle(Theme.text)
+                                    }
+                                }
                             }
                         }
-                        .frame(width: col.columnWidth, alignment: .trailing)
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.top, 12)
+                    .padding(.bottom, columns.count > 2 ? 8 : 12)
+
+                    // ── Stats grid: remaining stats (3rd onward) ──────────
+                    if columns.count > 2 {
+                        let extraCols = Array(columns.dropFirst(2))
+                        let rows = stride(from: 0, to: extraCols.count, by: 4).map {
+                            Array(extraCols[$0..<min($0 + 4, extraCols.count)])
+                        }
+                        VStack(spacing: 0) {
+                            Divider()
+                                .frame(height: 0.5)
+                                .overlay(Theme.border.opacity(0.6))
+                                .padding(.horizontal, 16)
+
+                            ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
+                                HStack(spacing: 0) {
+                                    ForEach(row) { col in
+                                        let val = statValues[col] ?? "—"
+                                        VStack(alignment: .leading, spacing: 2) {
+                                            Text(col.rawValue)
+                                                .font(.system(size: 8, weight: .bold))
+                                                .foregroundStyle(Theme.text4)
+                                                .kerning(0.5)
+                                            if col.isGainColored {
+                                                Text(val)
+                                                    .font(.system(size: 12, weight: .black).monospacedDigit())
+                                                    .foregroundStyle(isGain ? Theme.gain : Theme.loss)
+                                            } else {
+                                                Text(val)
+                                                    .font(.system(size: 12, weight: .semibold).monospacedDigit())
+                                                    .foregroundStyle(Theme.text)
+                                            }
+                                        }
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                    }
+                                    // Pad to 4 cells if last row is partial
+                                    ForEach(0..<(4 - row.count), id: \.self) { _ in
+                                        Color.clear.frame(maxWidth: .infinity)
+                                    }
+                                }
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 7)
+                                if rows.last.map({ $0 != row }) ?? false {
+                                    Divider()
+                                        .frame(height: 0.5)
+                                        .overlay(Theme.border.opacity(0.4))
+                                        .padding(.horizontal, 16)
+                                }
+                            }
+                        }
+                        .background(Theme.bg2.opacity(0.5))
+                        .padding(.bottom, 0)
                     }
                 }
-                .padding(.horizontal, 16)
-                .frame(height: 52)
             }
             .buttonStyle(.plain)
 

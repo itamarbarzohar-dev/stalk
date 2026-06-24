@@ -83,46 +83,45 @@ struct CustomTabBar: View {
                     }
                 } label: {
                     let isAI = appState.selectedTab == .ai
-                    HStack(spacing: isAI ? 6 : 0) {
+                    HStack(spacing: isAI ? 9 : 0) {
                         ZStack {
                             if isAI {
                                 Circle()
-                                    .fill(.white.opacity(0.18))
-                                    .frame(width: 26, height: 26)
-                                    .scaleEffect(aiPulse ? 1.08 : 1.0)
+                                    .fill(.white.opacity(0.2))
+                                    .frame(width: 34, height: 34)
+                                    .scaleEffect(aiPulse ? 1.06 : 1.0)
                                     .animation(.easeInOut(duration: 1.6).repeatForever(autoreverses: true), value: aiPulse)
                             }
                             Image(systemName: "sparkles")
-                                .font(.system(size: isAI ? 15 : 18, weight: .semibold))
+                                .font(.system(size: 20, weight: isAI ? .bold : .semibold))
                                 .foregroundStyle(isAI ? .white : Color(hex: "#9C8FF5"))
-                                .scaleEffect(isAI ? 1.0 : 1.0)
                         }
                         if isAI {
                             Text("STALK AI")
-                                .font(.system(size: 11, weight: .black))
+                                .font(.system(size: 14, weight: .black))
                                 .foregroundStyle(.white)
-                                .kerning(0.4)
-                                .transition(.opacity.combined(with: .scale(scale: 0.85, anchor: .leading)))
+                                .kerning(0.5)
+                                .transition(.opacity.combined(with: .scale(scale: 0.8, anchor: .leading)))
                         }
                     }
-                    .padding(.horizontal, isAI ? 16 : 0)
-                    .padding(.vertical, isAI ? 9 : 0)
+                    .padding(.horizontal, isAI ? 22 : 0)
+                    .padding(.vertical, isAI ? 13 : 0)
                     .background(
                         Group {
                             if isAI {
-                                RoundedRectangle(cornerRadius: 22)
+                                RoundedRectangle(cornerRadius: 26)
                                     .fill(aiActive)
-                                    .shadow(color: Color(hex: "#5B5BD6").opacity(0.5), radius: 12, y: 4)
+                                    .shadow(color: Color(hex: "#5B5BD6").opacity(0.65), radius: 16, y: 5)
                             }
                         }
                     )
                     .frame(maxWidth: isAI ? nil : .infinity)
-                    .frame(height: 44)
+                    .frame(height: 52)
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 6)
+                .padding(.vertical, 4)
                 .onAppear { aiPulse = true }
                 .animation(.spring(response: 0.35, dampingFraction: 0.7), value: appState.selectedTab == .ai)
 

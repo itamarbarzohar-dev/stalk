@@ -13,27 +13,20 @@ permissions:
   pull-requests: write
   issues: write
 
-env:
-  RUN_ALL: ${{ github.event.inputs.agent == 'all' || github.event_name == 'schedule' }}
-
 jobs:
   # ── 1. CEO — Alex sets the agenda ──────────────────────────────────────────
   ceo:
     name: Alex (CEO)
     runs-on: ubuntu-latest
-    if: ${{ always() && (github.event.inputs.agent == 'all' || github.event.inputs.agent == 'ceo' || github.event_name == 'schedule') }}
+    if: ${{ github.event.inputs.agent == 'all' || github.event.inputs.agent == 'ceo' }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 20
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Install Claude CLI
-        run: npm install -g @anthropic-ai/claude-code
+      - name: Install Anthropic SDK
+        run: pip install anthropic
 
       - name: Configure Git
         run: |
@@ -43,28 +36,11 @@ jobs:
       - name: Run Alex (CEO)
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          TODAY=$(date +%Y-%m-%d)
-          cd $GITHUB_WORKSPACE/agents/alex
-          claude --print "
-          Today is $TODAY. You are Alex, CEO of STALK.
+          export TODAY=$(date +%Y-%m-%d)
+          python3 .github/scripts/run_agent.py ceo
 
-          START by reading these files in order:
-          1. ../COMPANY_STATE.md
-          2. ../memory/ceo_log.md (last 30 lines)
-          3. All files in ../tasks/ (list them first with Bash ls ../tasks/)
-          4. Run: git log --oneline -15
-
-          THEN take these actions:
-          - Write new task files to ../tasks/ for any agent that needs direction today (CEO, CTO, CPO, iOS Dev, UX, CRO, Reporter). Use filename format: AGENTNAME_TASKNAME_$TODAY.md
-          - Update ../COMPANY_STATE.md if stage or priorities changed
-          - Append a brief log entry to ../memory/ceo_log.md with format: ## $TODAY\n[your notes]
-
-          Keep file writes concise. No bloat.
-          " || true
-
-      - name: Commit CEO outputs
+      - name: Commit outputs
         run: |
           TODAY=$(date +%Y-%m-%d)
           git add agents/
@@ -75,19 +51,15 @@ jobs:
     name: Maya (CTO)
     runs-on: ubuntu-latest
     needs: ceo
-    if: ${{ always() && (github.event.inputs.agent == 'all' || github.event.inputs.agent == 'cto' || github.event_name == 'schedule') }}
+    if: ${{ always() && (github.event.inputs.agent == 'all' || github.event.inputs.agent == 'cto') }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 20
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Install Claude CLI
-        run: npm install -g @anthropic-ai/claude-code
+      - name: Install Anthropic SDK
+        run: pip install anthropic
 
       - name: Configure Git
         run: |
@@ -100,29 +72,12 @@ jobs:
       - name: Run Maya (CTO)
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          TODAY=$(date +%Y-%m-%d)
-          cd $GITHUB_WORKSPACE/agents/maya
-          claude --print "
-          Today is $TODAY. You are Maya, CTO of STALK.
+          export TODAY=$(date +%Y-%m-%d)
+          python3 .github/scripts/run_agent.py cto
 
-          START by reading:
-          1. ../COMPANY_STATE.md
-          2. ../tasks/ — find any task assigned to you (CTO/Maya)
-          3. git log --oneline -10
-          4. Any Swift files changed recently: git diff HEAD~5 --name-only | grep .swift
-
-          THEN:
-          - Review the architecture decisions needed
-          - Write or update ADR files in ../memory/adr/ if any decision was made
-          - Append notes to ../memory/cto_decisions.md
-          - Update ../tasks/ — mark your tasks done by renaming them with _DONE suffix
-          - If you see a critical iOS bug in recent commits, create a GitHub issue using Bash: gh issue create --title '...' --body '...' --label bug
-
-          Keep entries concise.
-          " || true
-
-      - name: Commit CTO outputs
+      - name: Commit outputs
         run: |
           TODAY=$(date +%Y-%m-%d)
           git add agents/
@@ -133,19 +88,15 @@ jobs:
     name: Jordan (iOS Dev)
     runs-on: ubuntu-latest
     needs: cto
-    if: ${{ always() && (github.event.inputs.agent == 'all' || github.event.inputs.agent == 'ios_dev' || github.event_name == 'schedule') }}
+    if: ${{ always() && (github.event.inputs.agent == 'all' || github.event.inputs.agent == 'ios_dev') }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 20
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Install Claude CLI
-        run: npm install -g @anthropic-ai/claude-code
+      - name: Install Anthropic SDK
+        run: pip install anthropic
 
       - name: Configure Git
         run: |
@@ -160,28 +111,10 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          TODAY=$(date +%Y-%m-%d)
-          cd $GITHUB_WORKSPACE/agents/jordan
-          claude --print "
-          Today is $TODAY. You are Jordan, iOS Dev at STALK.
+          export TODAY=$(date +%Y-%m-%d)
+          python3 .github/scripts/run_agent.py ios_dev
 
-          START by reading:
-          1. ../COMPANY_STATE.md
-          2. ../tasks/ — find tasks assigned to iOS Dev / Jordan
-          3. Run: git log --oneline -10
-          4. Run: git diff HEAD~3 --name-only | grep -E '\.swift$'
-          5. Read any changed Swift files (up to 3 most recently changed)
-
-          THEN:
-          - Log your findings to ../memory/ios_dev_log.md (append ## $TODAY section)
-          - If you spot a bug or improvement, create a GitHub issue: gh issue create --title 'iOS: ...' --body '...' --label 'ios,improvement'
-          - Update task files — mark done tasks with _DONE suffix
-          - If any task requires a code change, note it clearly in ios_dev_log.md for Itamar to approve
-
-          Rules: NEVER push code directly to main. Flag code changes for Itamar review.
-          " || true
-
-      - name: Commit Jordan outputs
+      - name: Commit outputs
         run: |
           TODAY=$(date +%Y-%m-%d)
           git add agents/
@@ -192,19 +125,15 @@ jobs:
     name: Luna (UX)
     runs-on: ubuntu-latest
     needs: ios_dev
-    if: ${{ always() && (github.event.inputs.agent == 'all' || github.event.inputs.agent == 'ux' || github.event_name == 'schedule') }}
+    if: ${{ always() && (github.event.inputs.agent == 'all' || github.event.inputs.agent == 'ux') }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 20
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Install Claude CLI
-        run: npm install -g @anthropic-ai/claude-code
+      - name: Install Anthropic SDK
+        run: pip install anthropic
 
       - name: Configure Git
         run: |
@@ -218,27 +147,10 @@ jobs:
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
-          TODAY=$(date +%Y-%m-%d)
-          cd $GITHUB_WORKSPACE/agents/luna
-          claude --print "
-          Today is $TODAY. You are Luna, UX Lead at STALK.
+          export TODAY=$(date +%Y-%m-%d)
+          python3 .github/scripts/run_agent.py ux
 
-          START by reading:
-          1. ../COMPANY_STATE.md
-          2. ../tasks/ — find tasks assigned to UX / Luna
-          3. ../memory/design/ — read the design system files
-          4. git diff HEAD~3 --name-only | grep -E '\.swift$' — then read changed UI files
-
-          THEN:
-          - Append UX audit notes to ../memory/design/screen_audit.md
-          - Flag any design inconsistencies (wrong colors, missing shadows, layout issues) with specific file + line if possible
-          - Update tasks — mark done with _DONE suffix
-          - Write actionable UX recommendations for the next sprint
-
-          Focus on: consistency, premium feel, nano banana (#D4F03C) usage on data viz only.
-          " || true
-
-      - name: Commit Luna outputs
+      - name: Commit outputs
         run: |
           TODAY=$(date +%Y-%m-%d)
           git add agents/
@@ -249,19 +161,15 @@ jobs:
     name: Sam (CPO)
     runs-on: ubuntu-latest
     needs: ux
-    if: ${{ always() && (github.event.inputs.agent == 'all' || github.event.inputs.agent == 'cpo' || github.event_name == 'schedule') }}
+    if: ${{ always() && (github.event.inputs.agent == 'all' || github.event.inputs.agent == 'cpo') }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 20
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Install Claude CLI
-        run: npm install -g @anthropic-ai/claude-code
+      - name: Install Anthropic SDK
+        run: pip install anthropic
 
       - name: Configure Git
         run: |
@@ -275,28 +183,10 @@ jobs:
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
-          TODAY=$(date +%Y-%m-%d)
-          cd $GITHUB_WORKSPACE/agents/sam
-          claude --print "
-          Today is $TODAY. You are Sam, CPO of STALK.
+          export TODAY=$(date +%Y-%m-%d)
+          python3 .github/scripts/run_agent.py cpo
 
-          START by reading:
-          1. ../COMPANY_STATE.md
-          2. ../tasks/ — find tasks assigned to CPO / Sam
-          3. ../memory/prd/ — product requirements docs
-          4. ../memory/product/feature_backlog.md
-
-          THEN:
-          - Prioritize the feature backlog — mark items HIGH/MEDIUM/LOW based on launch readiness
-          - Update ../memory/product/feature_backlog.md with today's priorities
-          - If you identify a new feature worth building, add it to backlog with reasoning
-          - Append product notes to ../memory/product/daily_active_use_map.md
-          - Mark done tasks with _DONE suffix
-
-          Focus: what gets us to App Store launch fastest.
-          " || true
-
-      - name: Commit Sam outputs
+      - name: Commit outputs
         run: |
           TODAY=$(date +%Y-%m-%d)
           git add agents/
@@ -307,19 +197,15 @@ jobs:
     name: Rex (CRO)
     runs-on: ubuntu-latest
     needs: cpo
-    if: ${{ always() && (github.event.inputs.agent == 'all' || github.event.inputs.agent == 'cro' || github.event_name == 'schedule') }}
+    if: ${{ always() && (github.event.inputs.agent == 'all' || github.event.inputs.agent == 'cro') }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 20
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Install Claude CLI
-        run: npm install -g @anthropic-ai/claude-code
+      - name: Install Anthropic SDK
+        run: pip install anthropic
 
       - name: Configure Git
         run: |
@@ -333,26 +219,10 @@ jobs:
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
-          TODAY=$(date +%Y-%m-%d)
-          cd $GITHUB_WORKSPACE/agents/rex
-          claude --print "
-          Today is $TODAY. You are Rex, CRO of STALK.
+          export TODAY=$(date +%Y-%m-%d)
+          python3 .github/scripts/run_agent.py cro
 
-          START by reading:
-          1. ../COMPANY_STATE.md
-          2. ../tasks/ — find tasks assigned to CRO / Rex
-          3. ../memory/revenue/ — all revenue analysis files
-
-          THEN:
-          - Update ../memory/revenue/business_model_analysis.md with today's insights
-          - Identify the top 1-2 revenue levers to pull before App Store launch
-          - Write revenue recommendations as a new section in the analysis
-          - Mark done tasks with _DONE suffix
-
-          Focus: subscription conversion, paywall timing, affiliate broker opportunities.
-          " || true
-
-      - name: Commit Rex outputs
+      - name: Commit outputs
         run: |
           TODAY=$(date +%Y-%m-%d)
           git add agents/
@@ -363,19 +233,15 @@ jobs:
     name: Dana (Reporter)
     runs-on: ubuntu-latest
     needs: cro
-    if: ${{ always() && (github.event.inputs.agent == 'all' || github.event.inputs.agent == 'reporter' || github.event_name == 'schedule') }}
+    if: ${{ always() && (github.event.inputs.agent == 'all' || github.event.inputs.agent == 'reporter') }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 20
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Install Claude CLI
-        run: npm install -g @anthropic-ai/claude-code
+      - name: Install Anthropic SDK
+        run: pip install anthropic
 
       - name: Configure Git
         run: |
@@ -389,30 +255,8 @@ jobs:
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
-          TODAY=$(date +%Y-%m-%d)
-          cd $GITHUB_WORKSPACE/agents/dana
-          claude --print "
-          Today is $TODAY. You are Dana, Reporter at STALK.
-
-          START by reading everything from today's agent runs:
-          1. ../memory/ceo_log.md (last 20 lines)
-          2. ../memory/cto_decisions.md (last 20 lines)
-          3. ../memory/ios_dev_log.md (last 20 lines)
-          4. ../memory/product/feature_backlog.md
-          5. ../memory/revenue/business_model_analysis.md (last 20 lines)
-          6. git log --oneline --since='24 hours ago'
-
-          THEN write a daily report to ../reports/daily_$TODAY.md with this structure:
-          # STALK Daily Report — $TODAY
-
-          ## What Got Done
-          ## Blockers
-          ## Agent Activity Summary
-          ## Top Priority Tomorrow
-          ## Stats (commits today, open tasks, features done)
-
-          Keep it sharp, factual, under 300 words. Itamar reads this first thing.
-          " || true
+          export TODAY=$(date +%Y-%m-%d)
+          python3 .github/scripts/run_agent.py reporter
 
       - name: Commit Dana report
         run: |

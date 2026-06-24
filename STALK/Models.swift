@@ -333,6 +333,12 @@ struct WatchlistItem: Identifiable, Codable {
     var dateAdded: Date = Date()
 }
 
+struct UserWatchlist: Identifiable, Codable {
+    var id: UUID = UUID()
+    var name: String
+    var items: [WatchlistItem] = []
+}
+
 struct WatchlistGroup: Identifiable {
     let id: String
     let label: String

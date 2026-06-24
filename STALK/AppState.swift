@@ -102,7 +102,14 @@ class AppState {
     var copiedAmounts: [Int: Double] = [:]
     var postComments: [UUID: [Comment]] = [:]
     var savedItems: Set<UUID> = []
-    var watchlist: [WatchlistItem] = []
+    var userWatchlists: [UserWatchlist] = []
+    var activeWatchlistIndex: Int = 0
+
+    // Backward-compat computed property (MarketView, MyProfileView, etc.)
+    var watchlist: [WatchlistItem] {
+        guard !userWatchlists.isEmpty else { return [] }
+        return userWatchlists[min(activeWatchlistIndex, userWatchlists.count - 1)].items
+    }
 
     // MARK: Market
     var marketQuotes: [String: Quote] = [:]
@@ -186,40 +193,73 @@ class AppState {
         }
     }
 
+    // MARK: - Watchlist helpers (operate on active watchlist)
+
+    private var activeIdx: Int {
+        min(activeWatchlistIndex, max(0, userWatchlists.count - 1))
+    }
+
     func addToWatchlist(_ ticker: String) {
-        guard !watchlist.contains(where: { $0.ticker == ticker }) else { return }
-        watchlist.insert(WatchlistItem(ticker: ticker), at: 0)
-        saveWatchlist()
+        guard !userWatchlists.isEmpty else { return }
+        guard !userWatchlists[activeIdx].items.contains(where: { $0.ticker == ticker }) else { return }
+        userWatchlists[activeIdx].items.insert(WatchlistItem(ticker: ticker), at: 0)
+        saveWatchlists()
     }
 
     func addToWatchlist(_ ticker: String, tags: [WatchlistTag], note: String) {
-        guard !watchlist.contains(where: { $0.ticker == ticker }) else { return }
-        watchlist.insert(WatchlistItem(ticker: ticker, tags: tags, note: note), at: 0)
-        saveWatchlist()
+        guard !userWatchlists.isEmpty else { return }
+        guard !userWatchlists[activeIdx].items.contains(where: { $0.ticker == ticker }) else { return }
+        userWatchlists[activeIdx].items.insert(WatchlistItem(ticker: ticker, tags: tags, note: note), at: 0)
+        saveWatchlists()
     }
 
     func removeFromWatchlist(_ ticker: String) {
-        watchlist.removeAll { $0.ticker == ticker }
-        saveWatchlist()
+        guard !userWatchlists.isEmpty else { return }
+        userWatchlists[activeIdx].items.removeAll { $0.ticker == ticker }
+        saveWatchlists()
     }
 
     func isWatched(_ ticker: String) -> Bool {
-        watchlist.contains { $0.ticker == ticker }
+        guard !userWatchlists.isEmpty else { return false }
+        return userWatchlists[activeIdx].items.contains { $0.ticker == ticker }
     }
 
     func updateWatchlistItem(_ item: WatchlistItem) {
-        if let i = watchlist.firstIndex(where: { $0.id == item.id }) {
-            watchlist[i] = item
-            saveWatchlist()
+        guard !userWatchlists.isEmpty else { return }
+        if let i = userWatchlists[activeIdx].items.firstIndex(where: { $0.id == item.id }) {
+            userWatchlists[activeIdx].items[i] = item
+            saveWatchlists()
         }
     }
 
     func updateWatchlistItem(_ id: UUID, tags: [WatchlistTag], note: String) {
-        if let i = watchlist.firstIndex(where: { $0.id == id }) {
-            watchlist[i].tags = tags
-            watchlist[i].note = note
-            saveWatchlist()
+        guard !userWatchlists.isEmpty else { return }
+        if let i = userWatchlists[activeIdx].items.firstIndex(where: { $0.id == id }) {
+            userWatchlists[activeIdx].items[i].tags = tags
+            userWatchlists[activeIdx].items[i].note = note
+            saveWatchlists()
         }
+    }
+
+    // MARK: - Multi-Watchlist management
+
+    func createWatchlist(name: String) {
+        userWatchlists.append(UserWatchlist(name: name))
+        activeWatchlistIndex = userWatchlists.count - 1
+        saveWatchlists()
+    }
+
+    func deleteWatchlist(at index: Int) {
+        guard userWatchlists.count > 1, userWatchlists.indices.contains(index) else { return }
+        userWatchlists.remove(at: index)
+        activeWatchlistIndex = min(activeWatchlistIndex, userWatchlists.count - 1)
+        saveWatchlists()
+    }
+
+    func renameWatchlist(at index: Int, to name: String) {
+        guard userWatchlists.indices.contains(index) else { return }
+        userWatchlists[index].name = name
+        saveWatchlists()
     }
 
     func price(for ticker: String) -> Double {
@@ -231,15 +271,25 @@ class AppState {
     }
 
     private func loadWatchlist() {
+        // Try loading multi-watchlist data first
+        if let data = UserDefaults.standard.data(forKey: "stalk_user_watchlists"),
+           let saved = try? JSONDecoder().decode([UserWatchlist].self, from: data) {
+            userWatchlists = saved
+            return
+        }
+        // Migrate legacy single watchlist
         if let data = UserDefaults.standard.data(forKey: "stalk_watchlist"),
            let saved = try? JSONDecoder().decode([WatchlistItem].self, from: data) {
-            watchlist = saved
+            userWatchlists = [UserWatchlist(name: "My Watchlist", items: saved)]
+        } else {
+            userWatchlists = [UserWatchlist(name: "My Watchlist")]
         }
+        saveWatchlists()
     }
 
-    func saveWatchlist() {
-        if let data = try? JSONEncoder().encode(watchlist) {
-            UserDefaults.standard.set(data, forKey: "stalk_watchlist")
+    func saveWatchlists() {
+        if let data = try? JSONEncoder().encode(userWatchlists) {
+            UserDefaults.standard.set(data, forKey: "stalk_user_watchlists")
         }
     }
 
@@ -440,5 +490,5 @@ class AppState {
 }
 
 enum Tab: String, CaseIterable {
-    case market, portfolio, ai, feed, forYou
+    case market, portfolio, watchlist, ai, feed, forYou
 }

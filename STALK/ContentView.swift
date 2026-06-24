@@ -8,11 +8,12 @@ struct ContentView: View {
     var body: some View {
         Group {
             switch appState.selectedTab {
-            case .market:    MarketView(onTicker: { chartTicker = $0 })
-            case .portfolio: PortfolioView(onTicker: { chartTicker = $0 }, onAdd: { addingPosition = true })
-            case .ai:        AIHubView(onTicker: { chartTicker = $0 })
-            case .feed:      FeedView(onTicker: { chartTicker = $0 })
-            case .forYou:    ForYouView(onTicker: { chartTicker = $0 })
+            case .market:     MarketView(onTicker: { chartTicker = $0 })
+            case .portfolio:  PortfolioView(onTicker: { chartTicker = $0 }, onAdd: { addingPosition = true })
+            case .watchlist:  WatchlistView(onTicker: { chartTicker = $0 })
+            case .ai:         AIHubView(onTicker: { chartTicker = $0 })
+            case .feed:       FeedView(onTicker: { chartTicker = $0 })
+            case .forYou:     ForYouView(onTicker: { chartTicker = $0 })
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -78,6 +79,12 @@ struct CustomTabBar: View {
                 tab: .portfolio,
                 activeColor: Color(hex: "#5B5BD6")
             )
+            TabBarButton(
+                icon: "list.star",
+                label: "Watchlist",
+                tab: .watchlist,
+                activeColor: Color(hex: "#F59E0B")
+            )
 
             // ── AI Center Button ──────────────────────────────────────────
             Button {
@@ -114,11 +121,11 @@ struct CustomTabBar: View {
                             .font(.system(size: appState.selectedTab == .ai ? 24 : 22, weight: .semibold))
                             .foregroundStyle(.white)
                     }
-                    Text("AI")
-                        .font(.system(size: 9, weight: .black))
+                    Text("STALK AI")
+                        .font(.system(size: 8, weight: .black))
                         .foregroundStyle(appState.selectedTab == .ai ? Color(hex: "#5B5BD6") : Color(hex: "#8A8A9A"))
                         .textCase(.uppercase)
-                        .kerning(0.4)
+                        .kerning(0.3)
                 }
             }
             .offset(y: -6)

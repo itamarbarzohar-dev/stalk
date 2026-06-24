@@ -48,10 +48,17 @@ struct WatchlistView: View {
     @State private var sortOrder: WatchlistSortOrder = .asc
     @State private var expandedId: UUID? = nil
     @State private var showAdd = false
+    @State private var showNewListAlert = false
+    @State private var newListName = ""
+    @State private var renameTarget: Int? = nil
+    @State private var renameText = ""
+
+    private var activeItems: [WatchlistItem] {
+        appState.watchlist
+    }
 
     private var sorted: [WatchlistItem] {
-        let items = appState.watchlist
-        return items.sorted { a, b in
+        activeItems.sorted { a, b in
             let aP = appState.price(for: a.ticker)
             let bP = appState.price(for: b.ticker)
             let aC = appState.change(for: a.ticker)
@@ -69,6 +76,7 @@ struct WatchlistView: View {
     var body: some View {
         VStack(spacing: 0) {
             watchlistHeader
+            watchlistTabBar
             columnHeader
             Divider().overlay(Theme.border)
             if sorted.isEmpty {
@@ -111,23 +119,38 @@ struct WatchlistView: View {
         .sheet(isPresented: $showAdd) {
             AddToWatchlistSheet().environment(appState)
         }
+        .alert("New Watchlist", isPresented: $showNewListAlert) {
+            TextField("Name", text: $newListName)
+            Button("Create") {
+                let name = newListName.trimmingCharacters(in: .whitespaces)
+                if !name.isEmpty { appState.createWatchlist(name: name) }
+                newListName = ""
+            }
+            Button("Cancel", role: .cancel) { newListName = "" }
+        }
+        .alert("Rename", isPresented: Binding(
+            get: { renameTarget != nil },
+            set: { if !$0 { renameTarget = nil } }
+        )) {
+            TextField("Name", text: $renameText)
+            Button("Save") {
+                if let idx = renameTarget {
+                    let name = renameText.trimmingCharacters(in: .whitespaces)
+                    if !name.isEmpty { appState.renameWatchlist(at: idx, to: name) }
+                }
+                renameTarget = nil
+            }
+            Button("Cancel", role: .cancel) { renameTarget = nil }
+        }
     }
 
+    // MARK: - Header (title row)
     var watchlistHeader: some View {
         HStack(spacing: 12) {
-            HStack(spacing: 8) {
-                Text("WATCHLIST")
-                    .font(.system(size: 13, weight: .black))
-                    .foregroundStyle(Theme.text)
-                    .kerning(1.5)
-                Text("\(appState.watchlist.count)")
-                    .font(.system(size: 11, weight: .black))
-                    .foregroundStyle(Theme.text3)
-                    .padding(.horizontal, 7)
-                    .padding(.vertical, 3)
-                    .background(Theme.bg3)
-                    .clipShape(Capsule())
-            }
+            Text("WATCHLISTS")
+                .font(.system(size: 13, weight: .black))
+                .foregroundStyle(Theme.text)
+                .kerning(1.5)
             Spacer()
             Menu {
                 ForEach(WatchlistSortField.allCases, id: \.self) { field in
@@ -174,7 +197,68 @@ struct WatchlistView: View {
         }
         .padding(.horizontal, 16)
         .padding(.top, 56)
-        .padding(.bottom, 10)
+        .padding(.bottom, 6)
+    }
+
+    // MARK: - Watchlist tab bar (horizontal pills)
+    var watchlistTabBar: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(Array(appState.userWatchlists.enumerated()), id: \.element.id) { idx, list in
+                    let isActive = idx == appState.activeWatchlistIndex
+                    Button {
+                        withAnimation(.spring(response: 0.28, dampingFraction: 0.75)) {
+                            appState.activeWatchlistIndex = idx
+                            expandedId = nil
+                        }
+                    } label: {
+                        HStack(spacing: 5) {
+                            Text(list.name)
+                                .font(.system(size: 12, weight: isActive ? .bold : .semibold))
+                                .foregroundStyle(isActive ? .white : Theme.text3)
+                            Text("\(list.items.count)")
+                                .font(.system(size: 10, weight: .bold))
+                                .foregroundStyle(isActive ? .white.opacity(0.7) : Theme.text4)
+                        }
+                        .padding(.horizontal, 13)
+                        .padding(.vertical, 7)
+                        .background(isActive ? Theme.accent : Theme.bg3)
+                        .clipShape(Capsule())
+                    }
+                    .buttonStyle(.plain)
+                    .contextMenu {
+                        Button {
+                            renameText = list.name
+                            renameTarget = idx
+                        } label: {
+                            Label("Rename", systemImage: "pencil")
+                        }
+                        if appState.userWatchlists.count > 1 {
+                            Button(role: .destructive) {
+                                appState.deleteWatchlist(at: idx)
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
+                        }
+                    }
+                }
+
+                // "+" new watchlist
+                Button {
+                    showNewListAlert = true
+                } label: {
+                    Image(systemName: "plus")
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundStyle(Theme.text3)
+                        .frame(width: 30, height: 30)
+                        .background(Theme.bg3)
+                        .clipShape(Circle())
+                }
+                .buttonStyle(.plain)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
+        }
     }
 
     var columnHeader: some View {

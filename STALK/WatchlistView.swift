@@ -217,6 +217,7 @@ struct WatchlistView: View {
             Divider().overlay(Theme.border)
             if sorted.isEmpty {
                 emptyState
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             } else {
                 ScrollView(showsIndicators: false) {
                     LazyVStack(spacing: 0) {
@@ -441,31 +442,35 @@ struct WatchlistView: View {
     }
 
     var emptyState: some View {
-        VStack(spacing: 14) {
-            Image(systemName: "chart.line.uptrend.xyaxis")
-                .font(.system(size: 44, weight: .light))
-                .foregroundStyle(Theme.text3)
-            Text("No symbols yet")
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundStyle(Theme.text2)
-            Text("Tap + Add to start tracking stocks.")
-                .font(.system(size: 13))
-                .foregroundStyle(Theme.text3)
-            Button { showAdd = true } label: {
-                HStack(spacing: 6) {
-                    Image(systemName: "plus").font(.system(size: 12, weight: .bold))
-                    Text("Add Symbol").font(.system(size: 14, weight: .bold))
+        VStack(alignment: .leading, spacing: 0) {
+            VStack(spacing: 14) {
+                Image(systemName: "chart.line.uptrend.xyaxis")
+                    .font(.system(size: 38, weight: .light))
+                    .foregroundStyle(Theme.text3)
+                Text("No symbols yet")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(Theme.text2)
+                Text("Tap + Add to start tracking stocks.")
+                    .font(.system(size: 13))
+                    .foregroundStyle(Theme.text3)
+                Button { showAdd = true } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "plus").font(.system(size: 12, weight: .bold))
+                        Text("Add Symbol").font(.system(size: 14, weight: .bold))
+                    }
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 22)
+                    .padding(.vertical, 11)
+                    .background(Theme.accentGradient)
+                    .clipShape(Capsule())
                 }
-                .foregroundStyle(.white)
-                .padding(.horizontal, 22)
-                .padding(.vertical, 11)
-                .background(Theme.accentGradient)
-                .clipShape(Capsule())
+                .buttonStyle(.plain)
             }
-            .buttonStyle(.plain)
+            .padding(.top, 36)
+            .frame(maxWidth: .infinity)
+            Spacer()
         }
-        .padding(.vertical, 72)
-        .frame(maxWidth: .infinity)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     }
 }
 

@@ -10,26 +10,27 @@ permissions:
   contents: read
   pull-requests: write
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   # ── Maya reviews the code architecture ─────────────────────────────────────
   cto-review:
     name: Maya (CTO) — Code Review
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Install Claude CLI
-        run: npm install -g @anthropic-ai/claude-code
+      - name: Install Anthropic SDK (pinned)
+        run: pip install "anthropic==0.52.0" --quiet
 
       - name: Get changed Swift files
         id: changed
         run: |
+          set -euo pipefail
           FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep '\.swift$' | head -8 | tr '\n' ' ')
           echo "files=$FILES" >> $GITHUB_OUTPUT
           echo "Changed Swift files: $FILES"
@@ -38,42 +39,64 @@ jobs:
         id: review
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          set -euo pipefail
           CHANGED_FILES="${{ steps.changed.outputs.files }}"
           PR_TITLE="${{ github.event.pull_request.title }}"
-          PR_NUMBER="${{ github.event.pull_request.number }}"
 
-          REVIEW=$(claude --print "
-          You are Maya, CTO of STALK. A PR just came in.
+          # Read diff content (safe — no user input in shell)
+          DIFF=$(git diff origin/${{ github.base_ref }}...HEAD -- $CHANGED_FILES 2>/dev/null | head -200 || echo "No diff")
 
-          PR: #$PR_NUMBER — $PR_TITLE
-          Changed Swift files: $CHANGED_FILES
+          python3 - <<PYEOF
+          import anthropic, os
 
-          Read the changed files listed above, then run: git diff origin/${{ github.base_ref }}...HEAD -- $CHANGED_FILES
+          api_key = os.environ.get("ANTHROPIC_API_KEY", "")
+          if not api_key or api_key == "***":
+              print("ERROR: ANTHROPIC_API_KEY not set")
+              exit(1)
 
-          Write a concise code review comment covering:
-          1. Architecture — any violations of STALK patterns (@Observable, Swift 6, MainActor)?
+          diff = """$DIFF"""
+          changed = """$CHANGED_FILES"""
+          pr_title = """$PR_TITLE"""
+
+          client = anthropic.Anthropic(api_key=api_key)
+          msg = client.messages.create(
+              model="claude-haiku-4-5-20251001",
+              max_tokens=600,
+              messages=[{"role": "user", "content": f"""You are Maya, CTO of STALK — iOS SwiftUI app (Swift 6, @Observable, MainActor).
+
+          PR: {pr_title}
+          Changed files: {changed}
+
+          DIFF:
+          {diff[:3000]}
+
+          Write a concise code review covering:
+          1. Architecture — @Observable used correctly? No ObservableObject?
           2. Bugs — anything that will crash or behave wrong?
-          3. Performance — anything expensive on main thread?
-          4. Design system — correct use of Theme.swift tokens?
-          5. Approval — end with LGTM ✓ or REQUEST CHANGES with specific items
+          3. MainActor — any UI work off main thread?
+          4. Design system — Theme.swift tokens used (not hardcoded colors)?
+          5. End with: LGTM ✓ or REQUEST CHANGES: [specific items]
 
-          Keep it under 200 words. Be direct, like a senior iOS engineer.
-          " 2>&1 || echo "Review generation failed")
-
-          echo "REVIEW<<EOF" >> $GITHUB_ENV
-          echo "$REVIEW" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
+          Under 200 words. Direct, like a senior iOS engineer."""}]
+          )
+          review = msg.content[0].text
+          # Write to file to avoid env var injection
+          with open("/tmp/review.txt", "w") as f:
+              f.write(review)
+          print("Review written.")
+          PYEOF
 
       - name: Post review comment
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          set -euo pipefail
+          REVIEW=$(cat /tmp/review.txt 2>/dev/null || echo "Review generation failed")
           gh pr comment ${{ github.event.pull_request.number }} \
             --body "## Maya (CTO) Code Review
 
-          ${{ env.REVIEW }}
+          $REVIEW
 
           ---
           *Automated review by STALK Agent Network*"
@@ -83,56 +106,69 @@ jobs:
     name: Jordan (iOS Dev) — Pattern Check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Install Claude CLI
-        run: npm install -g @anthropic-ai/claude-code
+      - name: Install Anthropic SDK (pinned)
+        run: pip install "anthropic==0.52.0" --quiet
 
       - name: Jordan checks patterns
         id: patterns
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          set -euo pipefail
           CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep '\.swift$' | head -5 | tr '\n' ' ')
+          DIFF=$(git diff origin/${{ github.base_ref }}...HEAD -- $CHANGED 2>/dev/null | head -150 || echo "No diff")
 
-          NOTES=$(claude --print "
-          You are Jordan, iOS Dev at STALK. Quick pattern check on this PR.
+          python3 - <<PYEOF
+          import anthropic, os
 
-          Changed files: $CHANGED
+          api_key = os.environ.get("ANTHROPIC_API_KEY", "")
+          if not api_key or api_key == "***":
+              print("ERROR: ANTHROPIC_API_KEY not set")
+              exit(1)
 
-          Run: git diff origin/${{ github.base_ref }}...HEAD -- $CHANGED
+          diff = """$DIFF"""
+          changed = """$CHANGED"""
 
-          Check ONLY for these specific STALK anti-patterns:
+          client = anthropic.Anthropic(api_key=api_key)
+          msg = client.messages.create(
+              model="claude-haiku-4-5-20251001",
+              max_tokens=300,
+              messages=[{"role": "user", "content": f"""You are Jordan, iOS Dev at STALK. Quick pattern check.
+
+          Changed files: {changed}
+          DIFF: {diff[:2000]}
+
+          Check ONLY for these STALK anti-patterns:
           - ObservableObject used instead of @Observable macro
           - Hardcoded colors instead of Theme.swift tokens
-          - Emoji in code (we use SF Symbols)
+          - Nano banana (#D4F03C) used on UI chrome (not data viz)
           - UserDefaults called outside AppState
-          - Any non-MainActor async that touches UI
+          - Non-MainActor async touching UI
 
-          List only actual violations found, one line each, with file:line.
-          If none found, write: All patterns ✓
-          Max 5 lines total.
-          " 2>&1 || echo "Pattern check failed")
-
-          echo "NOTES<<EOF" >> $GITHUB_ENV
-          echo "$NOTES" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
+          List only actual violations, one line each with file:line.
+          If none: write exactly "All patterns ✓"
+          Max 5 lines."""}]
+          )
+          notes = msg.content[0].text
+          with open("/tmp/patterns.txt", "w") as f:
+              f.write(notes)
+          print("Pattern check written.")
+          PYEOF
 
       - name: Post pattern check
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          set -euo pipefail
+          NOTES=$(cat /tmp/patterns.txt 2>/dev/null || echo "Pattern check failed")
           gh pr comment ${{ github.event.pull_request.number }} \
             --body "## Jordan (iOS Dev) Pattern Check
 
-          ${{ env.NOTES }}
+          $NOTES
 
           ---
           *Automated check by STALK Agent Network*"

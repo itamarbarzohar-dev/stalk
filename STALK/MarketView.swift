@@ -105,7 +105,13 @@ struct MarketView: View {
                 } else {
                     VStack(spacing: 7) {
                         ForEach(Array(appState.watchlist.prefix(5))) { item in
-                            WatchlistCompactRow(item: item, onTap: { onTicker(item.ticker) })
+                            WatchlistCompactRow(
+                                item: item,
+                                price: appState.price(for: item.ticker),
+                                changePct: appState.change(for: item.ticker),
+                                onTap: { onTicker(item.ticker) },
+                                onTickerTap: { onTicker(item.ticker) }
+                            )
                         }
                     }
                     .padding(.horizontal, 14)
@@ -169,7 +175,7 @@ struct MarketView: View {
         .refreshable { await appState.refreshMarket() }
         .onReceive(timer) { now = $0 }
         .sheet(isPresented: $showWatchlist) {
-            WatchlistView().environment(appState)
+            WatchlistView(onTicker: onTicker).environment(appState)
         }
     }
 

@@ -192,6 +192,12 @@ class AppState {
         saveWatchlist()
     }
 
+    func addToWatchlist(_ ticker: String, tags: [WatchlistTag], note: String) {
+        guard !watchlist.contains(where: { $0.ticker == ticker }) else { return }
+        watchlist.insert(WatchlistItem(ticker: ticker, tags: tags, note: note), at: 0)
+        saveWatchlist()
+    }
+
     func removeFromWatchlist(_ ticker: String) {
         watchlist.removeAll { $0.ticker == ticker }
         saveWatchlist()
@@ -206,6 +212,22 @@ class AppState {
             watchlist[i] = item
             saveWatchlist()
         }
+    }
+
+    func updateWatchlistItem(_ id: UUID, tags: [WatchlistTag], note: String) {
+        if let i = watchlist.firstIndex(where: { $0.id == id }) {
+            watchlist[i].tags = tags
+            watchlist[i].note = note
+            saveWatchlist()
+        }
+    }
+
+    func price(for ticker: String) -> Double {
+        marketQuotes[ticker]?.price ?? quotes[ticker]?.price ?? 0
+    }
+
+    func change(for ticker: String) -> Double {
+        marketQuotes[ticker]?.changePercent ?? quotes[ticker]?.changePercent ?? 0
     }
 
     private func loadWatchlist() {

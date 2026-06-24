@@ -1,784 +1,643 @@
 import SwiftUI
 
+// MARK: - MyProfileView
+
+enum ProfileTab {
+    case posts, portfolio, about
+}
+
 struct MyProfileView: View {
     @Environment(AppState.self) var appState
     @Environment(\.dismiss) var dismiss
-
+    @State private var profileTab: ProfileTab = .posts
     @State private var showSettings = false
-    @State private var showCreatePost = false
     @State private var showShareSheet = false
-    @State private var selectedTab: ProfileTab = .posts
+    @State private var showEditProfile = false
 
-    enum ProfileTab: CaseIterable {
-        case posts, portfolio, about
-
-        var icon: String {
-            switch self {
-            case .posts:     return "square.grid.3x3.fill"
-            case .portfolio: return "chart.line.uptrend.xyaxis"
-            case .about:     return "info.circle.fill"
-            }
-        }
-    }
+    private let gridColumns = [
+        GridItem(.flexible(), spacing: 2),
+        GridItem(.flexible(), spacing: 2),
+        GridItem(.flexible(), spacing: 2),
+    ]
 
     var body: some View {
-        NavigationStack {
-            ZStack(alignment: .bottomTrailing) {
-                Theme.bg.ignoresSafeArea()
-
-                ScrollView(showsIndicators: false) {
-                    VStack(spacing: 0) {
-                        profileHeader
-                        statsBar
-                        actionButtons
-                        tabSelector
-                        tabContent
-                        Color.clear.frame(height: 100)
-                    }
-                }
-
-                if selectedTab == .posts {
-                    composeFAB
-                }
+        ScrollView(showsIndicators: false) {
+            VStack(spacing: 0) {
+                profileCover
+                profileIdentity
+                profileStats
+                profileActions
+                tabSelector
+                tabContent
+                Color.clear.frame(height: 100)
             }
-            .navigationBarHidden(true)
         }
-        .sheet(isPresented: $showSettings) {
-            SettingsView().environment(appState)
-        }
-        .sheet(isPresented: $showCreatePost) {
-            CreatePostView().environment(appState)
-        }
+        .background(Theme.bg)
+        .ignoresSafeArea(edges: .top)
+        .sheet(isPresented: $showSettings) { SettingsView().environment(appState) }
+        .sheet(isPresented: $showEditProfile) { EditProfileView().environment(appState) }
         .sheet(isPresented: $showShareSheet) {
-            ShareSheet(items: ["Check out my STALK profile: https://stalk.app/\(appState.settings.username.replacingOccurrences(of: "@", with: ""))"])
+            ShareSheet(activityItems: ["Check out my portfolio on STALK! @\(appState.settings.username)"])
         }
     }
 
-    var profileHeader: some View {
-        ZStack(alignment: .bottom) {
-            appState.heroGradient
-                .frame(height: 160)
-                .overlay(alignment: .topTrailing) {
-                    HStack(spacing: 10) {
-                        Spacer()
-                        Button {
-                            showShareSheet = true
-                        } label: {
-                            Image(systemName: "person.crop.circle.badge.plus")
-                                .font(.system(size: 17, weight: .semibold))
+    var profileCover: some View {
+        ZStack(alignment: .topTrailing) {
+            Rectangle()
+                .fill(AnyShapeStyle(appState.heroGradient))
+                .frame(height: 220)
+                .overlay(alignment: .bottomLeading) {
+                    Circle()
+                        .fill(AnyShapeStyle(appState.accentGradient))
+                        .frame(width: 90, height: 90)
+                        .overlay(
+                            Text(String(appState.settings.displayName.prefix(1)).uppercased())
+                                .font(.system(size: 36, weight: .black))
                                 .foregroundStyle(.white)
-                                .frame(width: 36, height: 36)
-                                .background(.white.opacity(0.18))
-                                .clipShape(Circle())
-                        }
-                        Button {
-                            showSettings = true
-                        } label: {
-                            Image(systemName: "gearshape.fill")
-                                .font(.system(size: 17, weight: .semibold))
-                                .foregroundStyle(.white)
-                                .frame(width: 36, height: 36)
-                                .background(.white.opacity(0.18))
-                                .clipShape(Circle())
-                        }
-                    }
-                    .padding(.horizontal, 20)
-                    .padding(.top, 52)
+                        )
+                        .overlay(Circle().stroke(Color.white, lineWidth: 3))
+                        .shadow(color: .black.opacity(0.2), radius: 12, y: 4)
+                        .offset(x: 20, y: 45)
                 }
+
+            Button { showSettings = true } label: {
+                Image(systemName: "gearshape.fill")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .frame(width: 38, height: 38)
+                    .background(.ultraThinMaterial)
+                    .clipShape(Circle())
+                    .overlay(Circle().stroke(.white.opacity(0.2), lineWidth: 1))
+                    .shadow(color: .black.opacity(0.25), radius: 6, y: 2)
+            }
+            .buttonStyle(.plain)
+            .padding(.top, 56)
+            .padding(.trailing, 18)
+        }
+        .frame(height: 220)
+    }
+
+    var profileIdentity: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Color.clear.frame(height: 50)
 
             HStack(alignment: .bottom) {
-                avatarCircle
-                    .offset(y: 42)
-                    .padding(.leading, 20)
-                Spacer()
-            }
-        }
-        .padding(.bottom, 42)
-    }
-
-    var avatarCircle: some View {
-        ZStack {
-            Circle()
-                .fill(appState.accentGradient)
-                .frame(width: 84, height: 84)
-
-            Text(String(appState.settings.displayName.prefix(1)).uppercased())
-                .font(.system(size: 34, weight: .black))
-                .foregroundStyle(.white)
-        }
-        .overlay(
-            Circle().stroke(Theme.bg, lineWidth: 4)
-        )
-        .overlay(alignment: .bottomTrailing) {
-            if appState.settings.isPro {
-                Text("PRO")
-                    .font(.system(size: 8, weight: .black))
-                    .foregroundStyle(Theme.gold)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 2)
-                    .background(Theme.gold.opacity(0.18))
-                    .clipShape(Capsule())
-                    .overlay(Capsule().stroke(Theme.gold.opacity(0.5), lineWidth: 1))
-                    .offset(x: 4, y: 4)
-            }
-        }
-        .shadow(color: .black.opacity(0.25), radius: 8, y: 4)
-    }
-
-    var statsBar: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            VStack(alignment: .leading, spacing: 5) {
-                HStack(alignment: .center, spacing: 8) {
+                VStack(alignment: .leading, spacing: 4) {
                     Text(appState.settings.displayName)
                         .font(.system(size: 20, weight: .black))
                         .foregroundStyle(Theme.text)
-                    if appState.settings.isPro {
-                        Text("PRO")
-                            .font(.system(size: 9, weight: .black))
-                            .foregroundStyle(Theme.gold)
-                            .padding(.horizontal, 7)
-                            .padding(.vertical, 2)
-                            .background(Theme.gold.opacity(0.14))
-                            .clipShape(Capsule())
-                            .overlay(Capsule().stroke(Theme.gold.opacity(0.35), lineWidth: 1))
-                    }
-                }
-                Text(appState.settings.username)
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundStyle(Theme.text3)
-                if !appState.settings.bio.isEmpty {
-                    Text(appState.settings.bio)
+                    Text("@\(appState.settings.username)")
                         .font(.system(size: 13))
                         .foregroundStyle(Theme.text3)
-                        .lineLimit(3)
-                        .fixedSize(horizontal: false, vertical: true)
                 }
+                Spacer()
+                Text(appState.totalPnlPct.fmtPct())
+                    .font(.system(size: 14, weight: .black))
+                    .foregroundStyle(appState.totalPnlPct >= 0 ? Theme.gain : Theme.loss)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(appState.totalPnlPct >= 0 ? Theme.gainBg : Theme.lossBg)
+                    .clipShape(Capsule())
             }
-            .padding(.horizontal, 20)
-            .padding(.top, 12)
-            .padding(.bottom, 16)
 
-            HStack(spacing: 0) {
-                statCell(value: "\(appState.userPosts.count)", label: "Posts")
-                Rectangle().fill(Theme.border).frame(width: 1, height: 30)
-                statCell(value: "128", label: "Followers")
-                Rectangle().fill(Theme.border).frame(width: 1, height: 30)
-                statCell(value: "\(appState.followed.count)", label: "Following")
-                Rectangle().fill(Theme.border).frame(width: 1, height: 30)
-                statCellColored(
-                    value: appState.totalPnlPct >= 0
-                        ? "+\(String(format: "%.1f", appState.totalPnlPct))%"
-                        : "\(String(format: "%.1f", appState.totalPnlPct))%",
-                    label: "Return",
-                    color: appState.totalPnlPct >= 0 ? Theme.gain : Theme.loss
-                )
+            if !appState.settings.bio.isEmpty {
+                Text(appState.settings.bio)
+                    .font(.system(size: 13))
+                    .foregroundStyle(Theme.text2)
+                    .lineLimit(3)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .lineSpacing(3)
             }
-            .padding(.vertical, 12)
-            .background(Theme.card)
-            .clipShape(RoundedRectangle(cornerRadius: 18))
-            .overlay(RoundedRectangle(cornerRadius: 18).stroke(Theme.border, lineWidth: 1))
-            .padding(.horizontal, 16)
         }
+        .padding(.horizontal, 20)
+        .padding(.bottom, 16)
     }
 
-    func statCell(value: String, label: String) -> some View {
-        VStack(spacing: 3) {
-            Text(value)
-                .font(.system(size: 18, weight: .black))
-                .foregroundStyle(Theme.text)
-                .monospacedDigit()
-            Text(label)
-                .font(.system(size: 11, weight: .medium))
-                .foregroundStyle(Theme.text3)
+    var profileStats: some View {
+        HStack(spacing: 0) {
+            profileStatCell("\(appState.userPosts.count)", "Posts")
+            statDivider
+            profileStatCell("2,341", "Followers")
+            statDivider
+            profileStatCell("180", "Following")
+            statDivider
+            profileStatCell(appState.totalPnlPct.fmtPct(), "Return")
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 4)
+        .padding(.horizontal, 20)
+        .padding(.vertical, 14)
+        .overlay(Rectangle().fill(Theme.border).frame(height: 0.5), alignment: .top)
+        .overlay(Rectangle().fill(Theme.border).frame(height: 0.5), alignment: .bottom)
     }
 
-    func statCellColored(value: String, label: String, color: Color) -> some View {
-        VStack(spacing: 3) {
-            Text(value)
-                .font(.system(size: 18, weight: .black))
-                .foregroundStyle(color)
-                .monospacedDigit()
-            Text(label)
-                .font(.system(size: 11, weight: .medium))
-                .foregroundStyle(Theme.text3)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 4)
+    @ViewBuilder
+    var statDivider: some View {
+        Rectangle()
+            .fill(Theme.border)
+            .frame(width: 1, height: 28)
     }
 
-    var actionButtons: some View {
+    var profileActions: some View {
         HStack(spacing: 10) {
-            Button {
-                showSettings = true
-            } label: {
-                HStack(spacing: 6) {
-                    Image(systemName: "pencil")
-                        .font(.system(size: 13, weight: .semibold))
-                    Text("Edit Profile")
-                        .font(.system(size: 14, weight: .semibold))
-                }
-                .foregroundStyle(Theme.text)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 11)
-                .background(Theme.card)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-                .overlay(RoundedRectangle(cornerRadius: 12).stroke(Theme.border, lineWidth: 1))
+            Button { showEditProfile = true } label: {
+                Text("Edit Profile")
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundStyle(Theme.text)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 11)
+                    .background(Theme.bg)
+                    .clipShape(RoundedRectangle(cornerRadius: 14))
+                    .overlay(RoundedRectangle(cornerRadius: 14).stroke(Theme.border, lineWidth: 1.5))
             }
             .buttonStyle(.plain)
 
-            Button {
-                showCreatePost = true
-            } label: {
-                HStack(spacing: 6) {
-                    Image(systemName: "plus")
-                        .font(.system(size: 13, weight: .semibold))
-                    Text("New Post")
-                        .font(.system(size: 14, weight: .semibold))
-                }
-                .foregroundStyle(.white)
-                .padding(.horizontal, 20)
-                .padding(.vertical, 11)
-                .background(appState.accentGradient)
-                .clipShape(Capsule())
+            Button { showShareSheet = true } label: {
+                Image(systemName: "square.and.arrow.up")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(Theme.text2)
+                    .frame(width: 44, height: 44)
+                    .background(Theme.bg)
+                    .clipShape(RoundedRectangle(cornerRadius: 14))
+                    .overlay(RoundedRectangle(cornerRadius: 14).stroke(Theme.border, lineWidth: 1.5))
             }
             .buttonStyle(.plain)
         }
-        .padding(.horizontal, 16)
-        .padding(.top, 14)
+        .padding(.horizontal, 20)
+        .padding(.vertical, 14)
     }
 
     var tabSelector: some View {
-        VStack(spacing: 0) {
-            HStack(spacing: 0) {
-                ForEach(ProfileTab.allCases, id: \.self) { tab in
-                    Button {
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {
-                            selectedTab = tab
-                        }
-                    } label: {
-                        VStack(spacing: 6) {
-                            Image(systemName: tab.icon)
-                                .font(.system(size: 20, weight: selectedTab == tab ? .bold : .regular))
-                                .foregroundStyle(selectedTab == tab ? Theme.text : Theme.text4)
-                                .frame(maxWidth: .infinity)
-                            Rectangle()
-                                .fill(selectedTab == tab ? appState.accentColor : Color.clear)
-                                .frame(height: 2)
-                                .clipShape(Capsule())
-                        }
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            .padding(.horizontal, 16)
-            .padding(.top, 18)
-
-            Rectangle()
-                .fill(Theme.border)
-                .frame(height: 1)
+        HStack(spacing: 0) {
+            profileTabBtn(.posts, icon: "square.grid.3x3.fill")
+            profileTabBtn(.portfolio, icon: "chart.bar.fill")
+            profileTabBtn(.about, icon: "person.crop.rectangle.fill")
         }
-        .padding(.bottom, 2)
+        .overlay(Rectangle().fill(Theme.border).frame(height: 0.5), alignment: .top)
+        .overlay(Rectangle().fill(Theme.border).frame(height: 0.5), alignment: .bottom)
+    }
+
+    func profileTabBtn(_ tab: ProfileTab, icon: String) -> some View {
+        Button {
+            withAnimation(.easeInOut(duration: 0.2)) { profileTab = tab }
+        } label: {
+            VStack(spacing: 8) {
+                Image(systemName: icon)
+                    .font(.system(size: 16, weight: profileTab == tab ? .bold : .regular))
+                    .foregroundStyle(profileTab == tab ? Theme.text : Theme.text3)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 10)
+                Rectangle()
+                    .fill(profileTab == tab ? Theme.text : Color.clear)
+                    .frame(height: 2)
+            }
+        }
+        .buttonStyle(.plain)
     }
 
     @ViewBuilder
     var tabContent: some View {
-        switch selectedTab {
-        case .posts:
-            postsGrid
-        case .portfolio:
-            portfolioTab
-        case .about:
-            aboutTab
+        switch profileTab {
+        case .posts:    postsGrid
+        case .portfolio: portfolioTab
+        case .about:    aboutTab
         }
     }
-
-    var composeFAB: some View {
-        Button {
-            showCreatePost = true
-        } label: {
-            Image(systemName: "pencil")
-                .font(.system(size: 20, weight: .bold))
-                .foregroundStyle(.white)
-                .frame(width: 56, height: 56)
-                .background(appState.accentGradient)
-                .clipShape(Circle())
-                .shadow(color: appState.accentColor.opacity(0.45), radius: 12, y: 4)
-        }
-        .padding(.trailing, 20)
-        .padding(.bottom, 104)
-    }
-}
-
-private extension MyProfileView {
 
     var postsGrid: some View {
         Group {
             if appState.userPosts.isEmpty {
-                postsEmptyState
-            } else {
-                let screenWidth = UIScreen.main.bounds.width
-                let cellSize = (screenWidth - 4) / 3
-                LazyVGrid(
-                    columns: [
-                        GridItem(.flexible(), spacing: 2),
-                        GridItem(.flexible(), spacing: 2),
-                        GridItem(.flexible(), spacing: 2),
-                    ],
-                    spacing: 2
-                ) {
-                    ForEach(appState.userPosts) { post in
-                        PostGridCell(post: post, size: cellSize)
-                    }
-                }
-                .padding(.top, 2)
-            }
-        }
-    }
-
-    var postsEmptyState: some View {
-        VStack(spacing: 18) {
-            ZStack {
-                Circle()
-                    .fill(Theme.text4.opacity(0.15))
-                    .frame(width: 72, height: 72)
-                Image(systemName: "camera.fill")
-                    .font(.system(size: 30, weight: .light))
-                    .foregroundStyle(Theme.text4)
-            }
-            VStack(spacing: 6) {
-                Text("Share your first trade idea")
-                    .font(.system(size: 17, weight: .bold))
-                    .foregroundStyle(Theme.text)
-                Text("Post market takes and ticker analysis\nfor the community to see.")
-                    .font(.system(size: 14))
-                    .foregroundStyle(Theme.text3)
-                    .multilineTextAlignment(.center)
-            }
-            Button {
-                showCreatePost = true
-            } label: {
-                HStack(spacing: 6) {
-                    Image(systemName: "plus")
-                        .font(.system(size: 13, weight: .bold))
-                    Text("Create First Post")
-                        .font(.system(size: 14, weight: .bold))
-                }
-                .foregroundStyle(.white)
-                .padding(.horizontal, 22)
-                .padding(.vertical, 12)
-                .background(appState.accentGradient)
-                .clipShape(Capsule())
-            }
-            .buttonStyle(.plain)
-        }
-        .padding(.top, 60)
-        .padding(.horizontal, 32)
-    }
-
-    var portfolioTab: some View {
-        VStack(spacing: 12) {
-            performanceHeaderCard
-                .padding(.horizontal, 16)
-
-            if appState.positions.isEmpty {
-                portfolioEmptyState
-            } else {
-                VStack(spacing: 0) {
-                    ForEach(Array(appState.positions.enumerated()), id: \.element.id) { index, position in
-                        EToroPositionRow(position: position, appState: appState, total: appState.totalValue)
-                        if index < appState.positions.count - 1 {
-                            Rectangle()
-                                .fill(Theme.border)
-                                .frame(height: 1)
-                                .padding(.horizontal, 16)
+                VStack(spacing: 14) {
+                    Image(systemName: "camera.fill")
+                        .font(.system(size: 40, weight: .light))
+                        .foregroundStyle(Theme.text3)
+                    Text("Share your first trade idea")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(Theme.text2)
+                    Text("Your posts will appear here.")
+                        .font(.system(size: 13))
+                        .foregroundStyle(Theme.text3)
+                    Button {} label: {
+                        HStack(spacing: 6) {
+                            Image(systemName: "plus").font(.system(size: 12, weight: .bold))
+                            Text("New Post").font(.system(size: 14, weight: .bold))
                         }
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 22)
+                        .padding(.vertical, 11)
+                        .background(Theme.accentGradient)
+                        .clipShape(Capsule())
+                    }
+                    .buttonStyle(.plain)
+                }
+                .padding(.vertical, 60)
+                .frame(maxWidth: .infinity)
+            } else {
+                LazyVGrid(columns: gridColumns, spacing: 2) {
+                    ForEach(appState.userPosts) { post in
+                        PostGridCell(post: post)
                     }
                 }
-                .background(Theme.card)
-                .clipShape(RoundedRectangle(cornerRadius: 20))
-                .overlay(RoundedRectangle(cornerRadius: 20).stroke(Theme.border, lineWidth: 1))
-                .padding(.horizontal, 16)
             }
         }
-        .padding(.top, 12)
     }
 
-    var performanceHeaderCard: some View {
-        VStack(spacing: 14) {
+    @ViewBuilder
+    var portfolioTab: some View {
+        VStack(spacing: 0) {
             HStack {
-                Text("PORTFOLIO PERFORMANCE")
-                    .font(.system(size: 10, weight: .bold))
-                    .foregroundStyle(Theme.text3)
-                    .tracking(1.3)
-                Spacer()
-            }
-            HStack(alignment: .firstTextBaseline, spacing: 8) {
-                Text(appState.totalValue.fmtPrice())
-                    .font(.system(size: 32, weight: .black))
-                    .foregroundStyle(Theme.text)
-                    .monospacedDigit()
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("PORTFOLIO VALUE")
+                        .font(.system(size: 10, weight: .black))
+                        .foregroundStyle(Theme.text3)
+                        .kerning(1.5)
+                    Text(appState.totalValue.fmtPrice())
+                        .font(.system(size: 28, weight: .black))
+                        .foregroundStyle(Theme.text)
+                        .monospacedDigit()
+                }
                 Spacer()
                 VStack(alignment: .trailing, spacing: 3) {
-                    let pnl = appState.totalPnl
-                    let pct = appState.totalPnlPct
-                    let isUp = pnl >= 0
-                    Text(pnl.fmtChange())
-                        .font(.system(size: 15, weight: .bold))
-                        .foregroundStyle(isUp ? Theme.gain : Theme.loss)
+                    Text("TOTAL P&L")
+                        .font(.system(size: 10, weight: .black))
+                        .foregroundStyle(Theme.text3)
+                        .kerning(1.5)
+                    Text(appState.totalPnl.fmtChange())
+                        .font(.system(size: 18, weight: .black))
+                        .foregroundStyle(appState.totalPnl >= 0 ? Theme.gain : Theme.loss)
                         .monospacedDigit()
-                    Text(pct.fmtPct())
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(isUp ? Theme.gain : Theme.loss)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 3)
-                        .background((isUp ? Theme.gain : Theme.loss).opacity(0.12))
-                        .clipShape(Capsule())
                 }
             }
-        }
-        .padding(16)
-        .background(Theme.card)
-        .clipShape(RoundedRectangle(cornerRadius: 20))
-        .overlay(RoundedRectangle(cornerRadius: 20).stroke(Theme.border, lineWidth: 1))
-    }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 18)
 
-    var portfolioEmptyState: some View {
-        VStack(spacing: 14) {
-            Image(systemName: "chart.pie")
-                .font(.system(size: 44, weight: .light))
-                .foregroundStyle(Theme.text4)
-            VStack(spacing: 6) {
-                Text("No positions yet")
-                    .font(.system(size: 17, weight: .bold))
-                    .foregroundStyle(Theme.text)
-                Text("Add your first stock to track\nyour portfolio performance.")
-                    .font(.system(size: 14))
-                    .foregroundStyle(Theme.text2)
-                    .multilineTextAlignment(.center)
-            }
-        }
-        .padding(.top, 50)
-        .padding(.horizontal, 32)
-    }
-
-    var aboutTab: some View {
-        VStack(spacing: 14) {
-            bioSection
-            aboutStatsSection
-            riskSection
-            memberCard
-        }
-        .padding(.horizontal, 16)
-        .padding(.top, 12)
-    }
-
-    var bioSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("BIO")
-                .font(.system(size: 10, weight: .bold))
-                .foregroundStyle(Theme.text3)
-                .tracking(1.3)
-            if appState.settings.bio.isEmpty {
-                Text("No bio yet. Tap Edit Profile to add one.")
-                    .font(.system(size: 14))
-                    .foregroundStyle(Theme.text3)
-                    .italic()
-            } else {
-                Text(appState.settings.bio)
-                    .font(.system(size: 15))
-                    .foregroundStyle(Theme.text2)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(16)
-        .background(Theme.card)
-        .clipShape(RoundedRectangle(cornerRadius: 20))
-        .overlay(RoundedRectangle(cornerRadius: 20).stroke(Theme.border, lineWidth: 1))
-    }
-
-    var aboutStatsSection: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Text("STATS")
-                .font(.system(size: 10, weight: .bold))
-                .foregroundStyle(Theme.text3)
-                .tracking(1.3)
-                .padding(.bottom, 8)
-                .padding(.horizontal, 16)
-                .padding(.top, 14)
-
-            aboutRow(icon: "calendar", label: "Member since", value: "June 2026", color: Theme.text3)
-            Divider().padding(.horizontal, 16)
-            aboutRow(icon: "arrow.left.arrow.right", label: "Total trades", value: "24", color: Theme.text)
-            Divider().padding(.horizontal, 16)
-            aboutRow(icon: "trophy.fill", label: "Best trade", value: "+41.0% TSLA", color: Theme.gain)
-            Divider().padding(.horizontal, 16)
-            aboutRow(icon: "checkmark.seal.fill", label: "Win rate", value: "62%", color: Theme.accent)
-            Divider().padding(.horizontal, 16)
-            aboutRow(icon: "flame.fill", label: "Streak", value: "\(appState.streak) days", color: Color(hex: "#F97316"))
-            Divider().padding(.horizontal, 16)
-            aboutRow(icon: "paintpalette.fill", label: "Theme", value: appState.currentTheme.label, color: appState.accentColor)
-                .padding(.bottom, 6)
-        }
-        .background(Theme.card)
-        .clipShape(RoundedRectangle(cornerRadius: 20))
-        .overlay(RoundedRectangle(cornerRadius: 20).stroke(Theme.border, lineWidth: 1))
-    }
-
-    var riskSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("RISK SCORE")
-                .font(.system(size: 10, weight: .bold))
-                .foregroundStyle(Theme.text3)
-                .tracking(1.3)
-
-            HStack(spacing: 0) {
-                ForEach(1...10, id: \.self) { i in
-                    Rectangle()
-                        .fill(riskBarColor(i))
-                        .frame(height: 8)
-                        .clipShape(
-                            i == 1
-                                ? AnyShape(UnevenRoundedRectangle(topLeadingRadius: 4, bottomLeadingRadius: 4))
-                                : i == 10
-                                    ? AnyShape(UnevenRoundedRectangle(bottomTrailingRadius: 4, topTrailingRadius: 4))
-                                    : AnyShape(Rectangle())
-                        )
-                        .padding(.horizontal, 1)
-                }
-            }
-
-            HStack {
-                Text("Conservative")
-                    .font(.system(size: 11))
-                    .foregroundStyle(Theme.text3)
-                Spacer()
-                Text("5 / 10")
-                    .font(.system(size: 13, weight: .bold))
-                    .foregroundStyle(Theme.accent)
-                Spacer()
-                Text("Aggressive")
-                    .font(.system(size: 11))
-                    .foregroundStyle(Theme.text3)
-            }
-        }
-        .padding(16)
-        .background(Theme.card)
-        .clipShape(RoundedRectangle(cornerRadius: 20))
-        .overlay(RoundedRectangle(cornerRadius: 20).stroke(Theme.border, lineWidth: 1))
-    }
-
-    func riskBarColor(_ index: Int) -> Color {
-        let score = 5
-        if index <= score {
-            let fraction = Double(index) / 10.0
-            if fraction < 0.4 { return Color(hex: "#22C55E") }
-            if fraction < 0.7 { return Color(hex: "#F59E0B") }
-            return Color(hex: "#EF4444")
-        }
-        return Theme.bg3
-    }
-
-    var memberCard: some View {
-        HStack(spacing: 14) {
-            ZStack {
-                Circle()
-                    .fill(appState.accentGradient)
-                    .frame(width: 48, height: 48)
-                Text(String(appState.settings.displayName.prefix(1)).uppercased())
-                    .font(.system(size: 20, weight: .black))
-                    .foregroundStyle(.white)
-            }
-            VStack(alignment: .leading, spacing: 3) {
-                Text(appState.settings.displayName)
-                    .font(.system(size: 15, weight: .bold))
-                    .foregroundStyle(Theme.text)
-                Text(appState.settings.username)
-                    .font(.system(size: 12))
-                    .foregroundStyle(Theme.text3)
-            }
-            Spacer()
-            if appState.settings.isPro {
-                Text("PRO")
-                    .font(.system(size: 11, weight: .black))
-                    .foregroundStyle(Theme.gold)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 4)
-                    .background(Theme.gold.opacity(0.14))
-                    .clipShape(Capsule())
-                    .overlay(Capsule().stroke(Theme.gold.opacity(0.35), lineWidth: 1))
-            }
-        }
-        .padding(16)
-        .background(Theme.card)
-        .clipShape(RoundedRectangle(cornerRadius: 20))
-        .overlay(RoundedRectangle(cornerRadius: 20).stroke(Theme.border, lineWidth: 1))
-    }
-
-    func aboutRow(icon: String, label: String, value: String, color: Color) -> some View {
-        HStack(spacing: 12) {
-            Image(systemName: icon)
-                .font(.system(size: 15))
-                .foregroundStyle(color)
-                .frame(width: 24)
-            Text(label)
-                .font(.system(size: 14, weight: .medium))
-                .foregroundStyle(Theme.text2)
-            Spacer()
-            Text(value)
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(color)
-                .monospacedDigit()
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 13)
-    }
-}
-
-private struct PostGridCell: View {
-    let post: UserPost
-    let size: CGFloat
-
-    var gradientColors: [Color] {
-        switch post.sentiment {
-        case "Bullish":
-            return [Color(hex: "#052E16"), Color(hex: "#065F46"), Color(hex: "#0D9488")]
-        case "Bearish":
-            return [Color(hex: "#2D0A0A"), Color(hex: "#7F1D1D"), Color(hex: "#B91C1C")]
-        default:
-            return [Color(hex: "#0F0A2E"), Color(hex: "#1E1B4B"), Color(hex: "#312E81")]
-        }
-    }
-
-    var sentimentDotColor: Color {
-        switch post.sentiment {
-        case "Bullish": return Theme.gain
-        case "Bearish": return Theme.loss
-        default:        return Theme.accent
-        }
-    }
-
-    var body: some View {
-        ZStack(alignment: .bottom) {
-            LinearGradient(colors: gradientColors, startPoint: .topLeading, endPoint: .bottomTrailing)
+            Divider().overlay(Theme.border)
 
             VStack(spacing: 0) {
-                HStack(alignment: .top) {
-                    if let ticker = post.tickers.first {
-                        Text("$\(ticker)")
-                            .font(.system(size: 10, weight: .black))
-                            .foregroundStyle(.white)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 3)
-                            .background(.white.opacity(0.18))
-                            .clipShape(Capsule())
+                ForEach(Array(appState.positions.enumerated()), id: \.element.id) { i, position in
+                    EToroPositionRow(position: position, quote: appState.quotes[position.ticker], totalValue: appState.totalValue)
+                    if i < appState.positions.count - 1 {
+                        Divider().padding(.leading, 20).overlay(Theme.border)
                     }
-                    Spacer()
-                    Circle()
-                        .fill(sentimentDotColor)
-                        .frame(width: 7, height: 7)
                 }
-                .padding(8)
+            }
+            .background(Theme.card)
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+            .overlay(RoundedRectangle(cornerRadius: 16).stroke(Theme.border, lineWidth: 1))
+            .padding(.horizontal, 20)
+            .padding(.vertical, 16)
+        }
+    }
 
-                Spacer()
+    @ViewBuilder
+    var aboutTab: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: 10) {
+                Text("RISK SCORE")
+                    .font(.system(size: 10, weight: .black))
+                    .foregroundStyle(Theme.text3)
+                    .kerning(1.5)
+                HStack(spacing: 12) {
+                    GeometryReader { geo in
+                        ZStack(alignment: .leading) {
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(Theme.bg3)
+                                .frame(height: 8)
+                            LinearGradient(
+                                colors: [Theme.gain, Theme.gold, Theme.loss],
+                                startPoint: .leading, endPoint: .trailing
+                            )
+                            .mask(
+                                RoundedRectangle(cornerRadius: 4)
+                                    .frame(width: geo.size.width * CGFloat(5) / 10, height: 8)
+                            )
+                        }
+                    }
+                    .frame(height: 8)
+                    Text("\(5)/10")
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundStyle(5 <= 3 ? Theme.gain : 5 <= 6 ? Theme.gold : Theme.loss)
+                        .frame(width: 42, alignment: .trailing)
+                }
+            }
+            .padding(16)
+            .background(Theme.card)
+            .clipShape(RoundedRectangle(cornerRadius: 14))
+            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Theme.border, lineWidth: 1))
 
-                Text(post.text)
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(.white)
-                    .lineLimit(2)
-                    .multilineTextAlignment(.leading)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, 8)
-                    .padding(.bottom, 8)
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
+                aboutStatCell("All-Time Return", appState.totalPnlPct.fmtPct(), appState.totalPnlPct >= 0 ? Theme.gain : Theme.loss)
+                aboutStatCell("Today P&L", appState.todayPnlPct.fmtPct(), appState.todayPnlPct >= 0 ? Theme.gain : Theme.loss)
+                aboutStatCell("Portfolio Value", appState.totalValue.fmtPrice(), Theme.text)
+                aboutStatCell("Positions", "\(appState.positions.count)", Theme.accent)
+                aboutStatCell("Copiers", "\(appState.copiedTraders.count)", Theme.accent)
+                aboutStatCell("Watchlist", "\(appState.watchlist.count)", Theme.text2)
+            }
+
+            if !appState.settings.bio.isEmpty {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("BIO")
+                        .font(.system(size: 10, weight: .black))
+                        .foregroundStyle(Theme.text3)
+                        .kerning(1.5)
+                    Text(appState.settings.bio)
+                        .font(.system(size: 14))
+                        .foregroundStyle(Theme.text2)
+                        .lineSpacing(5)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .padding(16)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Theme.card)
+                .clipShape(RoundedRectangle(cornerRadius: 14))
+                .overlay(RoundedRectangle(cornerRadius: 14).stroke(Theme.border, lineWidth: 1))
             }
         }
-        .frame(width: size, height: size)
-        .clipped()
+        .padding(.horizontal, 20)
+        .padding(.vertical, 16)
+    }
+
+    @ViewBuilder
+    func profileStatCell(_ value: String, _ label: String) -> some View {
+        VStack(spacing: 3) {
+            Text(value)
+                .font(.system(size: 18, weight: .black))
+                .foregroundStyle(Theme.text)
+                .monospacedDigit()
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+            Text(label)
+                .font(.system(size: 11))
+                .foregroundStyle(Theme.text3)
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    @ViewBuilder
+    func aboutStatCell(_ label: String, _ value: String, _ color: Color) -> some View {
+        VStack(alignment: .leading, spacing: 5) {
+            Text(label)
+                .font(.system(size: 10, weight: .bold))
+                .foregroundStyle(Theme.text3)
+                .textCase(.uppercase)
+                .kerning(0.5)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+            Text(value)
+                .font(.system(size: 18, weight: .black))
+                .foregroundStyle(color)
+                .monospacedDigit()
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(12)
+        .background(Theme.card)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Theme.border, lineWidth: 1))
+    }
+
+    private func formatStatNum(_ n: Int) -> String {
+        if n >= 1_000_000 { return String(format: "%.1fM", Double(n)/1_000_000) }
+        if n >= 1_000 { return String(format: "%.1fK", Double(n)/1_000) }
+        return "\(n)"
     }
 }
 
-private struct EToroPositionRow: View {
-    let position: Position
-    let appState: AppState
-    let total: Double
+// MARK: - Post Grid Cell
 
-    var price: Double { appState.quotes[position.ticker]?.price ?? position.avgCost }
-    var value: Double { price * position.shares }
-    var cost: Double { position.avgCost * position.shares }
-    var pnl: Double { value - cost }
-    var pnlPct: Double { cost > 0 ? (pnl / cost) * 100 : 0 }
-    var isUp: Bool { pnl >= 0 }
-    var allocationPct: Double { total > 0 ? (value / total) : 0 }
-    var companyName: String {
-        ADD_WATCHLIST_TICKERS.first(where: { $0.ticker == position.ticker })?.name ?? position.ticker
+struct PostGridCell: View {
+    let post: UserPost
+
+    private var cellGradient: LinearGradient {
+        switch post.sentiment {
+        case "Bullish":
+            return LinearGradient(colors: [Color(hex: "#052E16"), Color(hex: "#14532D")], startPoint: .topLeading, endPoint: .bottomTrailing)
+        case "Bearish":
+            return LinearGradient(colors: [Color(hex: "#450A0A"), Color(hex: "#7F1D1D")], startPoint: .topLeading, endPoint: .bottomTrailing)
+        default:
+            return LinearGradient(colors: [Color(hex: "#1E1B4B"), Color(hex: "#312E81")], startPoint: .topLeading, endPoint: .bottomTrailing)
+        }
     }
 
     var body: some View {
-        VStack(spacing: 8) {
-            HStack(spacing: 12) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(Theme.accent.opacity(0.12))
-                        .frame(width: 42, height: 42)
-                    Text(String(position.ticker.prefix(2)))
-                        .font(.system(size: 13, weight: .black))
-                        .foregroundStyle(Theme.accent)
+        GeometryReader { geo in
+            ZStack(alignment: .bottomLeading) {
+                Rectangle()
+                    .fill(cellGradient)
+                    .frame(width: geo.size.width, height: geo.size.width)
+
+                if let first = post.tickers.first {
+                    Text(first)
+                        .font(.system(size: 10, weight: .black).monospaced())
+                        .foregroundStyle(.white.opacity(0.55))
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 3)
+                        .background(.black.opacity(0.35))
+                        .clipShape(RoundedRectangle(cornerRadius: 5))
+                        .padding(6)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 }
+
+                LinearGradient(
+                    stops: [.init(color: .clear, location: 0.4), .init(color: .black.opacity(0.75), location: 1)],
+                    startPoint: .top, endPoint: .bottom
+                )
+                .frame(width: geo.size.width, height: geo.size.width)
+
+                Text(post.text)
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(.white.opacity(0.9))
+                    .lineLimit(2)
+                    .padding(.horizontal, 8)
+                    .padding(.bottom, 8)
+                    .shadow(color: .black.opacity(0.6), radius: 3)
+            }
+            .frame(width: geo.size.width, height: geo.size.width)
+            .clipped()
+        }
+        .aspectRatio(1, contentMode: .fit)
+    }
+}
+
+// MARK: - eToro Position Row
+
+struct EToroPositionRow: View {
+    let position: Position
+    let quote: Quote?
+    let totalValue: Double
+
+    private var currentPrice: Double { quote?.price ?? position.avgCost }
+    private var currentValue: Double { currentPrice * position.shares }
+    private var pnlPct: Double { position.avgCost > 0 ? ((currentPrice - position.avgCost) / position.avgCost) * 100 : 0 }
+
+    private var allocation: Double {
+        guard totalValue > 0 else { return 0 }
+        return min(currentValue / totalValue, 1.0)
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(position.ticker)
-                        .font(.system(size: 15, weight: .bold))
+                        .font(.system(size: 14, weight: .bold))
                         .foregroundStyle(Theme.text)
-                    Text(companyName)
+                    Text(quote?.name ?? position.ticker)
                         .font(.system(size: 11))
                         .foregroundStyle(Theme.text3)
                         .lineLimit(1)
                 }
                 Spacer()
-                VStack(alignment: .trailing, spacing: 3) {
-                    Text(value.fmtPrice())
-                        .font(.system(size: 15, weight: .bold))
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text(currentValue.fmtPrice())
+                        .font(.system(size: 14, weight: .bold).monospacedDigit())
                         .foregroundStyle(Theme.text)
-                        .monospacedDigit()
                     Text(pnlPct.fmtPct())
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(isUp ? Theme.gain : Theme.loss)
-                        .monospacedDigit()
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundStyle(pnlPct >= 0 ? Theme.gain : Theme.loss)
                 }
             }
-
-            HStack(spacing: 6) {
-                Text("\(Int(allocationPct * 100))%")
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(Theme.text3)
-                    .frame(width: 32, alignment: .leading)
-
-                GeometryReader { geo in
-                    ZStack(alignment: .leading) {
-                        RoundedRectangle(cornerRadius: 3)
-                            .fill(Theme.bg3)
-                            .frame(height: 5)
-                        RoundedRectangle(cornerRadius: 3)
-                            .fill(Theme.nanoBanana)
-                            .frame(width: geo.size.width * allocationPct, height: 5)
-                    }
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    RoundedRectangle(cornerRadius: 2)
+                        .fill(Theme.bg2)
+                        .frame(height: 4)
+                    RoundedRectangle(cornerRadius: 2)
+                        .fill(Theme.nanoBanana)
+                        .frame(width: max(geo.size.width * CGFloat(allocation), 4), height: 4)
                 }
-                .frame(height: 5)
+            }
+            .frame(height: 4)
+            HStack {
+                Text("\(Int(allocation * 100))% allocation")
+                    .font(.system(size: 10))
+                    .foregroundStyle(Theme.text4)
+                Spacer()
+                Text("\(position.shares) shares")
+                    .font(.system(size: 10))
+                    .foregroundStyle(Theme.text4)
             }
         }
         .padding(.horizontal, 16)
-        .padding(.vertical, 12)
+        .padding(.vertical, 14)
     }
 }
 
-private struct ShareSheet: UIViewControllerRepresentable {
-    let items: [Any]
+// MARK: - Share Sheet
+
+struct ShareSheet: UIViewControllerRepresentable {
+    let activityItems: [Any]
 
     func makeUIViewController(context: Context) -> UIActivityViewController {
-        UIActivityViewController(activityItems: items, applicationActivities: nil)
+        UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
     }
 
-    func updateUIViewController(_ uvc: UIActivityViewController, context: Context) {}
+    func updateUIViewController(_ vc: UIActivityViewController, context: Context) {}
+}
+
+// MARK: - Edit Profile View
+
+struct EditProfileView: View {
+    @Environment(AppState.self) var appState
+    @Environment(\.dismiss) var dismiss
+    @State private var displayName = ""
+    @State private var username = ""
+    @State private var bio = ""
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 20) {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("DISPLAY NAME")
+                        .font(.system(size: 10, weight: .black))
+                        .foregroundStyle(Theme.text3)
+                        .kerning(1.5)
+                    TextField("Display Name", text: $displayName)
+                        .font(.system(size: 15))
+                        .foregroundStyle(Theme.text)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 12)
+                        .background(Theme.bg3)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Theme.border, lineWidth: 1))
+                }
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("USERNAME")
+                        .font(.system(size: 10, weight: .black))
+                        .foregroundStyle(Theme.text3)
+                        .kerning(1.5)
+                    TextField("username", text: $username)
+                        .font(.system(size: 15))
+                        .foregroundStyle(Theme.text)
+                        .autocorrectionDisabled()
+                        .textInputAutocapitalization(.never)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 12)
+                        .background(Theme.bg3)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Theme.border, lineWidth: 1))
+                }
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("BIO")
+                        .font(.system(size: 10, weight: .black))
+                        .foregroundStyle(Theme.text3)
+                        .kerning(1.5)
+                    ZStack(alignment: .topLeading) {
+                        if bio.isEmpty {
+                            Text("Tell people about your trading style…")
+                                .font(.system(size: 14))
+                                .foregroundStyle(Theme.text4)
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 13)
+                        }
+                        TextEditor(text: $bio)
+                            .font(.system(size: 14))
+                            .foregroundStyle(Theme.text)
+                            .frame(height: 80)
+                            .scrollContentBackground(.hidden)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                    }
+                    .background(Theme.bg3)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(Theme.border, lineWidth: 1))
+                }
+                Spacer()
+                Button {
+                    let dn = displayName.trimmingCharacters(in: .whitespaces)
+                    let un = username.trimmingCharacters(in: .whitespaces)
+                    if !dn.isEmpty { appState.settings.displayName = dn }
+                    if !un.isEmpty { appState.settings.username = un }
+                    appState.settings.bio = bio.trimmingCharacters(in: .whitespaces)
+                    dismiss()
+                } label: {
+                    Text("Save Changes")
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 15)
+                        .background(Theme.accentGradient)
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                }
+                .buttonStyle(.plain)
+            }
+            .padding(20)
+            .background(Theme.bg)
+            .navigationTitle("Edit Profile")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button { dismiss() } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 20))
+                            .foregroundStyle(Theme.text3)
+                    }
+                }
+            }
+            .onAppear {
+                displayName = appState.settings.displayName
+                username = appState.settings.username
+                bio = appState.settings.bio
+            }
+        }
+    }
 }

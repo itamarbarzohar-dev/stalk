@@ -65,8 +65,8 @@ struct CustomTabBar: View {
     @Binding var addingPosition: Bool
     @State private var aiPulse = false
 
-    private let aiActive   = LinearGradient(colors: [Color(hex: "#7B5EA7"), Color(hex: "#5B5BD6"), Color(hex: "#7C7CF0")], startPoint: .topLeading, endPoint: .bottomTrailing)
-    private let aiInactive = LinearGradient(colors: [Color(hex: "#5B5BD6"), Color(hex: "#8F8FE8")], startPoint: .topLeading, endPoint: .bottomTrailing)
+    private let aiActive   = LinearGradient(colors: [Color(hex: "#1A1A2E"), Color(hex: "#16213E"), Color(hex: "#0F3460")], startPoint: .topLeading, endPoint: .bottomTrailing)
+    private let aiInactive = LinearGradient(colors: [Color(hex: "#4A4580"), Color(hex: "#6B68A8")], startPoint: .topLeading, endPoint: .bottomTrailing)
 
     var body: some View {
         VStack(spacing: 0) {
@@ -94,7 +94,7 @@ struct CustomTabBar: View {
                             }
                             Image(systemName: "sparkles")
                                 .font(.system(size: 20, weight: isAI ? .bold : .semibold))
-                                .foregroundStyle(isAI ? .white : Color(hex: "#9C8FF5"))
+                                .foregroundStyle(isAI ? .white : Color(hex: "#7A7AAA"))
                         }
                         if isAI {
                             Text("STALK AI")
@@ -111,7 +111,7 @@ struct CustomTabBar: View {
                             if isAI {
                                 RoundedRectangle(cornerRadius: 26)
                                     .fill(aiActive)
-                                    .shadow(color: Color(hex: "#5B5BD6").opacity(0.65), radius: 16, y: 5)
+                                    .shadow(color: Color(hex: "#0F3460").opacity(0.55), radius: 14, y: 5)
                             }
                         }
                     )

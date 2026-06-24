@@ -12,6 +12,7 @@ struct MarketView: View {
     @Environment(AppState.self) var appState
     let onTicker: (String) -> Void
     @State private var now = Date()
+    @State private var showWatchlist = false
     let timer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
 
     var marketStatus: MarketStatus { MarketCalendar.status(at: now) }
@@ -47,6 +48,69 @@ struct MarketView: View {
                 .padding(.horizontal, 16)
                 .padding(.top, 52)
                 .padding(.bottom, 16)
+
+                // My Watchlist section
+                HStack {
+                    Text("My Watchlist")
+                        .font(.system(size: 10, weight: .black))
+                        .foregroundStyle(Theme.text3)
+                        .textCase(.uppercase)
+                        .kerning(2.5)
+                        .padding(.leading, 14)
+                    Spacer()
+                    Button {
+                        showWatchlist = true
+                    } label: {
+                        HStack(spacing: 3) {
+                            Text("See all")
+                                .font(.system(size: 12, weight: .bold))
+                                .foregroundStyle(Theme.accent)
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 10, weight: .bold))
+                                .foregroundStyle(Theme.accent)
+                        }
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.trailing, 14)
+                }
+                .padding(.bottom, 9)
+
+                if appState.watchlist.isEmpty {
+                    Button {
+                        showWatchlist = true
+                    } label: {
+                        HStack(spacing: 10) {
+                            ZStack {
+                                Circle()
+                                    .fill(Theme.accent.opacity(0.12))
+                                    .frame(width: 32, height: 32)
+                                Image(systemName: "plus")
+                                    .font(.system(size: 14, weight: .bold))
+                                    .foregroundStyle(Theme.accent)
+                            }
+                            Text("Track stocks you're watching")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundStyle(Theme.text2)
+                            Spacer()
+                        }
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 14)
+                        .background(Theme.card)
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
+                        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Theme.border, lineWidth: 1))
+                        .padding(.horizontal, 14)
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.bottom, 20)
+                } else {
+                    VStack(spacing: 7) {
+                        ForEach(Array(appState.watchlist.prefix(5))) { item in
+                            WatchlistCompactRow(item: item, onTap: { onTicker(item.ticker) })
+                        }
+                    }
+                    .padding(.horizontal, 14)
+                    .padding(.bottom, 20)
+                }
 
                 // Indices — compact Bloomberg rows
                 marketSectionLabel("Indices")
@@ -104,6 +168,9 @@ struct MarketView: View {
         .task { await appState.refreshMarket() }
         .refreshable { await appState.refreshMarket() }
         .onReceive(timer) { now = $0 }
+        .sheet(isPresented: $showWatchlist) {
+            WatchlistView().environment(appState)
+        }
     }
 
     func marketSectionLabel(_ text: String) -> some View {

@@ -102,6 +102,7 @@ class AppState {
     var copiedAmounts: [Int: Double] = [:]
     var postComments: [UUID: [Comment]] = [:]
     var savedItems: Set<UUID> = []
+    var watchlist: [WatchlistItem] = []
 
     // MARK: Market
     var marketQuotes: [String: Quote] = [:]
@@ -130,6 +131,7 @@ class AppState {
         loadSocial()
         loadSettings()
         loadStreak()
+        loadWatchlist()
         portfolioATH = UserDefaults.standard.double(forKey: "stalk_ath")
     }
 
@@ -181,6 +183,41 @@ class AppState {
     func saveSettings() {
         if let data = try? JSONEncoder().encode(settings) {
             UserDefaults.standard.set(data, forKey: "stalk_settings")
+        }
+    }
+
+    func addToWatchlist(_ ticker: String) {
+        guard !watchlist.contains(where: { $0.ticker == ticker }) else { return }
+        watchlist.insert(WatchlistItem(ticker: ticker), at: 0)
+        saveWatchlist()
+    }
+
+    func removeFromWatchlist(_ ticker: String) {
+        watchlist.removeAll { $0.ticker == ticker }
+        saveWatchlist()
+    }
+
+    func isWatched(_ ticker: String) -> Bool {
+        watchlist.contains { $0.ticker == ticker }
+    }
+
+    func updateWatchlistItem(_ item: WatchlistItem) {
+        if let i = watchlist.firstIndex(where: { $0.id == item.id }) {
+            watchlist[i] = item
+            saveWatchlist()
+        }
+    }
+
+    private func loadWatchlist() {
+        if let data = UserDefaults.standard.data(forKey: "stalk_watchlist"),
+           let saved = try? JSONDecoder().decode([WatchlistItem].self, from: data) {
+            watchlist = saved
+        }
+    }
+
+    func saveWatchlist() {
+        if let data = try? JSONEncoder().encode(watchlist) {
+            UserDefaults.standard.set(data, forKey: "stalk_watchlist")
         }
     }
 

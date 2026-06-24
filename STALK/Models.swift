@@ -288,6 +288,51 @@ let TRENDING_TICKERS = ["NVDA", "AAPL", "TSLA", "META", "MSFT"]
 
 // MARK: - Watchlists
 
+enum WatchlistTag: String, CaseIterable, Codable {
+    case earnings = "Earnings"
+    case insider = "Insider"
+    case revenue = "Revenue"
+    case technical = "Technical"
+    case breakout = "Breakout"
+    case dividend = "Dividend"
+    case news = "News"
+    case undervalued = "Undervalued"
+
+    var icon: String {
+        switch self {
+        case .earnings:    return "chart.bar.fill"
+        case .insider:     return "person.fill"
+        case .revenue:     return "dollarsign.circle.fill"
+        case .technical:   return "waveform.path.ecg"
+        case .breakout:    return "arrow.up.right.circle.fill"
+        case .dividend:    return "gift.fill"
+        case .news:        return "newspaper.fill"
+        case .undervalued: return "tag.fill"
+        }
+    }
+
+    var color: Color {
+        switch self {
+        case .earnings:    return Color(hex: "#F59E0B")
+        case .insider:     return Color(hex: "#10B981")
+        case .revenue:     return Color(hex: "#5B5BD6")
+        case .technical:   return Color(hex: "#8B5CF6")
+        case .breakout:    return Color(hex: "#EF4444")
+        case .dividend:    return Color(hex: "#22C55E")
+        case .news:        return Color(hex: "#3B82F6")
+        case .undervalued: return Color(hex: "#F97316")
+        }
+    }
+}
+
+struct WatchlistItem: Identifiable, Codable {
+    var id: UUID = UUID()
+    var ticker: String
+    var tags: [WatchlistTag] = []
+    var note: String = ""
+    var dateAdded: Date = Date()
+}
+
 struct WatchlistGroup: Identifiable {
     let id: String
     let label: String

@@ -1,101 +1,3 @@
-# CTO Decisions & Technical Debt Register
-
-**Maintainer:** Maya (CTO)
-**Last updated:** 2026-06-09
-
----
-
-## Architecture Decision Records
-
-| ADR | Title | Status |
-|---|---|---|
-| ADR-001 | Backend Architecture | Accepted — No backend for v1. Supabase for v1.1. |
-| ADR-002 | BYOK AI Architecture | Accepted — Keychain + URLSession direct to Anthropic API. |
-
----
-
-## Top 3 Technical Debt Items
-
-These are the three highest-severity issues in the codebase as of the v1 code audit (2026-06-09). Each one has a concrete remediation path. None are blocking v1 ship, but items #1 and #2 must be resolved before v1.1 (the Supabase / social launch).
-
----
-
-### DEBT-001: `extension String: @retroactive Identifiable` in `ContentView.swift`
-
-**Severity:** High — will cause build breakage in a future Swift/SwiftUI release
-**File:** `STALK/ContentView.swift`
-
-**What it is:**
-
-```swift
-extension String: @retroactive Identifiable {
-    public var id: String { self }
-}
-```
-
-This adds an `Identifiable` conformance to `String`, which is a type defined in the Swift standard library — not in STALK. This is a retroactive conformance. The `@retroactive` attribute suppresses the current compiler warning, but the underlying problem remains: if Apple adds `Identifiable` to `String` in a future Swift version (likely, given SwiftUI's trajectory), this conformance will silently conflict and may cause undefined behavior or a compile error that is hard to diagnose.
-
-**Remediation:** Wherever this is used (in `ForEach` or `List` over `[String]`), replace with an explicit `.id(\.self)` modifier:
-
-```swift
-// Before
-ForEach(items) { item in ... }
-
-// After
-ForEach(items, id: \.self) { item in ... }
-```
-
-Then delete the `extension String: @retroactive Identifiable` block entirely.
-
-**Effort:** 30 minutes. Find every `ForEach` over `[String]` in the codebase and add `id: \.self`.
-
----
-
-### DEBT-002: `settings.isPro` and `settings.aiMessagesUsed` stored in `UserDefaults`
-
-**Severity:** Critical for monetization — bypassable pro gate
-**File:** `STALK/AppState.swift` (`STALKSettings` struct)
-
-**What it is:**
-
-```swift
-var isPro: Bool = false
-var aiMessagesUsed: Int = 0
-```
-
-Both fields live inside `STALKSettings`, which is serialized to `UserDefaults` under the key `"stalk_settings"`. Any user with access to a jailbroken device — or who uses a `UserDefaults` editor app available on the App Store — can set `isPro = true` and `aiMessagesUsed = 0` without purchasing a subscription. This is not theoretical: it is a known trivial bypass for apps using `UserDefaults` as a paywall gate.
-
-**Remediation (two-phase):**
-
-Phase 1 (v1, before App Store submission): Move `isPro` gate out of `UserDefaults` and into a runtime check against `Transaction.currentEntitlements`. The `restorePurchases()` function in `AppState.swift` already does this correctly on explicit user action — extend it to run at every app launch (`.task {}` in `STALKApp.swift`). This closes the UserDefaults manipulation vector without requiring a backend.
-
-Phase 2 (v1.1, with Supabase): Server-side entitlement validation. Supabase `users` table stores `is_pro`. StoreKit receipt is validated server-side. Client-side `settings.isPro` becomes a display cache only.
-
-For `aiMessagesUsed`: in v1.1, move the free message counter to Supabase (per-user, server-side). Until then, accept that the 3-message free tier is easily bypassed and focus on conversion rather than enforcement.
-
-**Effort for Phase 1:** 1 hour. Wire `Transaction.currentEntitlements` check to app launch.
-
----
-
-### DEBT-003: No caching or error propagation in `QuoteService.swift`
-
-**Severity:** Medium — will cause throttling and silent data failures at scale
-**File:** `STALK/Services/QuoteService.swift` (and callers in `AppState.swift`)
-
-**What it is:**
-
-Every call to `refreshPortfolio()` or `refreshMarket()` fetches all quotes from scratch from Yahoo Finance's unofficial API. There is no TTL cache. There is no rate limiting. There is no error propagation — `fetchManyQuotes` uses `try?` internally, so failed fetches return `nil` silently and the UI shows stale or zero data with no indication to the user.
-
-Specific issues:
-
-1. **No TTL cache.** `refreshMarket()` fetches 30+ tickers (sectors + indices + trending) on every call. `refreshPortfolio()` fetches every position ticker on every BGAppRefreshTask execution. Yahoo Finance will throttle IPs that make too many requests. There is currently nothing to prevent this.
-
-2. **Silent `try?` error swallowing.** In `fetchManyQuotes`, failed individual ticker fetches return `nil` and are silently dropped. The portfolio view will show the last known price (or zero) with no error state. The user has no idea a fetch failed.
-
-3. **Yahoo Finance is unofficial and undocumented.** The URL `query1.finance.yahoo.com/v8/finance/chart/` is not a published API. It has no SLA. It has broken before. We have no fallback.
-
-**Remediation:**
-
 For v1: Add a simple TTL cache (60 seconds minimum) in `QuoteService.swift`. Any call within the TTL window returns the cached value. This is ~20 lines of code.
 
 ```swift
@@ -125,3 +27,15 @@ For Yahoo Finance dependency risk: acceptable for v1. For v1.1, evaluate Polygon
 | 2026-06-09 | BYOK AI via Keychain + URLSession. No backend proxy. | See ADR-002. Zero server cost, zero data liability. User's API key never leaves device. Swift has no official Anthropic SDK — raw URLSession is the correct approach. |
 | 2026-06-09 | `claude-haiku-4-5` as the BYOK model. | Cost-optimized for in-app chat. Users pay per token; Haiku is ~5–10x cheaper than Sonnet for equivalent portfolio Q&A quality. |
 | 2026-06-09 | Firebase rejected in favor of Supabase (v1.1). | Firestore document model is a poor fit for relational social data (users, posts, follows, likes). Supabase PostgREST + Postgres handles feed queries natively. Zero binary cost (no SDK). |
+| 2026-06-24 | Earnings Calendar: recommend Finnhub ($9–99/mo tier) for v1 launch. | Real-time earnings data, API stability > Alpha Vantage, broader global coverage > IEX Cloud (US-only), lower cost variability than IEX. Free tier insufficient (5 calls/min, no earnings endpoint). Finnhub Pro ($49/mo) unlocks earnings calendar + company news. Acceptable for v1 pilot phase. Revisit cost at scale (v1.1+). |
+| 2026-06-24 | Backend confirmed: no server for v1. Local + mock social. Migrate to Supabase v1.1 post-launch. | Blocking auth + real-time feed adds 3–4 weeks with zero user value at this stage. Jordan: code mock social feeds (static posts, fake follows) with `@Observable` state. Real data sync can be added post-launch via Supabase migration path. |
+
+## Technical Risks Flagged
+- **Earnings data freshness:** Finnhub API has ~2-hour latency on earnings announcements. Acceptable for v1 (daily app opens). Consider real-time IEX Cloud upgrade if earnings alerts become core retention driver.
+- **API key management:** BYOK + Finnhub key both require Keychain. Document in onboarding. No server = no key rotation; flag for security audit before public launch.
+- **Mock social feed stale on reinstall:** Local state only. Warn Itamar: social features are non-persistent until backend added. UX implication: "Your follows reset on app reinstall" — acceptable for v1 beta.
+
+## Action Items for Jordan
+1. **Earnings Calendar integration:** Wire Finnhub API into `EarningsCalendarView`. Endpoint: `/calendar/earnings?from=YYYY-MM-DD&to=YYYY-MM-DD`. Parse response, filter to user's portfolio tickers, display in "Upcoming" card on For You tab. Effort: 4 hours (API + UI). Finnhub key stored in Keychain alongside Claude key.
+2. **Mock social feeds:** Update `SocialFeedView` to use `@Observable` state instead of Firebase calls. Static posts + likes, fake user profiles. Replace with Supabase queries in v1.1. Effort: 3 hours.
+3. **Quote cache implementation:** Apply TTL cache in `QuoteService.swift` as outlined above. Add error banner in portfolio view. Effort: 2 hours.

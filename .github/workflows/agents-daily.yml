@@ -8,10 +8,15 @@ on:
         required: false
         default: 'all'
 
+# Minimum permissions — only grant what each job needs
 permissions:
   contents: write
   pull-requests: write
   issues: write
+
+defaults:
+  run:
+    shell: bash
 
 jobs:
   # ── 1. CEO — Alex sets the agenda ──────────────────────────────────────────
@@ -20,28 +25,30 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event.inputs.agent == 'all' || github.event.inputs.agent == 'ceo' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
         with:
           fetch-depth: 20
           token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Install Anthropic SDK
-        run: pip install anthropic
 
       - name: Configure Git
         run: |
           git config user.name "Alex — STALK CEO Agent"
           git config user.email "agent-alex@stalk.app"
 
+      - name: Install Anthropic SDK (pinned)
+        run: pip install "anthropic==0.52.0" --quiet
+
       - name: Run Alex (CEO)
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
+          set -euo pipefail
           export TODAY=$(date +%Y-%m-%d)
           python3 .github/scripts/run_agent.py ceo
 
       - name: Commit outputs
         run: |
+          set -euo pipefail
           TODAY=$(date +%Y-%m-%d)
           git add agents/
           git diff --staged --quiet || (git commit -m "Agent[Alex/CEO]: Daily agenda $TODAY [skip ci]" && git push)
@@ -53,13 +60,10 @@ jobs:
     needs: ceo
     if: ${{ always() && (github.event.inputs.agent == 'all' || github.event.inputs.agent == 'cto') }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
         with:
           fetch-depth: 20
           token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Install Anthropic SDK
-        run: pip install anthropic
 
       - name: Configure Git
         run: |
@@ -69,16 +73,20 @@ jobs:
       - name: Pull latest
         run: git pull origin main
 
+      - name: Install Anthropic SDK (pinned)
+        run: pip install "anthropic==0.52.0" --quiet
+
       - name: Run Maya (CTO)
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          set -euo pipefail
           export TODAY=$(date +%Y-%m-%d)
           python3 .github/scripts/run_agent.py cto
 
       - name: Commit outputs
         run: |
+          set -euo pipefail
           TODAY=$(date +%Y-%m-%d)
           git add agents/
           git diff --staged --quiet || (git commit -m "Agent[Maya/CTO]: Architecture review $TODAY [skip ci]" && git push)
@@ -90,13 +98,10 @@ jobs:
     needs: cto
     if: ${{ always() && (github.event.inputs.agent == 'all' || github.event.inputs.agent == 'ios_dev') }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
         with:
           fetch-depth: 20
           token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Install Anthropic SDK
-        run: pip install anthropic
 
       - name: Configure Git
         run: |
@@ -106,16 +111,20 @@ jobs:
       - name: Pull latest
         run: git pull origin main
 
+      - name: Install Anthropic SDK (pinned)
+        run: pip install "anthropic==0.52.0" --quiet
+
       - name: Run Jordan (iOS Dev)
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          set -euo pipefail
           export TODAY=$(date +%Y-%m-%d)
           python3 .github/scripts/run_agent.py ios_dev
 
       - name: Commit outputs
         run: |
+          set -euo pipefail
           TODAY=$(date +%Y-%m-%d)
           git add agents/
           git diff --staged --quiet || (git commit -m "Agent[Jordan/iOS]: Dev log $TODAY [skip ci]" && git push)
@@ -127,13 +136,10 @@ jobs:
     needs: ios_dev
     if: ${{ always() && (github.event.inputs.agent == 'all' || github.event.inputs.agent == 'ux') }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
         with:
           fetch-depth: 20
           token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Install Anthropic SDK
-        run: pip install anthropic
 
       - name: Configure Git
         run: |
@@ -143,15 +149,20 @@ jobs:
       - name: Pull latest
         run: git pull origin main
 
+      - name: Install Anthropic SDK (pinned)
+        run: pip install "anthropic==0.52.0" --quiet
+
       - name: Run Luna (UX)
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
+          set -euo pipefail
           export TODAY=$(date +%Y-%m-%d)
           python3 .github/scripts/run_agent.py ux
 
       - name: Commit outputs
         run: |
+          set -euo pipefail
           TODAY=$(date +%Y-%m-%d)
           git add agents/
           git diff --staged --quiet || (git commit -m "Agent[Luna/UX]: Design audit $TODAY [skip ci]" && git push)
@@ -163,13 +174,10 @@ jobs:
     needs: ux
     if: ${{ always() && (github.event.inputs.agent == 'all' || github.event.inputs.agent == 'cpo') }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
         with:
           fetch-depth: 20
           token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Install Anthropic SDK
-        run: pip install anthropic
 
       - name: Configure Git
         run: |
@@ -179,15 +187,20 @@ jobs:
       - name: Pull latest
         run: git pull origin main
 
+      - name: Install Anthropic SDK (pinned)
+        run: pip install "anthropic==0.52.0" --quiet
+
       - name: Run Sam (CPO)
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
+          set -euo pipefail
           export TODAY=$(date +%Y-%m-%d)
           python3 .github/scripts/run_agent.py cpo
 
       - name: Commit outputs
         run: |
+          set -euo pipefail
           TODAY=$(date +%Y-%m-%d)
           git add agents/
           git diff --staged --quiet || (git commit -m "Agent[Sam/CPO]: Product priorities $TODAY [skip ci]" && git push)
@@ -199,13 +212,10 @@ jobs:
     needs: cpo
     if: ${{ always() && (github.event.inputs.agent == 'all' || github.event.inputs.agent == 'cro') }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
         with:
           fetch-depth: 20
           token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Install Anthropic SDK
-        run: pip install anthropic
 
       - name: Configure Git
         run: |
@@ -215,15 +225,20 @@ jobs:
       - name: Pull latest
         run: git pull origin main
 
+      - name: Install Anthropic SDK (pinned)
+        run: pip install "anthropic==0.52.0" --quiet
+
       - name: Run Rex (CRO)
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
+          set -euo pipefail
           export TODAY=$(date +%Y-%m-%d)
           python3 .github/scripts/run_agent.py cro
 
       - name: Commit outputs
         run: |
+          set -euo pipefail
           TODAY=$(date +%Y-%m-%d)
           git add agents/
           git diff --staged --quiet || (git commit -m "Agent[Rex/CRO]: Revenue analysis $TODAY [skip ci]" && git push)
@@ -235,13 +250,10 @@ jobs:
     needs: cro
     if: ${{ always() && (github.event.inputs.agent == 'all' || github.event.inputs.agent == 'reporter') }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
         with:
           fetch-depth: 20
           token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Install Anthropic SDK
-        run: pip install anthropic
 
       - name: Configure Git
         run: |
@@ -251,15 +263,20 @@ jobs:
       - name: Pull latest
         run: git pull origin main
 
+      - name: Install Anthropic SDK (pinned)
+        run: pip install "anthropic==0.52.0" --quiet
+
       - name: Run Dana (Reporter)
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
+          set -euo pipefail
           export TODAY=$(date +%Y-%m-%d)
           python3 .github/scripts/run_agent.py reporter
 
       - name: Commit Dana report
         run: |
+          set -euo pipefail
           TODAY=$(date +%Y-%m-%d)
           git add agents/
           git diff --staged --quiet || (git commit -m "Agent[Dana/Reporter]: Daily report $TODAY [skip ci]" && git push)

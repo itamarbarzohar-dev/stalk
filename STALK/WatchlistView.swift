@@ -40,6 +40,141 @@ enum WatchlistSortField: String, CaseIterable {
 
 enum WatchlistSortOrder { case asc, desc }
 
+// MARK: - Column Picker Sheet
+
+struct WatchlistColumnPickerSheet: View {
+    @Environment(AppState.self) var appState
+    @Environment(\.dismiss) var dismiss
+
+    private let maxColumns = 3
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    HStack {
+                        Text("Pick up to \(maxColumns) columns to show in each row. Long-press to reorder.")
+                            .font(.system(size: 13))
+                            .foregroundStyle(Theme.text3)
+                        Spacer()
+                        Text("\(appState.watchlistColumns.count)/\(maxColumns)")
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundStyle(appState.watchlistColumns.count == maxColumns ? Theme.accent : Theme.text3)
+                    }
+
+                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
+                        ForEach(WatchlistStat.allCases) { stat in
+                            let isOn = appState.watchlistColumns.contains(stat)
+                            let canAdd = !isOn && appState.watchlistColumns.count < maxColumns
+                            Button {
+                                withAnimation(.spring(response: 0.25, dampingFraction: 0.7)) {
+                                    if isOn {
+                                        appState.watchlistColumns.removeAll { $0 == stat }
+                                    } else if canAdd {
+                                        appState.watchlistColumns.append(stat)
+                                    }
+                                    appState.saveWatchlistColumns()
+                                }
+                            } label: {
+                                VStack(spacing: 5) {
+                                    if isOn {
+                                        Image(systemName: "checkmark.circle.fill")
+                                            .font(.system(size: 14, weight: .semibold))
+                                            .foregroundStyle(Theme.accent)
+                                    } else {
+                                        Image(systemName: "circle")
+                                            .font(.system(size: 14))
+                                            .foregroundStyle(canAdd ? Theme.text3 : Theme.text4)
+                                    }
+                                    Text(stat.rawValue)
+                                        .font(.system(size: 10, weight: isOn ? .bold : .medium))
+                                        .foregroundStyle(isOn ? Theme.accent : (canAdd ? Theme.text2 : Theme.text4))
+                                        .multilineTextAlignment(.center)
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 12)
+                                .background(isOn ? Theme.accent.opacity(0.1) : Theme.bg3)
+                                .clipShape(RoundedRectangle(cornerRadius: 10))
+                                .overlay(RoundedRectangle(cornerRadius: 10)
+                                    .stroke(isOn ? Theme.accent.opacity(0.4) : Color.clear, lineWidth: 1))
+                                .opacity((!isOn && !canAdd) ? 0.4 : 1)
+                            }
+                            .buttonStyle(.plain)
+                            .disabled(!isOn && !canAdd)
+                        }
+                    }
+
+                    if !appState.watchlistColumns.isEmpty {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("COLUMN ORDER")
+                                .font(.system(size: 10, weight: .black))
+                                .foregroundStyle(Theme.text3)
+                                .kerning(1.5)
+                            ForEach(Array(appState.watchlistColumns.enumerated()), id: \.element) { i, col in
+                                HStack(spacing: 12) {
+                                    Text("\(i + 1)")
+                                        .font(.system(size: 12, weight: .black))
+                                        .foregroundStyle(Theme.text4)
+                                        .frame(width: 18)
+                                    Text(col.rawValue)
+                                        .font(.system(size: 14, weight: .semibold))
+                                        .foregroundStyle(Theme.text)
+                                    Spacer()
+                                    HStack(spacing: 4) {
+                                        Button {
+                                            guard i > 0 else { return }
+                                            withAnimation { appState.watchlistColumns.swapAt(i, i - 1) }
+                                            appState.saveWatchlistColumns()
+                                        } label: {
+                                            Image(systemName: "chevron.up")
+                                                .font(.system(size: 12, weight: .semibold))
+                                                .foregroundStyle(i > 0 ? Theme.text2 : Theme.text4)
+                                        }
+                                        .disabled(i == 0)
+                                        Button {
+                                            guard i < appState.watchlistColumns.count - 1 else { return }
+                                            withAnimation { appState.watchlistColumns.swapAt(i, i + 1) }
+                                            appState.saveWatchlistColumns()
+                                        } label: {
+                                            Image(systemName: "chevron.down")
+                                                .font(.system(size: 12, weight: .semibold))
+                                                .foregroundStyle(i < appState.watchlistColumns.count - 1 ? Theme.text2 : Theme.text4)
+                                        }
+                                        .disabled(i == appState.watchlistColumns.count - 1)
+                                    }
+                                    Button {
+                                        withAnimation { appState.watchlistColumns.remove(at: i) }
+                                        appState.saveWatchlistColumns()
+                                    } label: {
+                                        Image(systemName: "xmark.circle.fill")
+                                            .font(.system(size: 18))
+                                            .foregroundStyle(Theme.text4)
+                                    }
+                                }
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 11)
+                                .background(Theme.bg3)
+                                .clipShape(RoundedRectangle(cornerRadius: 10))
+                            }
+                        }
+                    }
+                }
+                .padding(18)
+            }
+            .background(Theme.bg)
+            .navigationTitle("Customize Columns")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Done") { dismiss() }
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(Theme.accent)
+                }
+            }
+        }
+    }
+}
+
 struct WatchlistView: View {
     @Environment(AppState.self) var appState
     let onTicker: (String) -> Void
@@ -52,6 +187,7 @@ struct WatchlistView: View {
     @State private var newListName = ""
     @State private var renameTarget: Int? = nil
     @State private var renameText = ""
+    @State private var showColumnPicker = false
 
     private var activeItems: [WatchlistItem] {
         appState.watchlist
@@ -87,7 +223,10 @@ struct WatchlistView: View {
                         ForEach(sorted) { item in
                             WatchlistItemRow(
                                 item: item,
-                                price: appState.price(for: item.ticker),
+                                columns: appState.watchlistColumns,
+                                statValues: Dictionary(uniqueKeysWithValues: appState.watchlistColumns.map {
+                                    ($0, appState.statValue(for: $0, ticker: item.ticker))
+                                }),
                                 changePct: appState.change(for: item.ticker),
                                 isExpanded: expandedId == item.id,
                                 onTap: {
@@ -119,6 +258,9 @@ struct WatchlistView: View {
         .sheet(isPresented: $showAdd) {
             AddToWatchlistSheet().environment(appState)
         }
+        .sheet(isPresented: $showColumnPicker) {
+            WatchlistColumnPickerSheet().environment(appState)
+        }
         .alert("New Watchlist", isPresented: $showNewListAlert) {
             TextField("Name", text: $newListName)
             Button("Create") {
@@ -146,21 +288,28 @@ struct WatchlistView: View {
 
     // MARK: - Header (title row)
     var watchlistHeader: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 10) {
             Text("WATCHLISTS")
                 .font(.system(size: 13, weight: .black))
                 .foregroundStyle(Theme.text)
                 .kerning(1.5)
             Spacer()
+            // Column picker
+            Button { showColumnPicker = true } label: {
+                Image(systemName: "slider.horizontal.3")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(Theme.text2)
+                    .padding(8)
+                    .background(Theme.bg3)
+                    .clipShape(Circle())
+            }
+            .buttonStyle(.plain)
+            // Sort menu
             Menu {
                 ForEach(WatchlistSortField.allCases, id: \.self) { field in
                     Button {
-                        if sortField == field {
-                            sortOrder = sortOrder == .asc ? .desc : .asc
-                        } else {
-                            sortField = field
-                            sortOrder = .asc
-                        }
+                        if sortField == field { sortOrder = sortOrder == .asc ? .desc : .asc }
+                        else { sortField = field; sortOrder = .asc }
                     } label: {
                         HStack {
                             Text(field.rawValue)
@@ -172,15 +321,13 @@ struct WatchlistView: View {
                 }
             } label: {
                 Image(systemName: "line.3.horizontal.decrease")
-                    .font(.system(size: 15, weight: .semibold))
+                    .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(Theme.text2)
                     .padding(8)
                     .background(Theme.bg3)
                     .clipShape(Circle())
             }
-            Button {
-                showAdd = true
-            } label: {
+            Button { showAdd = true } label: {
                 HStack(spacing: 5) {
                     Image(systemName: "plus")
                         .font(.system(size: 12, weight: .bold))
@@ -263,38 +410,53 @@ struct WatchlistView: View {
 
     var columnHeader: some View {
         HStack(spacing: 0) {
-            columnHeaderButton(.symbol, alignment: .leading)
-                .frame(maxWidth: .infinity, alignment: .leading)
-            columnHeaderButton(.last, alignment: .trailing)
-                .frame(width: 90, alignment: .trailing)
-            columnHeaderButton(.change, alignment: .trailing)
-                .frame(width: 80, alignment: .trailing)
+            // SYMBOL always on left
+            Button {
+                withAnimation(.easeInOut(duration: 0.15)) {
+                    if sortField == .symbol { sortOrder = sortOrder == .asc ? .desc : .asc }
+                    else { sortField = .symbol; sortOrder = .asc }
+                }
+            } label: {
+                HStack(spacing: 3) {
+                    Text("SYMBOL")
+                        .font(.system(size: 10, weight: .black))
+                        .foregroundStyle(sortField == .symbol ? Theme.accent : Theme.text3)
+                        .kerning(0.8)
+                    Image(systemName: sortField == .symbol ? (sortOrder == .asc ? "chevron.up" : "chevron.down") : "chevron.up.chevron.down")
+                        .font(.system(size: 8, weight: .bold))
+                        .foregroundStyle(sortField == .symbol ? Theme.accent : Theme.text4)
+                }
+            }
+            .buttonStyle(.plain)
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            // Dynamic stat columns
+            ForEach(appState.watchlistColumns) { col in
+                let isSortCol = (col == .last && sortField == .last) || (col == .changePct && sortField == .change)
+                Button {
+                    withAnimation(.easeInOut(duration: 0.15)) {
+                        let field: WatchlistSortField = col == .last ? .last : (col == .changePct ? .change : .symbol)
+                        if sortField == field { sortOrder = sortOrder == .asc ? .desc : .asc }
+                        else { sortField = field; sortOrder = .asc }
+                    }
+                } label: {
+                    HStack(spacing: 3) {
+                        Text(col.rawValue)
+                            .font(.system(size: 9, weight: .black))
+                            .foregroundStyle(isSortCol ? Theme.accent : Theme.text3)
+                            .kerning(0.6)
+                        Image(systemName: isSortCol ? (sortOrder == .asc ? "chevron.up" : "chevron.down") : "chevron.up.chevron.down")
+                            .font(.system(size: 7, weight: .bold))
+                            .foregroundStyle(isSortCol ? Theme.accent : Theme.text4)
+                    }
+                }
+                .buttonStyle(.plain)
+                .frame(width: col.columnWidth, alignment: .trailing)
+            }
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 8)
         .background(Theme.bg2)
-    }
-
-    @ViewBuilder
-    func columnHeaderButton(_ field: WatchlistSortField, alignment: HorizontalAlignment) -> some View {
-        Button {
-            withAnimation(.easeInOut(duration: 0.15)) {
-                if sortField == field { sortOrder = sortOrder == .asc ? .desc : .asc } else { sortField = field; sortOrder = .asc }
-            }
-        } label: {
-            HStack(spacing: 3) {
-                Text(field.rawValue)
-                    .font(.system(size: 10, weight: .black))
-                    .foregroundStyle(sortField == field ? Theme.accent : Theme.text3)
-                    .kerning(0.8)
-                Image(systemName: sortField == field
-                      ? (sortOrder == .asc ? "chevron.up" : "chevron.down")
-                      : "chevron.up.chevron.down")
-                    .font(.system(size: 8, weight: .bold))
-                    .foregroundStyle(sortField == field ? Theme.accent : Theme.text4)
-            }
-        }
-        .buttonStyle(.plain)
     }
 
     var emptyState: some View {
@@ -330,7 +492,8 @@ struct WatchlistView: View {
 
 struct WatchlistItemRow: View {
     let item: WatchlistItem
-    let price: Double
+    let columns: [WatchlistStat]
+    let statValues: [WatchlistStat: String]
     let changePct: Double
     let isExpanded: Bool
     let onTap: () -> Void
@@ -347,6 +510,7 @@ struct WatchlistItemRow: View {
         VStack(spacing: 0) {
             Button(action: onTap) {
                 HStack(spacing: 0) {
+                    // Left: ticker + badges
                     VStack(alignment: .leading, spacing: 3) {
                         HStack(spacing: 6) {
                             Button(action: onTickerTap) {
@@ -363,31 +527,37 @@ struct WatchlistItemRow: View {
                         }
                         if !item.tags.isEmpty {
                             HStack(spacing: 4) {
-                                ForEach(Array(item.tags.prefix(4)), id: \.self) { tag in
-                                    Circle()
-                                        .fill(tag.color)
-                                        .frame(width: 6, height: 6)
+                                ForEach(Array(item.tags.prefix(5)), id: \.self) { tag in
+                                    Circle().fill(tag.color).frame(width: 5, height: 5)
                                 }
                             }
                         } else {
-                            Color.clear.frame(height: 6)
+                            Color.clear.frame(height: 5)
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
 
-                    Text(price.fmtPrice())
-                        .font(.system(size: 15, weight: .semibold).monospacedDigit())
-                        .foregroundStyle(Theme.text)
-                        .frame(width: 90, alignment: .trailing)
-
-                    Text(changePct.fmtPct())
-                        .font(.system(size: 12, weight: .black).monospacedDigit())
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 9)
-                        .padding(.vertical, 5)
-                        .background(isGain ? Theme.gain.opacity(0.85) : Theme.loss.opacity(0.85))
-                        .clipShape(Capsule())
-                        .frame(width: 80, alignment: .trailing)
+                    // Right: dynamic stat columns
+                    ForEach(columns) { col in
+                        let val = statValues[col] ?? "—"
+                        let isChangeCol = col.isGainColored
+                        VStack(alignment: .trailing, spacing: 2) {
+                            if isChangeCol {
+                                Text(val)
+                                    .font(.system(size: 11, weight: .black).monospacedDigit())
+                                    .foregroundStyle(.white)
+                                    .padding(.horizontal, 7)
+                                    .padding(.vertical, 4)
+                                    .background(isGain ? Theme.gain.opacity(0.85) : Theme.loss.opacity(0.85))
+                                    .clipShape(Capsule())
+                            } else {
+                                Text(val)
+                                    .font(.system(size: 13, weight: .semibold).monospacedDigit())
+                                    .foregroundStyle(Theme.text)
+                            }
+                        }
+                        .frame(width: col.columnWidth, alignment: .trailing)
+                    }
                 }
                 .padding(.horizontal, 16)
                 .frame(height: 52)

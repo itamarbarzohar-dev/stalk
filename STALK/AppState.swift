@@ -102,7 +102,15 @@ class AppState {
     var copiedAmounts: [Int: Double] = [:]
     var postComments: [UUID: [Comment]] = [:]
     var savedItems: Set<UUID> = []
-    var watchlist: [WatchlistItem] = []
+    var userWatchlists: [UserWatchlist] = []
+    var activeWatchlistIndex: Int = 0
+    var watchlistColumns: [WatchlistStat] = [.last, .changePct]
+
+    // Backward-compat computed property (MarketView, MyProfileView, etc.)
+    var watchlist: [WatchlistItem] {
+        guard !userWatchlists.isEmpty else { return [] }
+        return userWatchlists[min(activeWatchlistIndex, userWatchlists.count - 1)].items
+    }
 
     // MARK: Market
     var marketQuotes: [String: Quote] = [:]
@@ -133,6 +141,10 @@ class AppState {
         loadStreak()
         loadWatchlist()
         portfolioATH = UserDefaults.standard.double(forKey: "stalk_ath")
+        if let data = UserDefaults.standard.data(forKey: "stalk_watchlist_columns"),
+           let cols = try? JSONDecoder().decode([WatchlistStat].self, from: data) {
+            watchlistColumns = cols
+        }
     }
 
     // MARK: - Persistence
@@ -186,38 +198,177 @@ class AppState {
         }
     }
 
+    // MARK: - Watchlist helpers (operate on active watchlist)
+
+    private var activeIdx: Int {
+        min(activeWatchlistIndex, max(0, userWatchlists.count - 1))
+    }
+
     func addToWatchlist(_ ticker: String) {
-        guard !watchlist.contains(where: { $0.ticker == ticker }) else { return }
-        watchlist.insert(WatchlistItem(ticker: ticker), at: 0)
-        saveWatchlist()
+        guard !userWatchlists.isEmpty else { return }
+        guard !userWatchlists[activeIdx].items.contains(where: { $0.ticker == ticker }) else { return }
+        userWatchlists[activeIdx].items.insert(WatchlistItem(ticker: ticker), at: 0)
+        saveWatchlists()
+    }
+
+    func addToWatchlist(_ ticker: String, tags: [WatchlistTag], note: String) {
+        guard !userWatchlists.isEmpty else { return }
+        guard !userWatchlists[activeIdx].items.contains(where: { $0.ticker == ticker }) else { return }
+        userWatchlists[activeIdx].items.insert(WatchlistItem(ticker: ticker, tags: tags, note: note), at: 0)
+        saveWatchlists()
     }
 
     func removeFromWatchlist(_ ticker: String) {
-        watchlist.removeAll { $0.ticker == ticker }
-        saveWatchlist()
+        guard !userWatchlists.isEmpty else { return }
+        userWatchlists[activeIdx].items.removeAll { $0.ticker == ticker }
+        saveWatchlists()
     }
 
     func isWatched(_ ticker: String) -> Bool {
-        watchlist.contains { $0.ticker == ticker }
+        guard !userWatchlists.isEmpty else { return false }
+        return userWatchlists[activeIdx].items.contains { $0.ticker == ticker }
     }
 
     func updateWatchlistItem(_ item: WatchlistItem) {
-        if let i = watchlist.firstIndex(where: { $0.id == item.id }) {
-            watchlist[i] = item
-            saveWatchlist()
+        guard !userWatchlists.isEmpty else { return }
+        if let i = userWatchlists[activeIdx].items.firstIndex(where: { $0.id == item.id }) {
+            userWatchlists[activeIdx].items[i] = item
+            saveWatchlists()
         }
+    }
+
+    func updateWatchlistItem(_ id: UUID, tags: [WatchlistTag], note: String) {
+        guard !userWatchlists.isEmpty else { return }
+        if let i = userWatchlists[activeIdx].items.firstIndex(where: { $0.id == id }) {
+            userWatchlists[activeIdx].items[i].tags = tags
+            userWatchlists[activeIdx].items[i].note = note
+            saveWatchlists()
+        }
+    }
+
+    // MARK: - Multi-Watchlist management
+
+    func createWatchlist(name: String) {
+        userWatchlists.append(UserWatchlist(name: name))
+        activeWatchlistIndex = userWatchlists.count - 1
+        saveWatchlists()
+    }
+
+    func deleteWatchlist(at index: Int) {
+        guard userWatchlists.count > 1, userWatchlists.indices.contains(index) else { return }
+        userWatchlists.remove(at: index)
+        activeWatchlistIndex = min(activeWatchlistIndex, userWatchlists.count - 1)
+        saveWatchlists()
+    }
+
+    func renameWatchlist(at index: Int, to name: String) {
+        guard userWatchlists.indices.contains(index) else { return }
+        userWatchlists[index].name = name
+        saveWatchlists()
+    }
+
+    func price(for ticker: String) -> Double {
+        marketQuotes[ticker]?.price ?? quotes[ticker]?.price ?? 0
+    }
+
+    func change(for ticker: String) -> Double {
+        marketQuotes[ticker]?.changePercent ?? quotes[ticker]?.changePercent ?? 0
     }
 
     private func loadWatchlist() {
+        // Try loading multi-watchlist data first
+        if let data = UserDefaults.standard.data(forKey: "stalk_user_watchlists"),
+           let saved = try? JSONDecoder().decode([UserWatchlist].self, from: data) {
+            userWatchlists = saved
+            return
+        }
+        // Migrate legacy single watchlist
         if let data = UserDefaults.standard.data(forKey: "stalk_watchlist"),
            let saved = try? JSONDecoder().decode([WatchlistItem].self, from: data) {
-            watchlist = saved
+            userWatchlists = [UserWatchlist(name: "My Watchlist", items: saved)]
+        } else {
+            userWatchlists = [UserWatchlist(name: "My Watchlist")]
+        }
+        saveWatchlists()
+    }
+
+    func saveWatchlists() {
+        if let data = try? JSONEncoder().encode(userWatchlists) {
+            UserDefaults.standard.set(data, forKey: "stalk_user_watchlists")
         }
     }
 
-    func saveWatchlist() {
-        if let data = try? JSONEncoder().encode(watchlist) {
-            UserDefaults.standard.set(data, forKey: "stalk_watchlist")
+    func saveWatchlistColumns() {
+        if let data = try? JSONEncoder().encode(watchlistColumns) {
+            UserDefaults.standard.set(data, forKey: "stalk_watchlist_columns")
+        }
+    }
+
+    // MARK: - Mock stat values (deterministic per ticker)
+    func statValue(for stat: WatchlistStat, ticker: String) -> String {
+        let p = price(for: ticker)
+        let chgPct = change(for: ticker)
+        let basePrice = p > 0 ? p : 100.0
+        // Seed from ticker string for consistency
+        let seed = ticker.unicodeScalars.reduce(0) { $0 + Int($1.value) }
+
+        func mockFrac(_ offset: Int, lo: Double = 0, hi: Double = 1) -> Double {
+            let v = abs((seed &* 1664525 &+ offset) % 10000)
+            return lo + (Double(v) / 9999.0) * (hi - lo)
+        }
+
+        switch stat {
+        case .last:
+            return basePrice > 0 ? "$\(String(format: "%.2f", basePrice))" : "—"
+        case .changePct:
+            let s = chgPct >= 0 ? "+" : ""
+            return "\(s)\(String(format: "%.2f", chgPct))%"
+        case .changeDollar:
+            let chgD = basePrice * chgPct / 100
+            let s = chgD >= 0 ? "+" : ""
+            return "\(s)$\(String(format: "%.2f", abs(chgD)))"
+        case .volume:
+            let v = Int(mockFrac(1, lo: 1_000_000, hi: 80_000_000))
+            return v >= 1_000_000 ? "\(String(format: "%.1f", Double(v) / 1_000_000))M" : "\(v / 1000)K"
+        case .avgVolume:
+            let v = Int(mockFrac(2, lo: 2_000_000, hi: 60_000_000))
+            return v >= 1_000_000 ? "\(String(format: "%.1f", Double(v) / 1_000_000))M" : "\(v / 1000)K"
+        case .marketCap:
+            let shares = mockFrac(3, lo: 50_000_000, hi: 15_000_000_000)
+            let cap = basePrice * shares
+            if cap >= 1_000_000_000_000 { return "$\(String(format: "%.2f", cap / 1e12))T" }
+            if cap >= 1_000_000_000 { return "$\(String(format: "%.1f", cap / 1e9))B" }
+            return "$\(String(format: "%.0f", cap / 1e6))M"
+        case .pe:
+            let pe = mockFrac(4, lo: 8, hi: 95)
+            return String(format: "%.1f", pe)
+        case .eps:
+            let pe = mockFrac(4, lo: 8, hi: 95)
+            return "$\(String(format: "%.2f", basePrice / pe))"
+        case .beta:
+            return String(format: "%.2f", mockFrac(5, lo: 0.4, hi: 2.8))
+        case .divYield:
+            let hasDividend = (seed % 3) != 0
+            if !hasDividend { return "—" }
+            return "\(String(format: "%.2f", mockFrac(6, lo: 0.5, hi: 5.5)))%"
+        case .week52High:
+            let high = basePrice * (1 + mockFrac(7, lo: 0.05, hi: 0.65))
+            return "$\(String(format: "%.2f", high))"
+        case .week52Low:
+            let low = basePrice * (1 - mockFrac(8, lo: 0.05, hi: 0.55))
+            return "$\(String(format: "%.2f", low))"
+        case .dayHigh:
+            return "$\(String(format: "%.2f", basePrice * (1 + mockFrac(9, lo: 0.002, hi: 0.025))))"
+        case .dayLow:
+            return "$\(String(format: "%.2f", basePrice * (1 - mockFrac(10, lo: 0.002, hi: 0.025))))"
+        case .open:
+            return "$\(String(format: "%.2f", basePrice * (1 + mockFrac(11, lo: -0.015, hi: 0.015))))"
+        case .prevClose:
+            return "$\(String(format: "%.2f", basePrice * (1 - chgPct / 100)))"
+        case .rsi:
+            return String(format: "%.1f", mockFrac(12, lo: 25, hi: 78))
+        case .shortFloat:
+            return "\(String(format: "%.1f", mockFrac(13, lo: 1, hi: 30)))%"
         }
     }
 
@@ -418,5 +569,5 @@ class AppState {
 }
 
 enum Tab: String, CaseIterable {
-    case market, portfolio, ai, feed, forYou
+    case market, portfolio, watchlist, ai, feed, forYou
 }

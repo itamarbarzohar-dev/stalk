@@ -11,7 +11,12 @@ struct PortfolioView: View {
         ScrollView {
             VStack(spacing: 0) {
                 PortfolioHero()
-                    .padding(.bottom, 8)
+                    .padding(.bottom, 12)
+
+                // Positions come first — most important info
+                PositionsList(onTicker: onTicker, onAdd: onAdd)
+                    .padding(.horizontal, 14)
+                    .padding(.bottom, 12)
 
                 if !appState.positions.isEmpty {
                     AIAgentCard()
@@ -35,14 +40,10 @@ struct PortfolioView: View {
                         .padding(.bottom, 8)
                 }
 
-                // ── Autopilot Entry Card ─────────────────────────────────
                 AutopilotEntryCard()
                     .padding(.horizontal, 14)
                     .padding(.bottom, 8)
                     .onTapGesture { showAutopilot = true }
-
-                PositionsList(onTicker: onTicker)
-                    .padding(.horizontal, 14)
 
                 Color.clear.frame(height: 100)
             }
@@ -50,13 +51,6 @@ struct PortfolioView: View {
         .background(Theme.bg)
         .sheet(isPresented: $showAutopilot) {
             AutopilotView().environment(appState)
-        }
-        .overlay(alignment: .bottomLeading) {
-            if appState.positions.isEmpty || appState.selectedTab == .portfolio {
-                AddFAB(action: onAdd)
-                    .padding(.leading, 20)
-                    .padding(.bottom, 88)
-            }
         }
         .task {
             async let p: () = appState.refreshPortfolio()
@@ -87,185 +81,122 @@ struct PortfolioHero: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
 
-            // Top utility bar — settings + daily brief
-            HStack(spacing: 10) {
+            // ── Nav bar ───────────────────────────────────────────────────
+            HStack(spacing: 14) {
                 Text("PORTFOLIO")
-                    .font(.system(size: 11, weight: .black))
-                    .foregroundStyle(Theme.text3)
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(Theme.text4)
                     .kerning(2.5)
                 Spacer()
                 Button { appState.showDailyBrief = true } label: {
-                    HStack(spacing: 5) {
-                        Image(systemName: "doc.text.fill").font(.system(size: 12)).foregroundStyle(Theme.text3)
-                        Text("Brief").font(.system(size: 12, weight: .bold)).foregroundStyle(Theme.text2)
+                    HStack(spacing: 6) {
+                        Image(systemName: "doc.text")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundStyle(Theme.text3)
+                        Text("Daily Brief")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(Theme.text2)
                     }
-                    .padding(.horizontal, 12).padding(.vertical, 6)
-                    .background(Theme.card)
+                    .padding(.horizontal, 14).padding(.vertical, 8)
+                    .background(Theme.bg3)
                     .clipShape(Capsule())
-                    .overlay(Capsule().stroke(Theme.border, lineWidth: 1))
                 }
+                .buttonStyle(.plain)
                 .accessibilityLabel("Open Daily Brief")
                 Button { appState.showSettings = true } label: {
-                    Image(systemName: "gearshape.fill").font(.system(size: 15))
+                    Image(systemName: "gearshape")
+                        .font(.system(size: 16, weight: .regular))
                         .foregroundStyle(Theme.text3)
-                        .frame(width: 34, height: 34)
-                        .background(Theme.card)
-                        .clipShape(Circle())
-                        .overlay(Circle().stroke(Theme.border, lineWidth: 1))
                 }
                 .accessibilityLabel("Settings")
             }
             .padding(.horizontal, 20)
             .padding(.top, 52)
-            .padding(.bottom, 20)
+            .padding(.bottom, 24)
 
-            // Portfolio value — hero section with gradient mesh
-            ZStack(alignment: .topLeading) {
-                // Radial gradient mesh behind the value
-                RadialGradient(
-                    colors: [Color(hex: "#4F46E5").opacity(0.18), Color.clear],
-                    center: .topLeading,
-                    startRadius: 0,
-                    endRadius: 220
-                )
-                .frame(height: 130)
-                .allowsHitTesting(false)
-
-                VStack(alignment: .leading, spacing: 2) {
+            // ── Portfolio value ───────────────────────────────────────────
+            VStack(alignment: .leading, spacing: 0) {
                 Text(appState.totalValue.fmtPrice())
-                    .font(.system(size: 58, weight: .black))
+                    .font(.system(size: 52, weight: .black))
                     .foregroundStyle(Theme.text)
                     .monospacedDigit()
-                    .kerning(-1)
+                    .kerning(-1.5)
                     .contentTransition(.numericText())
                     .animation(.spring(response: 0.4, dampingFraction: 0.8), value: appState.totalValue)
-                    .minimumScaleFactor(0.40)
+                    .minimumScaleFactor(0.4)
                     .lineLimit(1)
                     .accessibilityLabel("Total portfolio value")
-                    .accessibilityValue(appState.totalValue.fmtPrice())
 
-                // P&L + market status on one line
                 if appState.totalCost > 0 {
-                    let isGain = appState.totalPnl >= 0
-                    let pnlColor = isGain ? Theme.gain : Theme.loss
-                    let pnlSign = isGain ? "+" : ""
+                    let isGain    = appState.totalPnl >= 0
+                    let pnlColor  = isGain ? Theme.gain : Theme.loss
+                    let pnlSign   = isGain ? "+" : ""
+                    let todayGain = appState.todayPnl >= 0
+                    let todayClr  = todayGain ? Theme.gain : Theme.loss
 
-                    HStack(spacing: 10) {
-                        Text("\(pnlSign)\(appState.totalPnl.fmtPrice()) (\(appState.totalPnlPct.fmtPct())) All-time")
-                            .font(.system(size: 14, weight: .semibold))
+                    // All-time P&L
+                    HStack(spacing: 5) {
+                        Text("\(pnlSign)\(appState.totalPnl.fmtPrice())")
                             .foregroundStyle(pnlColor)
-                            .monospacedDigit()
-                            .contentTransition(.numericText())
-                            .animation(.spring(response: 0.4, dampingFraction: 0.8), value: appState.totalPnl)
+                        Text("(\(appState.totalPnlPct.fmtPct()))")
+                            .foregroundStyle(pnlColor.opacity(0.85))
+                        Text("all-time")
+                            .foregroundStyle(Theme.text3)
+                    }
+                    .font(.system(size: 15, weight: .semibold).monospacedDigit())
+                    .contentTransition(.numericText())
+                    .padding(.top, 6)
 
-                        // Market status pill inline
+                    // ── Divider ───────────────────────────────────────────
+                    Rectangle()
+                        .fill(Theme.border)
+                        .frame(height: 0.5)
+                        .padding(.vertical, 12)
+
+                    // Today + market status on one clean line
+                    HStack(spacing: 0) {
+                        Text("Today  ")
+                            .foregroundStyle(Theme.text3)
+                            .fontWeight(.semibold)
+                        Text("\(todayGain ? "+" : "")\(appState.todayPnlPct.fmtPct())")
+                            .foregroundStyle(todayClr)
+                        Text("  \(appState.todayPnl.fmtChange())")
+                            .foregroundStyle(todayClr.opacity(0.85))
+                        Spacer()
                         HStack(spacing: 5) {
-                            Circle().fill(marketStatus.dotColor).frame(width: 6, height: 6)
-                                .overlay(
-                                    Circle().fill(marketStatus.dotColor.opacity(0.3))
-                                        .frame(width: 11, height: 11)
-                                        .opacity(marketStatus.isLive ? 1 : 0)
-                                )
+                            Circle()
+                                .fill(marketStatus.dotColor)
+                                .frame(width: 5, height: 5)
                             Text(marketStatus.label)
-                                .font(.system(size: 10, weight: .bold))
+                                .foregroundStyle(Theme.text3)
+                                .fontWeight(.semibold)
+                        }
+                    }
+                    .font(.system(size: 13, weight: .medium).monospacedDigit())
+
+                    // Secondary annotation row
+                    HStack(spacing: 16) {
+                        if isATH {
+                            Text("New high")
+                                .foregroundStyle(Theme.gold)
+                                .fontWeight(.bold)
+                        } else if fromATH > 0 && appState.portfolioATH > 0 {
+                            Text("ATH  −\(fromATH.fmtPrice())")
                                 .foregroundStyle(Theme.text3)
                         }
-                        .padding(.horizontal, 9)
-                        .padding(.vertical, 4)
-                        .background(Theme.card)
-                        .clipShape(Capsule())
-                        .overlay(Capsule().stroke(Theme.border, lineWidth: 1))
-                    }
-                    .padding(.top, 4)
-
-                    // Today P&L + badges — more prominent pill
-                    HStack(spacing: 8) {
-                        let todayIsGain = appState.todayPnl >= 0
-                        let todayColor = todayIsGain ? Theme.gain : Theme.loss
-                        HStack(spacing: 5) {
-                            Text("TODAY")
-                                .font(.system(size: 10, weight: .black))
-                                .foregroundStyle(todayColor.opacity(0.8))
-                                .kerning(0.8)
-                            Text(appState.todayPnlPct.fmtPct())
-                                .font(.system(size: 14, weight: .black))
-                                .foregroundStyle(todayColor)
-                        }
-                        .padding(.horizontal, 12).padding(.vertical, 7)
-                        .background(todayColor.opacity(0.15))
-                        .clipShape(Capsule())
-                        .overlay(Capsule().stroke(todayColor.opacity(0.35), lineWidth: 1.5))
-
-                        if isATH {
-                            HStack(spacing: 4) {
-                                Image(systemName: "trophy.fill")
-                                    .font(.system(size: 11))
-                                    .foregroundStyle(Theme.gold)
-                                Text("NEW ATH")
-                                    .font(.system(size: 10, weight: .black))
-                                    .foregroundStyle(Theme.gold)
-                                    .kerning(0.5)
-                            }
-                            .padding(.horizontal, 10).padding(.vertical, 5)
-                            .background(Theme.gold.opacity(0.12))
-                            .clipShape(Capsule())
-                            .overlay(Capsule().stroke(Theme.gold.opacity(0.3), lineWidth: 1))
-                            .scaleEffect(athPulse ? 1.04 : 1.0)
-                            .animation(.easeInOut(duration: 0.9).repeatForever(autoreverses: true), value: athPulse)
-                            .onAppear { athPulse = true }
-                        } else if fromATH > 0 && appState.portfolioATH > 0 {
-                            HStack(spacing: 4) {
-                                Text("From ATH")
-                                    .font(.system(size: 10, weight: .semibold))
-                                    .foregroundStyle(Theme.text3)
-                                Text("-\(fromATH.fmtPrice())")
-                                    .font(.system(size: 11, weight: .bold))
-                                    .foregroundStyle(Theme.text2)
-                            }
-                            .padding(.horizontal, 10).padding(.vertical, 5)
-                            .background(Theme.card)
-                            .clipShape(Capsule())
-                        }
-
                         if appState.streak > 1 {
-                            HStack(spacing: 4) {
-                                Image(systemName: "flame.fill").font(.system(size: 12)).foregroundStyle(.white)
-                                Text("\(appState.streak)d").font(.system(size: 12, weight: .black)).foregroundStyle(.white)
-                            }
-                            .padding(.horizontal, 10).padding(.vertical, 5)
-                            .background(LinearGradient(colors: [Color(hex: "#F97316"), Color(hex: "#EA580C")], startPoint: .leading, endPoint: .trailing))
-                            .clipShape(Capsule())
+                            Text("\(appState.streak)d streak")
+                                .foregroundStyle(Theme.text3)
                         }
+                        Spacer()
                     }
+                    .font(.system(size: 11, weight: .semibold).monospacedDigit())
                     .padding(.top, 8)
-
-                    // Animated progress bar showing today's change magnitude
-                    let todayIsGain2 = appState.todayPnl >= 0
-                    let todayBarColor = todayIsGain2 ? Theme.gain : Theme.loss
-                    let magnitude = min(abs(appState.todayPnlPct) / 5.0, 1.0)  // scale: 5% = full bar
-                    GeometryReader { geo in
-                        ZStack(alignment: .leading) {
-                            Capsule().fill(Theme.card).frame(height: 3)
-                            Capsule()
-                                .fill(LinearGradient(colors: [todayBarColor.opacity(0.5), todayBarColor], startPoint: .leading, endPoint: .trailing))
-                                .frame(width: progressAppeared ? geo.size.width * CGFloat(magnitude) : 0, height: 3)
-                                .animation(.spring(response: 1.0, dampingFraction: 0.75).delay(0.3), value: progressAppeared)
-                        }
-                    }
-                    .frame(height: 3)
-                    .padding(.top, 12)
-                    .onAppear { progressAppeared = true }
                 }
-                } // closes inner VStack
-            } // closes ZStack
-            .padding(.horizontal, 20)
-            .padding(.bottom, 14)
-
-            if !appState.positions.isEmpty {
-                AllocBar()
-                    .padding(.horizontal, 20)
-                    .padding(.bottom, 6)
             }
+            .padding(.horizontal, 20)
+            .padding(.bottom, 16)
+
         }
         .background(Theme.bg)
         .onReceive(timer) { now = $0 }
@@ -319,18 +250,21 @@ struct AllocBar: View {
 
     var body: some View {
         let tv = appState.totalValue
-        HStack(spacing: 3) {
-            ForEach(Array(appState.positions.enumerated()), id: \.element.id) { i, p in
-                let price = appState.quotes[p.ticker]?.price ?? p.avgCost
-                let pct = tv > 0 ? (price * p.shares / tv) : 0
-                Theme.allocColors[i % Theme.allocColors.count]
-                    .frame(height: 7)
-                    .frame(maxWidth: .infinity)
-                    .scaleEffect(x: pct, anchor: .leading)
-                    .clipShape(Capsule())
+        GeometryReader { geo in
+            HStack(spacing: 1) {
+                ForEach(Array(appState.positions.enumerated()), id: \.element.id) { i, p in
+                    let price = appState.quotes[p.ticker]?.price ?? p.avgCost
+                    let pct = tv > 0 ? max(price * p.shares / tv, 0) : 0
+                    let gain = price > p.avgCost
+                    Rectangle()
+                        .fill(gain ? Theme.gain.opacity(0.55) : Theme.loss.opacity(0.45))
+                        .frame(width: geo.size.width * pct)
+                        .frame(height: 4)
+                }
             }
+            .clipShape(Capsule())
         }
-        .frame(height: 7)
+        .frame(height: 4)
         .accessibilityLabel("Portfolio allocation bar")
     }
 }
@@ -340,32 +274,53 @@ struct AllocBar: View {
 struct PositionsList: View {
     @Environment(AppState.self) var appState
     let onTicker: (String) -> Void
+    let onAdd: () -> Void
 
     var body: some View {
-        if appState.positions.isEmpty {
-            VStack(spacing: 12) {
-                Text("No positions yet.")
-                    .font(.system(size: 16))
-                Text("Tap + to add your first stock.")
-                    .font(.system(size: 16))
-            }
-            .foregroundStyle(Theme.text3)
-            .padding(60)
-            .frame(maxWidth: .infinity)
-        } else {
-            VStack(spacing: 10) {
-                HStack {
-                    Text("POSITIONS")
-                        .font(.system(size: 10, weight: .black))
-                        .foregroundStyle(Theme.text3)
-                        .kerning(2.5)
-                    Spacer()
+        VStack(spacing: 10) {
+            // Section header with inline + button
+            HStack {
+                Text("HOLDINGS")
+                    .font(.system(size: 10, weight: .black))
+                    .foregroundStyle(Theme.text3)
+                    .kerning(2.5)
+                Spacer()
+                if !appState.positions.isEmpty {
                     Text("\(appState.positions.count) stocks")
                         .font(.system(size: 10, weight: .semibold))
                         .foregroundStyle(Theme.text3)
                 }
-                .padding(.bottom, 4)
+                Button(action: onAdd) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "plus")
+                            .font(.system(size: 11, weight: .bold))
+                        Text("Add")
+                            .font(.system(size: 11, weight: .semibold))
+                    }
+                    .foregroundStyle(Theme.accent)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .background(Theme.accent.opacity(0.10))
+                    .clipShape(Capsule())
+                }
+                .buttonStyle(.plain)
+            }
 
+            if appState.positions.isEmpty {
+                VStack(spacing: 10) {
+                    Image(systemName: "chart.line.uptrend.xyaxis")
+                        .font(.system(size: 32, weight: .light))
+                        .foregroundStyle(Theme.text4)
+                    Text("No positions yet")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(Theme.text3)
+                    Text("Tap Add to track your first stock.")
+                        .font(.system(size: 13))
+                        .foregroundStyle(Theme.text4)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 40)
+            } else {
                 ForEach(Array(appState.positions.enumerated()), id: \.element.id) { index, position in
                     PositionCard(position: position, onTap: { onTicker(position.ticker) })
                         .staggerEntrance(index: index)
@@ -373,8 +328,8 @@ struct PositionsList: View {
 
                 Text("Long-press a card to delete")
                     .font(.system(size: 10))
-                    .foregroundStyle(Theme.text3)
-                    .padding(.top, 4)
+                    .foregroundStyle(Theme.text4)
+                    .padding(.top, 2)
             }
         }
     }
@@ -403,10 +358,7 @@ struct PositionCard: View {
     }
 
     var body: some View {
-        let sparkColor = isUp ? Theme.gain : Theme.loss
-        let sparkPoints = sparklinePoints(ticker: position.ticker, trending: isUp)
         let stripeColor = isUp ? Theme.gain : Theme.loss
-        let bgTint = isUp ? Theme.gainBg : Theme.lossBg
 
         HStack(spacing: 0) {
             // Left color stripe — 4px wide, P&L colored
@@ -423,12 +375,8 @@ struct PositionCard: View {
                         .foregroundStyle(Theme.text)
 
                     Text("\(isUp ? "▲" : "▼") \(String(format: "%.1f", abs(pnlPct)))%")
-                        .font(.system(size: 10, weight: .bold))
+                        .font(.system(size: 11, weight: .bold))
                         .foregroundStyle(isUp ? Theme.gain : Theme.loss)
-                        .padding(.horizontal, 7)
-                        .padding(.vertical, 2)
-                        .background(isUp ? Theme.gainBg : Theme.lossBg)
-                        .clipShape(RoundedRectangle(cornerRadius: 6))
 
                     if EARNINGS.contains(where: { $0.ticker == position.ticker }) {
                         Text("EARNINGS")
@@ -460,13 +408,8 @@ struct PositionCard: View {
 
             Spacer()
 
-            // Sparkline + price stack
-            ZStack(alignment: .trailing) {
-                // Subtle sparkline behind numbers
-                MiniSparkline(points: sparkPoints, color: sparkColor.opacity(0.55))
-                    .offset(x: 0, y: -2)
-
-                VStack(alignment: .trailing, spacing: 3) {
+            // Price stack
+            VStack(alignment: .trailing, spacing: 3) {
                     Text(value.fmtPrice())
                         .font(.system(size: 16, weight: .black))
                         .foregroundStyle(Theme.text)
@@ -480,23 +423,16 @@ struct PositionCard: View {
                             .font(.system(size: 11, weight: .bold))
                             .foregroundStyle(dayIsUp ? Theme.gain : Theme.loss)
                     }
-                }
             }
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 14)
-        .background(
-            ZStack {
-                Theme.card
-                bgTint.opacity(0.04)
-            }
-        )
-        .clipShape(RoundedRectangle(cornerRadius: 20))
+        .padding(.horizontal, 14)
+        .padding(.vertical, 13)
+        .background(Theme.card)
+        .clipShape(RoundedRectangle(cornerRadius: 14))
         .overlay(
-            RoundedRectangle(cornerRadius: 20)
-                .stroke(stripeColor.opacity(0.12), lineWidth: 1)
+            RoundedRectangle(cornerRadius: 14)
+                .stroke(stripeColor.opacity(0.18), lineWidth: 0.5)
         )
-        .shadow(color: .black.opacity(0.08), radius: 10, y: 4)
         .scaleEffect(pressing ? 0.98 : 1)
         .animation(.easeInOut(duration: 0.1), value: pressing)
         .accessibilityLabel("\(position.ticker), \(isUp ? "up" : "down") \(String(format: "%.1f", abs(pnlPct))) percent, value \(value.fmtPrice())")
@@ -739,18 +675,18 @@ struct AIAgentCard: View {
         let todayPct = appState.todayPnlPct
 
         ZStack {
-            // More dramatic deep indigo → violet gradient
+            // Deep navy — calm, serious, financial-grade
             LinearGradient(
-                colors: [Color(hex: "#0D0829"), Color(hex: "#1E0F5C"), Color(hex: "#2D1B6E"), Color(hex: "#1A1040")],
+                colors: [Color(hex: "#070C18"), Color(hex: "#0D1628"), Color(hex: "#111E32")],
                 startPoint: .topLeading, endPoint: .bottomTrailing
             )
 
-            // Radial accent bloom top-right
+            // Subtle blue atmospheric glow — not purple
             RadialGradient(
-                colors: [Color(hex: "#6D28D9").opacity(0.35), Color.clear],
+                colors: [Color(hex: "#1E3A5F").opacity(0.45), Color.clear],
                 center: .topTrailing,
                 startRadius: 0,
-                endRadius: 200
+                endRadius: 220
             )
             .allowsHitTesting(false)
 
@@ -759,14 +695,12 @@ struct AIAgentCard: View {
                 HStack(spacing: 12) {
                     ZStack {
                         Circle()
-                            .fill(LinearGradient(colors: [Color(hex: "#818CF8"), Color(hex: "#C4B5FD")],
-                                                 startPoint: .topLeading, endPoint: .bottomTrailing))
+                            .fill(Color(hex: "#1E3A5F"))
                             .frame(width: 48, height: 48)
-                            .shadow(color: Color(hex: "#818CF8").opacity(0.5), radius: 12)
+                            .overlay(Circle().stroke(Color(hex: "#2E5080").opacity(0.7), lineWidth: 1))
                         Image(systemName: "sparkles")
-                            .font(.system(size: 22, weight: .bold))
-                            .foregroundStyle(.white)
-                            .symbolEffect(.pulse)
+                            .font(.system(size: 20, weight: .semibold))
+                            .foregroundStyle(Color(hex: "#4A90D9"))
                     }
                     VStack(alignment: .leading, spacing: 2) {
                         Text("STALK AI")
@@ -789,7 +723,7 @@ struct AIAgentCard: View {
                     scoreCard(value: hs.grade, label: "Health Score", color: hs.color)
                     scoreCard(value: ret.fmtPct(), label: "All-Time Return", color: ret >= 0 ? Color(hex: "#4ADE80") : Color(hex: "#F87171"))
                     scoreCard(value: todayPct.fmtPct(), label: "Today's P&L", color: todayPct >= 0 ? Color(hex: "#4ADE80") : Color(hex: "#F87171"))
-                    scoreCard(value: "\(appState.positions.count)", label: "Positions", color: Color(hex: "#818CF8"))
+                    scoreCard(value: "\(appState.positions.count)", label: "Positions", color: Color(hex: "#4A90D9"))
                 }
                 .padding(.bottom, 16)
 
@@ -809,7 +743,7 @@ struct AIAgentCard: View {
                     aiInsight(icon: "chart.bar.fill", tag: "CONCENTRATION RISK", tagColor: Color(hex: "#FACC15"),
                               text: "\(big.ticker) is \(String(format: "%.0f", big.pct))% of your portfolio. Rebalancing would reduce single-stock risk.")
                 } else if appState.positions.count < 5 {
-                    aiInsight(icon: "lightbulb.fill", tag: "DIVERSIFY", tagColor: Color(hex: "#818CF8"),
+                    aiInsight(icon: "lightbulb.fill", tag: "DIVERSIFY", tagColor: Color(hex: "#4A90D9"),
                               text: "You hold \(appState.positions.count) position\(appState.positions.count == 1 ? "" : "s"). Target 8–12 stocks across different sectors to reduce risk.")
                 } else {
                     aiInsight(icon: "checkmark.circle.fill", tag: "WELL DIVERSIFIED", tagColor: Color(hex: "#4ADE80"),
@@ -829,9 +763,9 @@ struct AIAgentCard: View {
                     Button { sendQuickAI() } label: {
                         Image(systemName: "arrow.up").font(.system(size: 15, weight: .bold))
                             .foregroundStyle(.white).frame(width: 38, height: 38)
-                            .background(LinearGradient(colors: [Color(hex: "#818CF8"), Color(hex: "#C4B5FD")],
-                                                       startPoint: .topLeading, endPoint: .bottomTrailing))
+                            .background(Color(hex: "#1E3A5F"))
                             .clipShape(Circle())
+                            .overlay(Circle().stroke(Color(hex: "#4A90D9").opacity(0.5), lineWidth: 1))
                     }
                 }
                 .padding(.top, 14)
@@ -846,7 +780,7 @@ struct AIAgentCard: View {
                     HStack(alignment: .top, spacing: 8) {
                         Image(systemName: "brain.fill")
                             .font(.system(size: 13, weight: .semibold))
-                            .foregroundStyle(Color(hex: "#A78BFA"))
+                            .foregroundStyle(Color(hex: "#4A90D9"))
                         Text(response)
                             .font(.system(size: 13)).foregroundStyle(.white.opacity(0.9)).lineSpacing(4)
                     }
@@ -861,11 +795,9 @@ struct AIAgentCard: View {
                     }
                     .foregroundStyle(.white).frame(maxWidth: .infinity)
                     .padding(.vertical, 13)
-                    .background(
-                        LinearGradient(colors: [Color(hex: "#6D28D9").opacity(0.6), Color(hex: "#4F46E5").opacity(0.4)], startPoint: .leading, endPoint: .trailing)
-                    )
+                    .background(Color(hex: "#1A2F4A"))
                     .clipShape(RoundedRectangle(cornerRadius: 16))
-                    .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color(hex: "#818CF8").opacity(0.4), lineWidth: 1))
+                    .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color(hex: "#4A90D9").opacity(0.35), lineWidth: 1))
                 }
                 .padding(.top, 12)
             }

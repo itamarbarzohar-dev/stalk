@@ -126,10 +126,9 @@ enum Theme {
     )
     static let aiHeroGradient = LinearGradient(
         colors: [
-            Color(hex: "#1A1060"),
-            Color(hex: "#2D2B8F"),
-            Color(hex: "#5B5BD6"),
-            Color(hex: "#8B72F8"),
+            Color(hex: "#06080F"),
+            Color(hex: "#0C1220"),
+            Color(hex: "#0F1930"),
         ],
         startPoint: .topLeading, endPoint: .bottomTrailing
     )

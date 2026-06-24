@@ -333,6 +333,45 @@ struct WatchlistItem: Identifiable, Codable {
     var dateAdded: Date = Date()
 }
 
+struct UserWatchlist: Identifiable, Codable {
+    var id: UUID = UUID()
+    var name: String
+    var items: [WatchlistItem] = []
+}
+
+enum WatchlistStat: String, CaseIterable, Codable, Identifiable {
+    var id: String { rawValue }
+    case last       = "LAST"
+    case changePct  = "CHG %"
+    case changeDollar = "CHG $"
+    case volume     = "VOLUME"
+    case avgVolume  = "AVG VOL"
+    case marketCap  = "MKT CAP"
+    case pe         = "P/E"
+    case eps        = "EPS"
+    case beta       = "BETA"
+    case divYield   = "DIV YLD"
+    case week52High = "52W HIGH"
+    case week52Low  = "52W LOW"
+    case dayHigh    = "DAY HI"
+    case dayLow     = "DAY LO"
+    case open       = "OPEN"
+    case prevClose  = "PREV"
+    case rsi        = "RSI"
+    case shortFloat = "SHORT%"
+
+    var columnWidth: CGFloat {
+        switch self {
+        case .marketCap, .volume, .avgVolume: return 84
+        default: return 76
+        }
+    }
+
+    var isGainColored: Bool {
+        self == .changePct || self == .changeDollar
+    }
+}
+
 struct WatchlistGroup: Identifiable {
     let id: String
     let label: String

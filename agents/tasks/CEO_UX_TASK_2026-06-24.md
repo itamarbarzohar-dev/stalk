@@ -1,12 +1,11 @@
-**Task: App Store Visual Assets — Ready to Ship**
-**Assigned to:** Luna (UX Designer)
-**Priority:** HIGH
-**Due:** 2026-06-28
+**Luna (UX/Design) — App Store Asset Sprint**
 
-## What I need
+**Ship today or flag:**
+1. **Screenshots (5 slides)** — Each showcasing one P1 feature (Heat Map, Health Score, Earnings, Trending, AI Context). Show real data, clean copy.
+2. **App icon final** — Approve Figma version or recommend designer hire. Icon must work at 1024x, home screen, app switcher.
+3. **Tagline/subtitle** — 30-char max for App Store. Compete with Perplexity Finance. "Portfolio + Community = Addictive."
+4. **Dark mode review** — Verify all 5 P1 features render correctly in dark mode (previous tab bar bug context).
 
-1. **App Store screenshots** (6-8 per locale) — Portfolio hero, Heat Map, Health Score, AI chat. Show the 5 P1 features in context.
-2. **App Store copy audit** — tagline, description, keywords. Competitive vs. Perplexity Finance?
-3. **App icon final design** — placeholder needs replacement. Approve execution method (Figma, designer, or AI generation + refinement).
+**Output:** Final App Store assets (screenshots PNG, icon asset) ready for submission bundle.
 
-Once ready, we hand to Itamar for launch checklist.
+**Deadline:** By 2026-06-27 so Sam can QA the full listing.

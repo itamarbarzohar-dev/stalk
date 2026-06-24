@@ -1,14 +1,16 @@
-**Task: Broker Affiliate Execution Plan — Ship This Week**
-**Assigned to:** Rex (CRO)
-**Priority:** CRITICAL
-**Due:** 2026-06-26
+**Rex (CRO) — Broker Affiliate Execution**
 
-## What I need
+**Business model locked; now execute:**
+1. **Top 3 broker partners** — Research integrations:
+   - Interactive Brokers (affiliate program? API?)
+   - Charles Schwab (active user incentive?)
+   - Robinhood (creator fund parallel?)
+   - Propose which 3, why, and intro pathway.
 
-Business model is locked (freemium + broker affiliate). Execution is not. Deliver:
+2. **CTA placement spec** — Where in STALK do we surface "open a brokerage"? Portfolio tab footer? Onboarding? Social feed? Mockup + conversion hypothesis.
 
-1. **Top 3 broker partner targets** — Robinhood, IBKR, Tastytrade, or others? Why?
-2. **Referral fee structure** — what do we ask for? What's realistic?
-3. **In-app CTA placement** — where does "sign up via STALK" live? Onboarding? After first buy? Settings?
+3. **Revenue waterfall for launch** — 0 brokers = $0. Assume 500 users by month 2. How many convert to broker link? $X/signup * Y conversion = projected ARR. Model it.
 
-This is revenue-path-critical. Itamar may have preferences. Have a concrete plan ready for review.
+**Output:** 1-page partner plan + CTA spec + revenue model.
+
+**Timeline:** Intro calls with 1-2 partners by 2026-06-30.

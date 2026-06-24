@@ -32,3 +32,22 @@
 - Flag any remaining pre-launch work
 
 **Decision:** If all 5 P1 features ship high-quality by 2026-06-28, we recommend launching with this feature set (P0 + P1). Speed to market + retention hooks > waiting for P2 moat-builders.
+
+---
+
+## 2026-06-24 — Task Assignments & Daily Focus
+
+**Dispatched 6 task files to team:**
+1. **Maya (CTO)** — Lock data provider for Earnings Calendar (IEX vs Alpha Vantage vs Finnhub). Define backend auth + real-time strategy.
+2. **Jordan (iOS)** — Performance audit on 5 P1 features. Flag shipping blockers. Health Score math review.
+3. **Luna (UX)** — Finalize App Store screenshots (5 slides) + app icon. Dark mode QA.
+4. **Sam (CPO)** — Scope lock: ship all 5 P1 or phased? Build launch readiness checklist for Itamar.
+5. **Rex (CRO)** — Top 3 broker partners + CTA placement spec + revenue waterfall model.
+6. **Dana (Reporter)** — Daily digest covering all 5 areas + Itamar blockers.
+
+**Critical path items:**
+- Data provider decision blocks Jordan's Earnings Calendar build
+- Itamar's Apple Dev enrollment blocks bundle ID change + App Store submission
+- App Store assets ready by 2026-06-27 for final QA
+
+**Team health:** On pace for 2026-06-28 pre-submission review. No major risks flagged yet. Watching Health Score algorithm fairness and Earnings Calendar data accuracy closely.

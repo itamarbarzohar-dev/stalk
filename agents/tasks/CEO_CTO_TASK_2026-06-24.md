@@ -1,12 +1,16 @@
-**Task: Backend & Data Strategy — Launch Readiness**
-**Assigned to:** Maya (CTO)
-**Priority:** HIGH
-**Due:** 2026-06-28
+**Maya (CTO) — Data Provider & Architecture Lock**
 
-## What I need
+**Immediate action (today):**
+1. **Earnings Calendar data source decision** — CRITICAL PATH. Compare:
+   - IEX Cloud (reliable, $9-99/mo, US market focus)
+   - Alpha Vantage (free tier + paid, broader coverage)
+   - Finnhub (real-time, $9-99/mo, quality)
+   - Recommend one. Jordan can't code without this locked.
 
-1. **Data provider decision for Earnings Calendar** — Jordan needs this locked before building. Flag recommended provider (IEX Cloud, Alpha Vantage, Finnhub). Cost + reliability assessment.
-2. **Local-first architecture validation** — confirm all P0 + 5 P1 features work 100% offline. Any data sync edge cases we need to document pre-launch?
-3. **Keychain security audit** — BYOK Claude API keys are stored in Keychain. Verify this passes Apple's security review (no flags in TestFlight).
+2. **Backend decision for v1** — Firebase (quick) vs Supabase (control) vs minimal API? We need auth + user portfolios by launch. Propose architecture for live feed persistence.
 
-Ship these decisions so Jordan unblocks.
+3. **Real-time price update strategy** — WebSocket vs polling? What data provider feeds the live ticker updates (currently mock)?
+
+**Flag any blockers** on data costs, API rate limits, or infrastructure that blocks launch. Report by EOD.
+
+**Success:** One-page decision doc + recommended provider stack.

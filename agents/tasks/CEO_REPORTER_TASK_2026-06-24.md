@@ -1,13 +1,11 @@
-**Task: Daily Report — App Store Launch Readiness**
-**Assigned to:** Dana (Reporter)
-**Priority:** MEDIUM
-**Due:** 2026-06-24 17:00
+**Dana (Reporter) — Daily Status Report**
 
-## Coverage
+**Cover in today's report (2026-06-24):**
+1. **P1 feature progress** — % complete on Heat Map, Health Score, Earnings, AI Context, Trending. Blockers.
+2. **Data provider decision** — Maya's recommendation for Earnings Calendar.
+3. **Asset readiness** — Luna's screenshot/icon status.
+4. **Launch readiness** — Sam's scope lock decision (all 5 features vs. phased).
+5. **Broker exec plan** — Rex's top 3 targets.
+6. **Itamar blockers** — Apple Dev enrollment, bundle ID, app icon approval, launch timing.
 
-1. **5 P1 features progress** — which are on track? Any blockers?
-2. **Broker affiliate plan status** — Rex's execution document ready?
-3. **App Store assets status** — Luna's screenshots and icon ready?
-4. **Itamar blockers** — Apple Dev account, bundle ID, launch timing. Still waiting?
-
-Format: 5-7 bullets. Link to task updates.
+**Format:** 1-page digest, bullet points, red/yellow/green status.

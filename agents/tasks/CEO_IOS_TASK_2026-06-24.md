@@ -1,14 +1,12 @@
-**Task: 5 P1 Features — Ship Quality, Flag Blockers**
-**Assigned to:** Jordan (iOS Dev)
-**Priority:** CRITICAL
-**Due:** 2026-07-01
+**Jordan (iOS Dev) — P1 Feature Shipping Checkpoint**
 
-## Status check
+**Review & flag today:**
+1. **Heat Map visual** — Is it performant with 50+ stocks? Stress test the grid rendering.
+2. **AI Market Context** — Does Claude API response time break the card (>2s is janky)? Cache or streaming?
+3. **Health Score algorithm** — Code review the math. Concentration penalty, diversification bonus, long-hold reward. Make it feel fair, not arbitrary.
+4. **Earnings Calendar** — Blocked on Maya's data provider decision. Once locked, can you ship in 2 days?
+5. **Trending Tickers feed** — Does this compete with market tab or enhance it? User flow friction?
 
-Sector Heat Map, AI Market Context, Portfolio Health Score, Earnings Calendar, Trending Tickers — all in progress. For each:
+**Performance target:** All cards load <1.5s, animations smooth (60fps).
 
-1. **Code quality:** Unit tests? Performance on old devices?
-2. **Data accuracy:** Mocked data realistic? Real API ready?
-3. **Blockers:** Data providers? Design tweaks? Flag now, not at ship time.
-
-Target: all 5 features beta-testable by 2026-06-28 so Itamar can review pre-launch.
+**Ship quality or ship quick?** Flag if any P1 needs more time vs. can launch as-is.

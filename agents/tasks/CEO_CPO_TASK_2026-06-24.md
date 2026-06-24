@@ -1,12 +1,10 @@
-**Task: Product Launch Readiness — Feature Audit**
-**Assigned to:** Sam (CPO)
-**Priority:** HIGH
-**Due:** 2026-06-28
+**Sam (CPO) — Launch Readiness & Prioritization**
 
-## What I need
+**Three decisions needed:**
+1. **P1 feature scope lock** — Are all 5 features (Heat Map, AI Context, Health Score, Earnings, Trending) shipping on launch day? Or soft-launch 3, add 2 in week 2? Trade-off: complexity vs. momentum.
+2. **Onboarding flow audit** — Does new user see P0 + P1 features intuitively? Should we gate anything behind a tutorial?
+3. **Launch readiness checklist** — Build the final pre-submission doc for Itamar (legal, privacy policy link, support email, crash handling, offline mode fallbacks).
 
-1. **P0 feature completeness check** — Portfolio, Market, Feed, For You, Daily Brief, AI Agent, Live Feed, FOMO — all working end-to-end on device?
-2. **P1 addictiveness scoring** — do the 5 in-progress features actually drive daily opens? Which is highest-leverage? Any that should ship post-launch?
-3. **Launch readiness decision** — do we ship with current feature set or wait for more P1? Document the tradeoff (speed to market vs. retention polish).
+**Watch for:** Feature creep risk. Perplexity has 42 features; we're shipping ~17. That's fine — focus on polish.
 
-Flag any product gaps before we hand to Itamar.
+**Output:** Prioritization decision doc + launch checklist for Itamar review.

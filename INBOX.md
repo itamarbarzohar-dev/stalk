@@ -10,7 +10,7 @@
 <!-- Example: - [ ] Make the portfolio header font size 60pt -->
 - [ ] In PortfolioView, change the "HOLDINGS" section title font size from 10pt to 11pt
 -[ ]make the back button much more noticable while you open the watchlists
-
+- [ ] in stalk ai chat window change the colors to something more pastel not aggressive and open the app again in macbook
 ## Done
 
 <!-- Completed tasks appear here automatically -->

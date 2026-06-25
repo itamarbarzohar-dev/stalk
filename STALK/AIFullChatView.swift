@@ -30,7 +30,7 @@ struct APIKeySetupView: View {
 
     var body: some View {
         ZStack {
-            Color(hex: "#0F0A1E").ignoresSafeArea()
+            Color(hex: "#100E1C").ignoresSafeArea()
 
             VStack(spacing: 0) {
                 // Handle bar
@@ -44,7 +44,7 @@ struct APIKeySetupView: View {
                 ZStack {
                     Circle()
                         .fill(LinearGradient(
-                            colors: [Color(hex: "#7B6FEF"), Color(hex: "#5B5BD6")],
+                            colors: [Color(hex: "#A594F0"), Color(hex: "#8880DC")],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         ))
@@ -77,7 +77,7 @@ struct APIKeySetupView: View {
                     SecureField("sk-ant-...", text: $keyInput)
                         .font(.system(size: 15, design: .monospaced))
                         .foregroundStyle(.white)
-                        .tint(Color(hex: "#7B6FEF"))
+                        .tint(Color(hex: "#A594F0"))
                         .focused($fieldFocused)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 14)
@@ -85,7 +85,7 @@ struct APIKeySetupView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 14))
                         .overlay(
                             RoundedRectangle(cornerRadius: 14)
-                                .stroke(fieldFocused ? Color(hex: "#7B6FEF") : Color.white.opacity(0.12), lineWidth: 1.5)
+                                .stroke(fieldFocused ? Color(hex: "#A594F0") : Color.white.opacity(0.12), lineWidth: 1.5)
                         )
                 }
                 .padding(.horizontal, 24)
@@ -100,10 +100,10 @@ struct APIKeySetupView: View {
                     HStack(spacing: 6) {
                         Text("Get API Key")
                             .font(.system(size: 13, weight: .semibold))
-                            .foregroundStyle(Color(hex: "#7B6FEF"))
+                            .foregroundStyle(Color(hex: "#A594F0"))
                         Image(systemName: "arrow.up.right")
                             .font(.system(size: 11, weight: .bold))
-                            .foregroundStyle(Color(hex: "#7B6FEF"))
+                            .foregroundStyle(Color(hex: "#A594F0"))
                     }
                 }
                 .padding(.bottom, 32)
@@ -126,7 +126,7 @@ struct APIKeySetupView: View {
                     .frame(height: 54)
                     .background(
                         keyInput.hasPrefix("sk-ant-") && keyInput.count > 20
-                            ? LinearGradient(colors: [Color(hex: "#5B5BD6"), Color(hex: "#7B6FEF")], startPoint: .leading, endPoint: .trailing)
+                            ? LinearGradient(colors: [Color(hex: "#8880DC"), Color(hex: "#A594F0")], startPoint: .leading, endPoint: .trailing)
                             : LinearGradient(colors: [Color.white.opacity(0.1), Color.white.opacity(0.1)], startPoint: .leading, endPoint: .trailing)
                     )
                     .clipShape(RoundedRectangle(cornerRadius: 16))
@@ -177,7 +177,7 @@ struct AIFullChatView: View {
                 inputBar()
             }
         }
-        .background(Color(hex: "#0F0A1E"))
+        .background(Color(hex: "#100E1C"))
         .ignoresSafeArea(.keyboard)
         .sheet(isPresented: $showPaywall) {
             PremiumSheet()
@@ -212,7 +212,7 @@ struct AIFullChatView: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
-        .background(Color(hex: "#1E1040"))
+        .background(Color(hex: "#18162C"))
         .overlay(
             Rectangle()
                 .fill(Color(hex: "#F59E0B").opacity(0.5))
@@ -232,7 +232,7 @@ struct AIFullChatView: View {
                 .padding(.horizontal, 16)
                 .padding(.vertical, 6)
                 .frame(maxWidth: .infinity)
-                .background(Color(hex: "#7B6FEF").opacity(0.25))
+                .background(Color(hex: "#A594F0").opacity(0.18))
         }
     }
 
@@ -241,7 +241,7 @@ struct AIFullChatView: View {
     func header() -> some View {
         ZStack {
             LinearGradient(
-                colors: [Color(hex: "#1A0B3B"), Color(hex: "#2D1B69"), Color(hex: "#4A2C8F")],
+                colors: [Color(hex: "#161228"), Color(hex: "#221C42"), Color(hex: "#30285C")],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
@@ -261,7 +261,7 @@ struct AIFullChatView: View {
                         ZStack {
                             Circle()
                                 .fill(LinearGradient(
-                                    colors: [Color(hex: "#7B6FEF"), Color(hex: "#5B5BD6")],
+                                    colors: [Color(hex: "#A594F0"), Color(hex: "#8880DC")],
                                     startPoint: .topLeading, endPoint: .bottomTrailing
                                 ))
                                 .frame(width: 44, height: 44)
@@ -279,7 +279,7 @@ struct AIFullChatView: View {
                                     .foregroundStyle(.white)
                                     .padding(.horizontal, 7)
                                     .padding(.vertical, 2)
-                                    .background(Color(hex: "#7B6FEF").opacity(0.6))
+                                    .background(Color(hex: "#A594F0").opacity(0.5))
                                     .clipShape(RoundedRectangle(cornerRadius: 6))
                             }
                             HStack(spacing: 4) {
@@ -416,7 +416,7 @@ struct AIFullChatView: View {
                 TextField("Ask anything about your portfolio...", text: $input, axis: .vertical)
                     .font(.system(size: 15))
                     .foregroundStyle(.white)
-                    .tint(Color(hex: "#7B6FEF"))
+                    .tint(Color(hex: "#A594F0"))
                     .lineLimit(1...4)
                     .focused($inputFocused)
                     .onSubmit { sendCurrentInput() }
@@ -428,14 +428,14 @@ struct AIFullChatView: View {
                         .font(.system(size: 16, weight: .bold))
                         .foregroundStyle(input.isEmpty ? .white.opacity(0.4) : .white)
                         .frame(width: 38, height: 38)
-                        .background(input.isEmpty ? Color.white.opacity(0.08) : Color(hex: "#5B5BD6"))
+                        .background(input.isEmpty ? Color.white.opacity(0.08) : Color(hex: "#8880DC"))
                         .clipShape(Circle())
                 }
                 .disabled(input.isEmpty || isThinking)
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
-            .background(Color(hex: "#1A0B3B"))
+            .background(Color(hex: "#151228"))
             .padding(.bottom, safeAreaBottom)
         }
     }
@@ -665,7 +665,7 @@ struct ChatBubble: View {
                 ZStack {
                     Circle()
                         .fill(LinearGradient(
-                            colors: [Color(hex: "#7B6FEF"), Color(hex: "#5B5BD6")],
+                            colors: [Color(hex: "#A594F0"), Color(hex: "#8880DC")],
                             startPoint: .topLeading, endPoint: .bottomTrailing
                         ))
                         .frame(width: 32, height: 32)
@@ -683,7 +683,7 @@ struct ChatBubble: View {
                         Group {
                             if isUser {
                                 AnyView(LinearGradient(
-                                    colors: [Color(hex: "#5B5BD6"), Color(hex: "#7B6FEF")],
+                                    colors: [Color(hex: "#8880DC"), Color(hex: "#A594F0")],
                                     startPoint: .topLeading, endPoint: .bottomTrailing
                                 ))
                             } else {
@@ -726,7 +726,7 @@ struct ThinkingBubble: View {
             ZStack {
                 Circle()
                     .fill(LinearGradient(
-                        colors: [Color(hex: "#7B6FEF"), Color(hex: "#5B5BD6")],
+                        colors: [Color(hex: "#A594F0"), Color(hex: "#8880DC")],
                         startPoint: .topLeading, endPoint: .bottomTrailing
                     ))
                     .frame(width: 32, height: 32)

@@ -8,7 +8,7 @@
 
 <!-- Add tasks here. One per line, starting with - [ ] -->
 <!-- Example: - [ ] Make the portfolio header font size 60pt -->
-- [ ] in stalk ai chat window change the colors to something more pastel and less aggressive
+- [x] in stalk ai chat window change the colors to something more pastel and less aggressive — done 2026-06-25
 
 ## Done
 

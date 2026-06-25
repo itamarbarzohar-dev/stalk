@@ -46,7 +46,7 @@ fi
 
 # Mark task as done in INBOX.md
 DATE=$(date +"%Y-%m-%d")
-sed -i "s/^- \[ \] $(echo "$TASK" | sed 's/[[\.*^$()+?{|]/\\&/g')/- [x] $TASK — done $DATE/" "$INBOX"
+sed -i '' "s/^- \[ \] $(echo "$TASK" | sed 's/[[\.*^$()+?{|]/\\&/g')/- [x] $TASK — done $DATE/" "$INBOX"
 
 # Commit and push
 git add -A

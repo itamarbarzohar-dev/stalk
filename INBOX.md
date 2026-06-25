@@ -1,0 +1,15 @@
+# Agent Inbox
+
+> Edit this file from your phone (GitHub app) to send tasks to the agent.
+> The agent checks every 3 hours. Tasks marked `- [ ]` will be picked up.
+> Completed tasks move to the Done section automatically.
+
+## Pending Tasks
+
+<!-- Add tasks here. One per line, starting with - [ ] -->
+<!-- Example: - [ ] Make the portfolio header font size 60pt -->
+
+
+## Done
+
+<!-- Completed tasks appear here automatically -->

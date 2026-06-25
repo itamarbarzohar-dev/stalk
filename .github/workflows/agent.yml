@@ -1,0 +1,59 @@
+name: STALK Agent
+
+on:
+  # Run every 3 hours
+  schedule:
+    - cron: '0 */3 * * *'
+
+  # Run immediately when INBOX.md is pushed
+  push:
+    paths:
+      - 'INBOX.md'
+
+  # Run manually from GitHub UI
+  workflow_dispatch:
+
+jobs:
+  run-agent:
+    runs-on: macos-latest
+    timeout-minutes: 30
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check for pending tasks
+        id: check
+        run: |
+          TASK=$(grep -m1 '^\- \[ \]' INBOX.md 2>/dev/null | sed 's/^- \[ \] //')
+          if [ -z "$TASK" ]; then
+            echo "has_task=false" >> $GITHUB_OUTPUT
+            echo "No pending tasks."
+          else
+            echo "has_task=true" >> $GITHUB_OUTPUT
+            echo "Task found: $TASK"
+          fi
+
+      - name: Install Claude Code
+        if: steps.check.outputs.has_task == 'true'
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: Install GitHub CLI
+        if: steps.check.outputs.has_task == 'true'
+        run: brew install gh
+
+      - name: Run Agent
+        if: steps.check.outputs.has_task == 'true'
+        env:
+          CLAUDE_CREDENTIALS_B64: ${{ secrets.CLAUDE_CREDENTIALS_B64 }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          chmod +x .github/scripts/run_agent.sh
+          .github/scripts/run_agent.sh

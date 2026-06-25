@@ -8,7 +8,7 @@
 
 <!-- Add tasks here. One per line, starting with - [ ] -->
 <!-- Example: - [ ] Make the portfolio header font size 60pt -->
-- [ ] In PortfolioView, change the "HOLDINGS" section title font size from 10pt to 11pt
+- [x] In PortfolioView, change the "HOLDINGS" section title font size from 10pt to 11pt — done 2026-06-25
 
 
 ## Done

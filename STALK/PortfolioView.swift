@@ -281,7 +281,7 @@ struct PositionsList: View {
             // Section header with inline + button
             HStack {
                 Text("HOLDINGS")
-                    .font(.system(size: 10, weight: .black))
+                    .font(.system(size: 11, weight: .black))
                     .foregroundStyle(Theme.text3)
                     .kerning(2.5)
                 Spacer()

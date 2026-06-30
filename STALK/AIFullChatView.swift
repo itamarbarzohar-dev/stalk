@@ -30,12 +30,12 @@ struct APIKeySetupView: View {
 
     var body: some View {
         ZStack {
-            Color(hex: "#0F0A1E").ignoresSafeArea()
+            Color(hex: "#09090E").ignoresSafeArea()
 
             VStack(spacing: 0) {
                 // Handle bar
                 Capsule()
-                    .fill(.white.opacity(0.2))
+                    .fill(.white.opacity(0.15))
                     .frame(width: 36, height: 4)
                     .padding(.top, 12)
                     .padding(.bottom, 28)
@@ -43,14 +43,11 @@ struct APIKeySetupView: View {
                 // Icon
                 ZStack {
                     Circle()
-                        .fill(LinearGradient(
-                            colors: [Color(hex: "#7B6FEF"), Color(hex: "#5B5BD6")],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ))
+                        .fill(Color(hex: "#1A2535"))
                         .frame(width: 72, height: 72)
-                    Text("🤖")
-                        .font(.system(size: 36))
+                    Image(systemName: "sparkles")
+                        .font(.system(size: 32, weight: .medium))
+                        .foregroundStyle(Color(hex: "#4A90D9"))
                 }
                 .padding(.bottom, 24)
 
@@ -77,7 +74,7 @@ struct APIKeySetupView: View {
                     SecureField("sk-ant-...", text: $keyInput)
                         .font(.system(size: 15, design: .monospaced))
                         .foregroundStyle(.white)
-                        .tint(Color(hex: "#7B6FEF"))
+                        .tint(Color(hex: "#4A90D9"))
                         .focused($fieldFocused)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 14)
@@ -85,7 +82,7 @@ struct APIKeySetupView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 14))
                         .overlay(
                             RoundedRectangle(cornerRadius: 14)
-                                .stroke(fieldFocused ? Color(hex: "#7B6FEF") : Color.white.opacity(0.12), lineWidth: 1.5)
+                                .stroke(fieldFocused ? Color(hex: "#4A90D9") : Color.white.opacity(0.12), lineWidth: 1.5)
                         )
                 }
                 .padding(.horizontal, 24)
@@ -100,10 +97,10 @@ struct APIKeySetupView: View {
                     HStack(spacing: 6) {
                         Text("Get API Key")
                             .font(.system(size: 13, weight: .semibold))
-                            .foregroundStyle(Color(hex: "#7B6FEF"))
+                            .foregroundStyle(Color(hex: "#4A90D9"))
                         Image(systemName: "arrow.up.right")
                             .font(.system(size: 11, weight: .bold))
-                            .foregroundStyle(Color(hex: "#7B6FEF"))
+                            .foregroundStyle(Color(hex: "#4A90D9"))
                     }
                 }
                 .padding(.bottom, 32)
@@ -126,7 +123,7 @@ struct APIKeySetupView: View {
                     .frame(height: 54)
                     .background(
                         keyInput.hasPrefix("sk-ant-") && keyInput.count > 20
-                            ? LinearGradient(colors: [Color(hex: "#5B5BD6"), Color(hex: "#7B6FEF")], startPoint: .leading, endPoint: .trailing)
+                            ? LinearGradient(colors: [Color(hex: "#1A3A5F"), Color(hex: "#4A90D9")], startPoint: .leading, endPoint: .trailing)
                             : LinearGradient(colors: [Color.white.opacity(0.1), Color.white.opacity(0.1)], startPoint: .leading, endPoint: .trailing)
                     )
                     .clipShape(RoundedRectangle(cornerRadius: 16))
@@ -177,7 +174,7 @@ struct AIFullChatView: View {
                 inputBar()
             }
         }
-        .background(Color(hex: "#0F0A1E"))
+        .background(Color(hex: "#09090E"))
         .ignoresSafeArea(.keyboard)
         .sheet(isPresented: $showPaywall) {
             PremiumSheet()
@@ -212,7 +209,7 @@ struct AIFullChatView: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
-        .background(Color(hex: "#1E1040"))
+        .background(Color(hex: "#0D0D14"))
         .overlay(
             Rectangle()
                 .fill(Color(hex: "#F59E0B").opacity(0.5))
@@ -232,99 +229,94 @@ struct AIFullChatView: View {
                 .padding(.horizontal, 16)
                 .padding(.vertical, 6)
                 .frame(maxWidth: .infinity)
-                .background(Color(hex: "#7B6FEF").opacity(0.25))
+                .background(Color(hex: "#4A90D9").opacity(0.12))
         }
     }
 
     // MARK: - Header
 
     func header() -> some View {
-        ZStack {
-            LinearGradient(
-                colors: [Color(hex: "#1A0B3B"), Color(hex: "#2D1B69"), Color(hex: "#4A2C8F")],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
+        VStack(spacing: 0) {
+            HStack(alignment: .center, spacing: 14) {
+                Button { dismiss() } label: {
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundStyle(.white)
+                        .frame(width: 40, height: 40)
+                        .background(.white.opacity(0.07))
+                        .clipShape(Circle())
+                }
 
-            VStack(spacing: 0) {
-                HStack(alignment: .center, spacing: 14) {
-                    Button { dismiss() } label: {
-                        Image(systemName: "chevron.down")
-                            .font(.system(size: 18, weight: .bold))
-                            .foregroundStyle(.white)
-                            .frame(width: 40, height: 40)
-                            .background(.white.opacity(0.1))
-                            .clipShape(Circle())
+                HStack(spacing: 12) {
+                    ZStack {
+                        Circle()
+                            .fill(Color(hex: "#1A2535"))
+                            .frame(width: 44, height: 44)
+                        Image(systemName: "sparkles")
+                            .font(.system(size: 20, weight: .medium))
+                            .foregroundStyle(Color(hex: "#4A90D9"))
                     }
 
-                    HStack(spacing: 12) {
-                        ZStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        HStack(spacing: 6) {
+                            Text("STALK AI")
+                                .font(.system(size: 17, weight: .black))
+                                .foregroundStyle(.white)
+                            Text("PRO")
+                                .font(.system(size: 10, weight: .black))
+                                .foregroundStyle(Color(hex: "#4A90D9"))
+                                .padding(.horizontal, 7)
+                                .padding(.vertical, 2)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 6)
+                                        .stroke(Color(hex: "#4A90D9").opacity(0.5), lineWidth: 1)
+                                )
+                        }
+                        HStack(spacing: 4) {
                             Circle()
-                                .fill(LinearGradient(
-                                    colors: [Color(hex: "#7B6FEF"), Color(hex: "#5B5BD6")],
-                                    startPoint: .topLeading, endPoint: .bottomTrailing
-                                ))
-                                .frame(width: 44, height: 44)
-                            Text("🤖")
-                                .font(.system(size: 22))
+                                .fill(apiKey != nil ? Color(hex: "#34D399") : Color(hex: "#F59E0B"))
+                                .frame(width: 6, height: 6)
+                            Text(apiKey != nil ? "Connected · Claude Haiku" : "Mock mode · Tap key icon to connect")
+                                .font(.system(size: 11))
+                                .foregroundStyle(.white.opacity(0.45))
                         }
-
-                        VStack(alignment: .leading, spacing: 2) {
-                            HStack(spacing: 6) {
-                                Text("STALK AI")
-                                    .font(.system(size: 17, weight: .black))
-                                    .foregroundStyle(.white)
-                                Text("PRO")
-                                    .font(.system(size: 10, weight: .black))
-                                    .foregroundStyle(.white)
-                                    .padding(.horizontal, 7)
-                                    .padding(.vertical, 2)
-                                    .background(Color(hex: "#7B6FEF").opacity(0.6))
-                                    .clipShape(RoundedRectangle(cornerRadius: 6))
-                            }
-                            HStack(spacing: 4) {
-                                Circle()
-                                    .fill(apiKey != nil ? Color(hex: "#34D399") : Color(hex: "#F59E0B"))
-                                    .frame(width: 6, height: 6)
-                                Text(apiKey != nil ? "Connected · Claude Haiku" : "Mock mode · Tap key icon to connect")
-                                    .font(.system(size: 11))
-                                    .foregroundStyle(.white.opacity(0.6))
-                            }
-                        }
-                    }
-
-                    Spacer()
-
-                    // API key button
-                    Button {
-                        showAPIKeySetup = true
-                    } label: {
-                        Image(systemName: apiKey != nil ? "key.fill" : "key")
-                            .font(.system(size: 14, weight: .bold))
-                            .foregroundStyle(apiKey != nil ? Color(hex: "#34D399") : Color(hex: "#F59E0B"))
-                            .frame(width: 36, height: 36)
-                            .background(.white.opacity(0.1))
-                            .clipShape(Circle())
-                    }
-
-                    Button {
-                        messages = ChatMessage.initialMessages
-                        inlineError = nil
-                    } label: {
-                        Image(systemName: "arrow.counterclockwise")
-                            .font(.system(size: 15, weight: .bold))
-                            .foregroundStyle(.white)
-                            .frame(width: 36, height: 36)
-                            .background(.white.opacity(0.1))
-                            .clipShape(Circle())
                     }
                 }
-                .padding(.horizontal, 16)
-                .padding(.top, 52)
-                .padding(.bottom, 20)
+
+                Spacer()
+
+                Button {
+                    showAPIKeySetup = true
+                } label: {
+                    Image(systemName: apiKey != nil ? "key.fill" : "key")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundStyle(apiKey != nil ? Color(hex: "#34D399") : Color(hex: "#F59E0B"))
+                        .frame(width: 36, height: 36)
+                        .background(.white.opacity(0.07))
+                        .clipShape(Circle())
+                }
+
+                Button {
+                    messages = ChatMessage.initialMessages
+                    inlineError = nil
+                } label: {
+                    Image(systemName: "arrow.counterclockwise")
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundStyle(.white.opacity(0.7))
+                        .frame(width: 36, height: 36)
+                        .background(.white.opacity(0.07))
+                        .clipShape(Circle())
+                }
             }
+            .padding(.horizontal, 16)
+            .padding(.top, 52)
+            .padding(.bottom, 16)
+            .background(Color(hex: "#0D0D14"))
+
+            Rectangle()
+                .fill(Color.white.opacity(0.06))
+                .frame(height: 0.5)
         }
-        .frame(height: 130)
     }
 
     // MARK: - Chat Area
@@ -416,7 +408,7 @@ struct AIFullChatView: View {
                 TextField("Ask anything about your portfolio...", text: $input, axis: .vertical)
                     .font(.system(size: 15))
                     .foregroundStyle(.white)
-                    .tint(Color(hex: "#7B6FEF"))
+                    .tint(Color(hex: "#4A90D9"))
                     .lineLimit(1...4)
                     .focused($inputFocused)
                     .onSubmit { sendCurrentInput() }
@@ -426,16 +418,20 @@ struct AIFullChatView: View {
                 } label: {
                     Image(systemName: input.isEmpty ? "waveform" : "arrow.up")
                         .font(.system(size: 16, weight: .bold))
-                        .foregroundStyle(input.isEmpty ? .white.opacity(0.4) : .white)
+                        .foregroundStyle(input.isEmpty ? .white.opacity(0.3) : Color(hex: "#4A90D9"))
                         .frame(width: 38, height: 38)
-                        .background(input.isEmpty ? Color.white.opacity(0.08) : Color(hex: "#5B5BD6"))
+                        .background(input.isEmpty ? Color.white.opacity(0.05) : Color(hex: "#1A3A5F"))
                         .clipShape(Circle())
+                        .overlay(
+                            Circle()
+                                .stroke(input.isEmpty ? Color.clear : Color(hex: "#4A90D9").opacity(0.6), lineWidth: 1)
+                        )
                 }
                 .disabled(input.isEmpty || isThinking)
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
-            .background(Color(hex: "#1A0B3B"))
+            .background(Color(hex: "#0D0D14"))
             .padding(.bottom, safeAreaBottom)
         }
     }
@@ -664,39 +660,25 @@ struct ChatBubble: View {
             if !isUser {
                 ZStack {
                     Circle()
-                        .fill(LinearGradient(
-                            colors: [Color(hex: "#7B6FEF"), Color(hex: "#5B5BD6")],
-                            startPoint: .topLeading, endPoint: .bottomTrailing
-                        ))
+                        .fill(Color(hex: "#1A2535"))
                         .frame(width: 32, height: 32)
-                    Text("🤖").font(.system(size: 15))
+                    Image(systemName: "sparkles")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(Color(hex: "#4A90D9"))
                 }
             }
 
             VStack(alignment: isUser ? .trailing : .leading, spacing: 4) {
                 Text(message.text)
                     .font(.system(size: 14, weight: .medium))
-                    .foregroundStyle(isUser ? .white : .white.opacity(0.9))
+                    .foregroundStyle(isUser ? .white : Color(hex: "#D8E4F0"))
                     .padding(.horizontal, 16)
                     .padding(.vertical, 12)
-                    .background(
-                        Group {
-                            if isUser {
-                                AnyView(LinearGradient(
-                                    colors: [Color(hex: "#5B5BD6"), Color(hex: "#7B6FEF")],
-                                    startPoint: .topLeading, endPoint: .bottomTrailing
-                                ))
-                            } else {
-                                AnyView(Color.white.opacity(0.07))
-                            }
-                        }
-                    )
-                    .clipShape(
-                        RoundedRectangle(cornerRadius: isUser ? 20 : 20)
-                    )
+                    .background(isUser ? Color(hex: "#1A3352") : Color(hex: "#131318"))
+                    .clipShape(RoundedRectangle(cornerRadius: 20))
                     .overlay(
                         RoundedRectangle(cornerRadius: 20)
-                            .stroke(Color.white.opacity(isUser ? 0 : 0.08), lineWidth: 1)
+                            .stroke(Color.white.opacity(isUser ? 0 : 0.06), lineWidth: 1)
                     )
 
                 Text(timeString(message.timestamp))
@@ -725,27 +707,26 @@ struct ThinkingBubble: View {
         HStack(alignment: .bottom, spacing: 10) {
             ZStack {
                 Circle()
-                    .fill(LinearGradient(
-                        colors: [Color(hex: "#7B6FEF"), Color(hex: "#5B5BD6")],
-                        startPoint: .topLeading, endPoint: .bottomTrailing
-                    ))
+                    .fill(Color(hex: "#1A2535"))
                     .frame(width: 32, height: 32)
-                Text("🤖").font(.system(size: 15))
+                Image(systemName: "sparkles")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(Color(hex: "#4A90D9"))
             }
 
             HStack(spacing: 5) {
                 ForEach(0..<3) { i in
                     Circle()
-                        .fill(Color.white.opacity(dots == i ? 0.8 : 0.25))
+                        .fill(Color(hex: "#4A90D9").opacity(dots == i ? 0.9 : 0.2))
                         .frame(width: 8, height: 8)
                         .animation(.easeInOut(duration: 0.3), value: dots)
                 }
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 16)
-            .background(Color.white.opacity(0.07))
+            .background(Color(hex: "#131318"))
             .clipShape(RoundedRectangle(cornerRadius: 20))
-            .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color.white.opacity(0.08), lineWidth: 1))
+            .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color.white.opacity(0.06), lineWidth: 1))
 
             Spacer(minLength: 60)
         }

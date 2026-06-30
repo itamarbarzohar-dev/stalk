@@ -181,7 +181,7 @@ struct PortfolioHero: View {
                                 .foregroundStyle(Theme.gold)
                                 .fontWeight(.bold)
                         } else if fromATH > 0 && appState.portfolioATH > 0 {
-                            Text("ATH  −\(fromATH.fmtPrice())")
+                            Text("ATH  −\(fromATH.fmtCompact())")
                                 .foregroundStyle(Theme.text3)
                         }
                         if appState.streak > 1 {
@@ -321,12 +321,24 @@ struct PositionsList: View {
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 40)
             } else {
-                ForEach(Array(appState.positions.enumerated()), id: \.element.id) { index, position in
-                    PositionCard(position: position, onTap: { onTicker(position.ticker) })
+                VStack(spacing: 0) {
+                    ForEach(Array(appState.positions.enumerated()), id: \.element.id) { index, position in
+                        PositionRow(
+                            position: position,
+                            isLast: index == appState.positions.count - 1,
+                            onTap: { onTicker(position.ticker) }
+                        )
                         .staggerEntrance(index: index)
+                    }
                 }
+                .background(Theme.card)
+                .clipShape(RoundedRectangle(cornerRadius: 14))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14)
+                        .stroke(Theme.border, lineWidth: 0.5)
+                )
 
-                Text("Long-press a card to delete")
+                Text("Long-press a row to delete")
                     .font(.system(size: 10))
                     .foregroundStyle(Theme.text4)
                     .padding(.top, 2)
@@ -335,11 +347,12 @@ struct PositionsList: View {
     }
 }
 
-// MARK: - Position Card
+// MARK: - Position Row (compact table style)
 
-struct PositionCard: View {
+struct PositionRow: View {
     @Environment(AppState.self) var appState
     let position: Position
+    let isLast: Bool
     let onTap: () -> Void
     @State private var pressing = false
     @State private var showAlertSheet = false
@@ -358,82 +371,87 @@ struct PositionCard: View {
     }
 
     var body: some View {
-        let stripeColor = isUp ? Theme.gain : Theme.loss
-
         HStack(spacing: 0) {
-            // Left color stripe — 4px wide, P&L colored
-            RoundedRectangle(cornerRadius: 2)
-                .fill(stripeColor)
-                .frame(width: 4)
-                .padding(.vertical, 10)
-                .padding(.trailing, 12)
+            // 3pt gain/loss stripe
+            Rectangle()
+                .fill(isUp ? Theme.gain : Theme.loss)
+                .frame(width: 3)
+                .padding(.vertical, 6)
+                .padding(.trailing, 11)
 
+            // Left: ticker + shares/avg
             VStack(alignment: .leading, spacing: 2) {
-                HStack(spacing: 8) {
+                HStack(spacing: 5) {
                     Text(position.ticker)
-                        .font(.system(size: 16, weight: .black))
+                        .font(.system(size: 14, weight: .black))
                         .foregroundStyle(Theme.text)
-
-                    Text("\(isUp ? "▲" : "▼") \(String(format: "%.1f", abs(pnlPct)))%")
-                        .font(.system(size: 11, weight: .bold))
+                    Text("\(isUp ? "▲" : "▼")\(String(format: "%.1f", abs(pnlPct)))%")
+                        .font(.system(size: 10, weight: .bold))
                         .foregroundStyle(isUp ? Theme.gain : Theme.loss)
-
-                    if EARNINGS.contains(where: { $0.ticker == position.ticker }) {
-                        Text("EARNINGS")
-                            .font(.system(size: 9, weight: .black))
-                            .foregroundStyle(.white)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(Color(hex: "#F59E0B"))
-                            .clipShape(RoundedRectangle(cornerRadius: 5))
-                    }
-
                     if hasAlert {
                         Image(systemName: "bell.fill")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundStyle(Color(hex: "#7B6FEF"))
+                            .font(.system(size: 8))
+                            .foregroundStyle(Theme.accent)
+                    }
+                    if EARNINGS.contains(where: { $0.ticker == position.ticker }) {
+                        Text("E")
+                            .font(.system(size: 8, weight: .black))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 3)
+                            .padding(.vertical, 1)
+                            .background(Color(hex: "#F59E0B"))
+                            .clipShape(RoundedRectangle(cornerRadius: 3))
                     }
                 }
-
-                if let name = quote?.name {
-                    Text(name)
-                        .font(.system(size: 11))
-                        .foregroundStyle(Theme.text3)
-                }
-
-                Text("\(String(format: "%.4g", position.shares)) shares · avg \(position.avgCost.fmtPrice())")
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(Theme.accent2)
+                Text("\(String(format: "%.4g", position.shares))sh · \(position.avgCost.fmtPrice())")
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundStyle(Theme.text4)
             }
+            .frame(width: 98, alignment: .leading)
 
-            Spacer()
+            // Middle: company name (flexible)
+            Text(quote?.name ?? "")
+                .font(.system(size: 11))
+                .foregroundStyle(Theme.text4)
+                .lineLimit(1)
+                .truncationMode(.tail)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 8)
 
-            // Price stack
-            VStack(alignment: .trailing, spacing: 3) {
-                    Text(value.fmtPrice())
-                        .font(.system(size: 16, weight: .black))
-                        .foregroundStyle(Theme.text)
-
+            // Right: value + P&L + today
+            VStack(alignment: .trailing, spacing: 2) {
+                Text(value.fmtPrice())
+                    .font(.system(size: 14, weight: .black))
+                    .foregroundStyle(Theme.text)
+                HStack(spacing: 5) {
                     Text(pnl.fmtChange())
-                        .font(.system(size: 12, weight: .bold))
+                        .font(.system(size: 10, weight: .semibold))
                         .foregroundStyle(isUp ? Theme.gain : Theme.loss)
-
                     if let q = quote {
-                        Text("Today \(q.changePercent.fmtPct())")
-                            .font(.system(size: 11, weight: .bold))
+                        Text(q.changePercent.fmtPct())
+                            .font(.system(size: 10, weight: .bold))
                             .foregroundStyle(dayIsUp ? Theme.gain : Theme.loss)
+                            .padding(.horizontal, 4)
+                            .padding(.vertical, 1)
+                            .background((dayIsUp ? Theme.gain : Theme.loss).opacity(0.12))
+                            .clipShape(RoundedRectangle(cornerRadius: 3))
                     }
+                }
             }
         }
         .padding(.horizontal, 14)
-        .padding(.vertical, 13)
-        .background(Theme.card)
-        .clipShape(RoundedRectangle(cornerRadius: 14))
-        .overlay(
-            RoundedRectangle(cornerRadius: 14)
-                .stroke(stripeColor.opacity(0.18), lineWidth: 0.5)
-        )
-        .scaleEffect(pressing ? 0.98 : 1)
+        .padding(.vertical, 9)
+        .contentShape(Rectangle())
+        .background(pressing ? Theme.border.opacity(0.5) : Color.clear)
+        .overlay(alignment: .bottom) {
+            if !isLast {
+                Rectangle()
+                    .fill(Theme.border)
+                    .frame(height: 0.5)
+                    .padding(.leading, 28)
+            }
+        }
+        .scaleEffect(pressing ? 0.995 : 1)
         .animation(.easeInOut(duration: 0.1), value: pressing)
         .accessibilityLabel("\(position.ticker), \(isUp ? "up" : "down") \(String(format: "%.1f", abs(pnlPct))) percent, value \(value.fmtPrice())")
         .accessibilityHint("Double-tap to view chart")
@@ -442,9 +460,7 @@ struct PositionCard: View {
             showDeleteConfirm = true
         } onPressingChanged: { pressing = $0 }
         .contextMenu {
-            Button {
-                showAlertSheet = true
-            } label: {
+            Button { showAlertSheet = true } label: {
                 Label("Set Price Alert", systemImage: "bell")
             }
             Button(role: .destructive) {
@@ -457,9 +473,7 @@ struct PositionCard: View {
             Button("Delete", role: .destructive) {
                 appState.deletePosition(position)
             }
-            Button("Set Price Alert") {
-                showAlertSheet = true
-            }
+            Button("Set Price Alert") { showAlertSheet = true }
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("Long-press actions for \(position.ticker)")

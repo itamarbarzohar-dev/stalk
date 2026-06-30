@@ -237,4 +237,14 @@ extension Double {
     func fmtPrice() -> String { String(format: "$%.2f", self) }
     func fmtPct() -> String { (self >= 0 ? "+" : "") + String(format: "%.2f%%", self) }
     func fmtChange() -> String { (self >= 0 ? "+" : "") + String(format: "$%.2f", self) }
+    func fmtCompact() -> String {
+        let v = abs(self)
+        let prefix = self < 0 ? "-" : ""
+        switch v {
+        case 1_000_000_000...: return "\(prefix)$\(String(format: "%.1f", v / 1_000_000_000))B"
+        case 1_000_000...:     return "\(prefix)$\(String(format: "%.1f", v / 1_000_000))M"
+        case 1_000...:         return "\(prefix)$\(String(format: "%.1f", v / 1_000))K"
+        default:               return fmtPrice()
+        }
+    }
 }

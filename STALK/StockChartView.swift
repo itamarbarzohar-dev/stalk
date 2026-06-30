@@ -515,6 +515,72 @@ struct StockChartView: View {
                 }
                 .padding(.horizontal, 20)
             }
+
+            // Institutional Ownership
+            VStack(alignment: .leading, spacing: 10) {
+                sectionLabel("Top Institutional Holders")
+                VStack(spacing: 0) {
+                    ForEach(Array(mockInstitutionalHolders(for: ticker).enumerated()), id: \.element.id) { i, holder in
+                        HStack(spacing: 12) {
+                            Text(holder.name)
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundStyle(Theme.text2)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            Text(String(format: "%.1f%%", holder.pct))
+                                .font(.system(size: 12, weight: .black))
+                                .foregroundStyle(Theme.text)
+                            Text("\(holder.change >= 0 ? "▲" : "▼") \(String(format: "%.1f", abs(holder.change)))%")
+                                .font(.system(size: 10, weight: .semibold))
+                                .foregroundStyle(holder.change >= 0 ? Theme.gain : Theme.loss)
+                                .frame(width: 54, alignment: .trailing)
+                        }
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 10)
+                        if i < 2 {
+                            Divider().padding(.leading, 14).overlay(Theme.border)
+                        }
+                    }
+                }
+                .background(Theme.card)
+                .clipShape(RoundedRectangle(cornerRadius: 14))
+                .overlay(RoundedRectangle(cornerRadius: 14).stroke(Theme.border, lineWidth: 0.5))
+                .padding(.horizontal, 20)
+            }
+
+            // Peer Comparison
+            VStack(alignment: .leading, spacing: 10) {
+                sectionLabel("Peer Comparison (P/E)")
+                let peers: [(String, Double)] = ticker == "NVDA" ? [("NVDA", 58.2), ("AMD", 31.4), ("Sector", 24.1)] :
+                                                ticker == "AAPL" ? [("AAPL", 29.4), ("MSFT", 34.1), ("Sector", 22.8)] :
+                                                ticker == "TSLA" ? [("TSLA", 71.3), ("RIVN", 0.0), ("Sector", 18.4)] :
+                                                [("Stock", 28.4), ("Peer", 24.1), ("Sector", 21.3)]
+                let maxPE = peers.map(\.1).max() ?? 1
+                VStack(spacing: 8) {
+                    ForEach(peers, id: \.0) { name, pe in
+                        HStack(spacing: 10) {
+                            Text(name)
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundStyle(name == ticker ? Theme.text : Theme.text3)
+                                .frame(width: 52, alignment: .leading)
+                            GeometryReader { geo in
+                                RoundedRectangle(cornerRadius: 3)
+                                    .fill(name == ticker ? Color(hex: "#4A90D9").opacity(0.7) : Theme.border)
+                                    .frame(width: pe > 0 ? geo.size.width * CGFloat(pe / maxPE) : 8, height: 8)
+                            }
+                            .frame(height: 8)
+                            Text(pe > 0 ? String(format: "%.1f×", pe) : "N/M")
+                                .font(.system(size: 11, weight: .bold))
+                                .foregroundStyle(name == ticker ? Theme.text : Theme.text3)
+                                .frame(width: 40, alignment: .trailing)
+                        }
+                    }
+                }
+                .padding(14)
+                .background(Theme.card)
+                .clipShape(RoundedRectangle(cornerRadius: 14))
+                .overlay(RoundedRectangle(cornerRadius: 14).stroke(Theme.border, lineWidth: 0.5))
+                .padding(.horizontal, 20)
+            }
         }
     }
 
@@ -622,6 +688,41 @@ struct StockChartView: View {
                     HStack(spacing: 5) {
                         Circle().fill(Theme.text3).frame(width: 7, height: 7)
                         Text("Estimate").font(.system(size: 10)).foregroundStyle(Theme.text3)
+                    }
+                }
+                .padding(.horizontal, 20)
+            }
+
+            // Earnings Call Highlights
+            VStack(alignment: .leading, spacing: 10) {
+                sectionLabel("Earnings Call Highlights")
+                VStack(spacing: 8) {
+                    ForEach(mockEarningsCallQuotes(for: ticker)) { q in
+                        HStack(alignment: .top, spacing: 12) {
+                            Rectangle()
+                                .fill(Color(hex: "#4A90D9").opacity(0.5))
+                                .frame(width: 2)
+                                .cornerRadius(1)
+                            VStack(alignment: .leading, spacing: 4) {
+                                HStack(spacing: 6) {
+                                    Text(q.speaker)
+                                        .font(.system(size: 11, weight: .black))
+                                        .foregroundStyle(Theme.text)
+                                    Text("· \(q.role)")
+                                        .font(.system(size: 10))
+                                        .foregroundStyle(Theme.text4)
+                                }
+                                Text("\"\(q.quote)\"")
+                                    .font(.system(size: 12))
+                                    .foregroundStyle(Theme.text2)
+                                    .lineSpacing(4)
+                                    .italic()
+                            }
+                        }
+                        .padding(12)
+                        .background(Theme.card)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Theme.border, lineWidth: 0.5))
                     }
                 }
                 .padding(.horizontal, 20)
@@ -735,14 +836,14 @@ struct StockChartView: View {
                     }
                     GeometryReader { geo in
                         ZStack(alignment: .leading) {
-                            RoundedRectangle(cornerRadius: 6).fill(Theme.loss.opacity(0.25)).frame(height: 14)
+                            RoundedRectangle(cornerRadius: 6).fill(Theme.loss.opacity(0.15)).frame(height: 8)
                             let callFrac = min(1.0, 1.0 / (1.0 + opts.putCall))
                             RoundedRectangle(cornerRadius: 6)
-                                .fill(LinearGradient(colors: [Theme.nanoBanana, Color(hex: "#A8D020")], startPoint: .leading, endPoint: .trailing))
-                                .frame(width: geo.size.width * CGFloat(callFrac), height: 14)
+                                .fill(opts.isBullish ? Theme.gain : Theme.loss)
+                                .frame(width: geo.size.width * CGFloat(callFrac), height: 8)
                         }
                     }
-                    .frame(height: 14)
+                    .frame(height: 8)
                     HStack {
                         Label("Calls", systemImage: "arrow.up.circle.fill").font(.system(size: 10, weight: .semibold)).foregroundStyle(Theme.gain)
                         Spacer()
@@ -756,12 +857,137 @@ struct StockChartView: View {
                             .foregroundStyle(opts.isBullish ? Theme.gain : Theme.loss)
                     }
                 }
-                .padding(16)
+                .padding(14)
                 .background(Theme.card)
-                .clipShape(RoundedRectangle(cornerRadius: 16))
-                .overlay(RoundedRectangle(cornerRadius: 16).stroke(Theme.border, lineWidth: 1))
+                .clipShape(RoundedRectangle(cornerRadius: 14))
+                .overlay(RoundedRectangle(cornerRadius: 14).stroke(Theme.border, lineWidth: 0.5))
             }
             .padding(.horizontal, 20)
+
+            // Options Chain (teaser)
+            VStack(alignment: .leading, spacing: 10) {
+                HStack {
+                    sectionLabel("Options Chain")
+                    Spacer()
+                    Text("Nearest Expiry · Calls")
+                        .font(.system(size: 10))
+                        .foregroundStyle(Theme.text4)
+                        .padding(.trailing, 20)
+                }
+                VStack(spacing: 0) {
+                    // Header row
+                    HStack {
+                        Text("Strike").frame(width: 60, alignment: .leading)
+                        Text("Bid").frame(width: 48, alignment: .trailing)
+                        Text("Ask").frame(width: 48, alignment: .trailing)
+                        Text("OI").frame(width: 52, alignment: .trailing)
+                        Text("IV%").frame(width: 40, alignment: .trailing)
+                    }
+                    .font(.system(size: 9, weight: .black))
+                    .foregroundStyle(Theme.text4)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 6)
+
+                    let chain = mockOptionsChain(for: ticker)
+                    ForEach(Array(chain.prefix(2).enumerated()), id: \.element.id) { _, row in
+                        Divider().overlay(Theme.border)
+                        HStack {
+                            Text(row.strike.fmtPrice()).frame(width: 60, alignment: .leading)
+                                .font(.system(size: 11, weight: .semibold)).foregroundStyle(Theme.text)
+                            Text(row.bid.fmtPrice()).frame(width: 48, alignment: .trailing)
+                                .font(.system(size: 11)).foregroundStyle(Theme.gain)
+                            Text(row.ask.fmtPrice()).frame(width: 48, alignment: .trailing)
+                                .font(.system(size: 11)).foregroundStyle(Theme.loss)
+                            Text("\(row.openInterest / 1000)K").frame(width: 52, alignment: .trailing)
+                                .font(.system(size: 11)).foregroundStyle(Theme.text2)
+                            Text(String(format: "%.1f%%", row.iv)).frame(width: 40, alignment: .trailing)
+                                .font(.system(size: 11)).foregroundStyle(Theme.text2)
+                        }
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 9)
+                    }
+
+                    // Blurred locked rows
+                    Divider().overlay(Theme.border)
+                    ZStack {
+                        VStack(spacing: 0) {
+                            ForEach(Array(chain.dropFirst(2).enumerated()), id: \.element.id) { _, row in
+                                HStack {
+                                    Text(row.strike.fmtPrice()).frame(width: 60, alignment: .leading)
+                                    Text(row.bid.fmtPrice()).frame(width: 48, alignment: .trailing)
+                                    Text(row.ask.fmtPrice()).frame(width: 48, alignment: .trailing)
+                                    Text("\(row.openInterest / 1000)K").frame(width: 52, alignment: .trailing)
+                                    Text(String(format: "%.1f%%", row.iv)).frame(width: 40, alignment: .trailing)
+                                }
+                                .font(.system(size: 11)).foregroundStyle(Theme.text2)
+                                .padding(.horizontal, 14).padding(.vertical, 9)
+                                Divider().overlay(Theme.border)
+                            }
+                        }
+                        .blur(radius: 4)
+
+                        VStack(spacing: 6) {
+                            Image(systemName: "lock.fill")
+                                .font(.system(size: 14, weight: .bold))
+                                .foregroundStyle(Theme.text3)
+                            Text("Full chain · STALK Pro")
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundStyle(Theme.text3)
+                        }
+                        .padding(.vertical, 16)
+                        .frame(maxWidth: .infinity)
+                        .background(.ultraThinMaterial)
+                    }
+                }
+                .background(Theme.card)
+                .clipShape(RoundedRectangle(cornerRadius: 14))
+                .overlay(RoundedRectangle(cornerRadius: 14).stroke(Theme.border, lineWidth: 0.5))
+                .padding(.horizontal, 20)
+            }
+
+            // Perplexity-style AI Research
+            VStack(alignment: .leading, spacing: 10) {
+                HStack {
+                    sectionLabel("What's Moving \(ticker) Today")
+                    Spacer()
+                }
+                VStack(alignment: .leading, spacing: 12) {
+                    Text(perplexityResearch(for: ticker))
+                        .font(.system(size: 13))
+                        .foregroundStyle(Theme.text2)
+                        .lineSpacing(5)
+
+                    // Citation pills
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 6) {
+                            ForEach(perplexitySources(for: ticker), id: \.self) { source in
+                                HStack(spacing: 4) {
+                                    Image(systemName: "doc.text.fill")
+                                        .font(.system(size: 9))
+                                        .foregroundStyle(Color(hex: "#4A90D9"))
+                                    Text(source)
+                                        .font(.system(size: 10, weight: .semibold))
+                                        .foregroundStyle(Color(hex: "#4A90D9"))
+                                }
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(Color(hex: "#4A90D9").opacity(0.10))
+                                .clipShape(Capsule())
+                                .overlay(Capsule().stroke(Color(hex: "#4A90D9").opacity(0.25), lineWidth: 1))
+                            }
+                        }
+                    }
+
+                    Text("AI synthesis · Updated \(Date(), format: .dateTime.hour().minute())")
+                        .font(.system(size: 9))
+                        .foregroundStyle(Theme.text4)
+                }
+                .padding(14)
+                .background(Theme.card)
+                .clipShape(RoundedRectangle(cornerRadius: 14))
+                .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color(hex: "#4A90D9").opacity(0.15), lineWidth: 1))
+                .padding(.horizontal, 20)
+            }
         }
     }
 
@@ -1091,6 +1317,24 @@ struct StockChartView: View {
             .padding(.horizontal, 9).padding(.vertical, 4)
             .background(color.opacity(0.12))
             .clipShape(Capsule())
+    }
+
+    private func perplexityResearch(for ticker: String) -> String {
+        switch ticker {
+        case "NVDA": return "NVIDIA is surging on continued hyperscaler AI capex momentum — Microsoft, Google and Meta all increased data center spend guidance this quarter. The Blackwell ramp is ahead of schedule, with gross margins recovering to 78%+ as yields improve. Short interest dropped 12% over the past two weeks, indicating bears are covering ahead of the next catalyst."
+        case "AAPL": return "Apple is seeing early evidence of an iPhone upgrade supercycle driven by Apple Intelligence adoption in China and Europe. Services revenue beats are compressing the P/E multiple from the top — analysts expect $115B in annual services revenue by FY2026. Share buybacks ($110B authorized) are providing a floor around current levels."
+        case "TSLA": return "Tesla faces headwinds from weakening EV demand in China and margin compression from aggressive price cuts. The Cybertruck ramp remains slower than expected, and the delay in the Model 2 launch is pushing out the volume story to 2026. Options market is pricing elevated volatility ahead of Q2 deliveries on July 2nd."
+        default: return "Institutional buying activity picked up over the past 5 days with above-average call options flow suggesting bullish positioning. The stock is trading at a discount to its 3-year average forward P/E multiple. Sector rotation into quality names is providing a tailwind as macro uncertainty persists."
+        }
+    }
+
+    private func perplexitySources(for ticker: String) -> [String] {
+        switch ticker {
+        case "NVDA": return ["Goldman Sachs Q2 Note", "NVDA 10-K Filing", "Bernstein Research"]
+        case "AAPL": return ["Morgan Stanley", "AAPL Q3 Earnings Call", "IDC Market Data"]
+        case "TSLA": return ["TSLA Q2 Delivery Report", "Wedbush Securities", "S&P Global Mobility"]
+        default:     return ["SEC 10-K Filing", "Analyst Consensus", "Options Flow Data"]
+        }
     }
 
     @ViewBuilder

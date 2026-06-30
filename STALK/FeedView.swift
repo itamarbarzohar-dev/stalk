@@ -47,6 +47,53 @@ struct FeedView: View {
                             .fill(Theme.border)
                             .frame(height: 0.5)
 
+                        if feedTab == "For You" {
+                            VStack(alignment: .leading, spacing: 0) {
+                                ForYouColumnPicker(enabled: appState.forYouSections) { id, on in
+                                    if on { appState.forYouSections.insert(id) } else { appState.forYouSections.remove(id) }
+                                    UserDefaults.standard.set(Array(appState.forYouSections), forKey: "stalk_foryou_sections")
+                                }
+                                .padding(.horizontal, 14)
+                                .padding(.top, 12)
+                                .padding(.bottom, 8)
+
+                                if appState.forYouSections.contains("putcall") {
+                                    feedIntelLabel("OPTIONS FLOW · Put/Call Ratio")
+                                    PutCallRatioCard()
+                                        .padding(.horizontal, 14)
+                                        .padding(.bottom, 10)
+                                }
+                                if appState.forYouSections.contains("volume") {
+                                    feedIntelLabel("UNUSUAL VOLUME · Spikes")
+                                    UnusualVolumeCard()
+                                        .padding(.horizontal, 14)
+                                        .padding(.bottom, 10)
+                                }
+                                if appState.forYouSections.contains("catalyst") {
+                                    feedIntelLabel("SPECIAL CATALYSTS")
+                                    SpecialCatalystCard()
+                                        .padding(.horizontal, 14)
+                                        .padding(.bottom, 10)
+                                }
+                                if appState.forYouSections.contains("insider") {
+                                    feedIntelLabel("INSIDER BUYS")
+                                    FeedInsiderCard()
+                                        .padding(.horizontal, 14)
+                                        .padding(.bottom, 10)
+                                }
+                                if appState.forYouSections.contains("earnings") {
+                                    feedIntelLabel("EARNINGS THIS WEEK")
+                                    FeedEarningsCard()
+                                        .padding(.horizontal, 14)
+                                        .padding(.bottom, 10)
+                                }
+                            }
+
+                            Rectangle()
+                                .fill(Theme.border)
+                                .frame(height: 0.5)
+                        }
+
                         if !appState.userPosts.isEmpty {
                             ForEach(appState.userPosts) { post in
                                 MyPostCard(post: post, appState: appState, onTicker: onTicker)
@@ -87,7 +134,7 @@ struct FeedView: View {
                     .frame(width: 54, height: 54)
                     .background(Theme.accentGradient)
                     .clipShape(Circle())
-                    .shadow(color: Theme.accent.opacity(0.45), radius: 14, y: 4)
+                    .shadow(color: Theme.accent.opacity(0.10), radius: 6, y: 2)
             }
             .padding(.trailing, 20)
             .padding(.bottom, 18)
@@ -202,6 +249,15 @@ struct FeedView: View {
         .overlay(Rectangle().fill(Theme.border).frame(height: 0.5), alignment: .bottom)
     }
 
+    func feedIntelLabel(_ text: String) -> some View {
+        Text(text)
+            .font(.system(size: 9, weight: .black))
+            .foregroundStyle(Theme.text4)
+            .kerning(1.5)
+            .padding(.horizontal, 14)
+            .padding(.bottom, 6)
+    }
+
     var feedEmptyState: some View {
         VStack(spacing: 14) {
             Image(systemName: "person.2.slash")
@@ -218,6 +274,117 @@ struct FeedView: View {
         .padding(.vertical, 60)
         .frame(maxWidth: .infinity)
         .padding(.horizontal, 32)
+    }
+}
+
+// MARK: - Feed Intelligence Cards
+
+struct FeedInsiderCard: View {
+    private let items = Array(INSIDER_BUYS.prefix(3))
+
+    var body: some View {
+        VStack(spacing: 0) {
+            ForEach(Array(items.enumerated()), id: \.offset) { i, buy in
+                HStack(spacing: 10) {
+                    ZStack {
+                        Circle().fill(Theme.gain.opacity(0.10)).frame(width: 32, height: 32)
+                        Image(systemName: "person.fill")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundStyle(Theme.gain)
+                    }
+                    VStack(alignment: .leading, spacing: 1) {
+                        HStack(spacing: 6) {
+                            Text(buy.ticker)
+                                .font(.system(size: 13, weight: .black))
+                                .foregroundStyle(Theme.text)
+                            Text(buy.role)
+                                .font(.system(size: 10))
+                                .foregroundStyle(Theme.text4)
+                                .lineLimit(1)
+                        }
+                        Text(buy.name)
+                            .font(.system(size: 10))
+                            .foregroundStyle(Theme.text3)
+                    }
+                    Spacer()
+                    VStack(alignment: .trailing, spacing: 1) {
+                        Text(buy.value)
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundStyle(Theme.gain)
+                        Text(buy.date)
+                            .font(.system(size: 10))
+                            .foregroundStyle(Theme.text4)
+                    }
+                }
+                .padding(.horizontal, 14).padding(.vertical, 9)
+                if i < items.count - 1 {
+                    Divider().padding(.leading, 56).overlay(Theme.border)
+                }
+            }
+        }
+        .background(Theme.card)
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Theme.border, lineWidth: 0.5))
+    }
+}
+
+struct FeedEarningsCard: View {
+    private let items: [(ticker: String, company: String, date: String, epsEst: String, owned: Bool)] = [
+        ("NVDA", "NVIDIA Corp",      "Jul 8",  "$5.81",  true),
+        ("AAPL", "Apple Inc",        "Jul 10", "$1.34",  false),
+        ("MSFT", "Microsoft Corp",   "Jul 17", "$3.10",  false),
+        ("META", "Meta Platforms",   "Jul 21", "$4.75",  false),
+    ]
+
+    var body: some View {
+        VStack(spacing: 0) {
+            ForEach(Array(items.enumerated()), id: \.offset) { i, item in
+                HStack(spacing: 10) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(item.owned ? Theme.gold.opacity(0.12) : Theme.border)
+                            .frame(width: 32, height: 32)
+                        Text(String(item.ticker.prefix(1)))
+                            .font(.system(size: 13, weight: .black))
+                            .foregroundStyle(item.owned ? Theme.gold : Theme.text3)
+                    }
+                    VStack(alignment: .leading, spacing: 1) {
+                        HStack(spacing: 5) {
+                            Text(item.ticker)
+                                .font(.system(size: 13, weight: .black))
+                                .foregroundStyle(Theme.text)
+                            if item.owned {
+                                Text("YOURS")
+                                    .font(.system(size: 8, weight: .black))
+                                    .foregroundStyle(Theme.gold)
+                                    .padding(.horizontal, 4).padding(.vertical, 1)
+                                    .background(Theme.gold.opacity(0.12))
+                                    .clipShape(RoundedRectangle(cornerRadius: 3))
+                            }
+                        }
+                        Text(item.company)
+                            .font(.system(size: 10))
+                            .foregroundStyle(Theme.text4)
+                    }
+                    Spacer()
+                    VStack(alignment: .trailing, spacing: 1) {
+                        Text(item.date)
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundStyle(Theme.text)
+                        Text("EPS est. \(item.epsEst)")
+                            .font(.system(size: 10))
+                            .foregroundStyle(Theme.text4)
+                    }
+                }
+                .padding(.horizontal, 14).padding(.vertical, 9)
+                if i < items.count - 1 {
+                    Divider().padding(.leading, 56).overlay(Theme.border)
+                }
+            }
+        }
+        .background(Theme.card)
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Theme.border, lineWidth: 0.5))
     }
 }
 
@@ -258,7 +425,7 @@ struct SocialPostCard: View {
                                 .font(.system(size: 18, weight: .black))
                                 .foregroundStyle(.white)
                         )
-                        .shadow(color: trader.color.opacity(0.4), radius: 6, y: 2)
+                        .shadow(color: trader.color.opacity(0.10), radius: 4, y: 1)
                 }
                 .buttonStyle(.plain)
 

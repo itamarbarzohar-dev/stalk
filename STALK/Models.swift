@@ -578,3 +578,155 @@ let DISCOVER_ITEMS: [DiscoverItem] = [
                  tickers: ["AAPL","MSFT"], views: 44100, saves: 1102, comments: 267, duration: "3:20",
                  gradientColors: [Color(hex: "#0A1A2E"), Color(hex: "#1A3A5F"), Color(hex: "#0E4D6B")]),
 ]
+
+// MARK: - Options Chain
+
+struct OptionsChainRow: Identifiable {
+    let id = UUID()
+    let strike: Double
+    let bid: Double
+    let ask: Double
+    let openInterest: Int
+    let iv: Double      // implied volatility %
+    let isCall: Bool
+}
+
+func mockOptionsChain(for ticker: String) -> [OptionsChainRow] {
+    let seed = ticker.unicodeScalars.reduce(0) { $0 + Int($1.value) }
+    let base = [150.0, 180.0, 200.0, 210.0, 850.0, 900.0, 180.0, 190.0, 95.0, 100.0][seed % 10]
+    return [
+        OptionsChainRow(strike: base,        bid: 4.20, ask: 4.40, openInterest: 12847, iv: 28.4, isCall: true),
+        OptionsChainRow(strike: base + 5,    bid: 2.85, ask: 3.10, openInterest: 8231,  iv: 31.2, isCall: true),
+        OptionsChainRow(strike: base + 10,   bid: 1.55, ask: 1.75, openInterest: 6104,  iv: 34.7, isCall: true),
+        OptionsChainRow(strike: base - 5,    bid: 3.90, ask: 4.15, openInterest: 9440,  iv: 26.1, isCall: false),
+        OptionsChainRow(strike: base - 10,   bid: 6.30, ask: 6.60, openInterest: 5322,  iv: 22.8, isCall: false),
+    ]
+}
+
+// MARK: - Institutional Holders
+
+struct InstitutionalHolder: Identifiable {
+    let id = UUID()
+    let name: String
+    let pct: Double
+    let shares: Int     // in millions
+    let change: Double  // quarter over quarter %
+}
+
+func mockInstitutionalHolders(for ticker: String) -> [InstitutionalHolder] {
+    let seed = ticker.unicodeScalars.reduce(0) { $0 + Int($1.value) } % 3
+    let sets: [[InstitutionalHolder]] = [
+        [
+            InstitutionalHolder(name: "Vanguard Group",   pct: 8.2,  shares: 201, change: +0.3),
+            InstitutionalHolder(name: "BlackRock",        pct: 6.1,  shares: 149, change: -0.1),
+            InstitutionalHolder(name: "Fidelity",         pct: 4.7,  shares: 115, change: +0.8),
+        ],
+        [
+            InstitutionalHolder(name: "State Street",     pct: 7.4,  shares: 182, change: +0.2),
+            InstitutionalHolder(name: "Vanguard Group",   pct: 5.9,  shares: 145, change: +0.5),
+            InstitutionalHolder(name: "Geode Capital",    pct: 3.2,  shares:  79, change: -0.2),
+        ],
+        [
+            InstitutionalHolder(name: "Vanguard Group",   pct: 9.1,  shares: 224, change: +0.1),
+            InstitutionalHolder(name: "BlackRock",        pct: 7.3,  shares: 179, change: +0.4),
+            InstitutionalHolder(name: "T. Rowe Price",    pct: 2.8,  shares:  69, change: -0.6),
+        ],
+    ]
+    return sets[seed]
+}
+
+// MARK: - Earnings Call Highlights
+
+struct EarningsCallQuote: Identifiable {
+    let id = UUID()
+    let speaker: String
+    let role: String
+    let quote: String
+}
+
+func mockEarningsCallQuotes(for ticker: String) -> [EarningsCallQuote] {
+    switch ticker {
+    case "NVDA":
+        return [
+            EarningsCallQuote(speaker: "Jensen Huang", role: "CEO", quote: "Demand for Blackwell is extraordinary — we are racing to scale production as fast as humanly possible."),
+            EarningsCallQuote(speaker: "Colette Kress", role: "CFO", quote: "Data center revenue grew 427% year-over-year to $22.6B, driven by hyperscaler and sovereign AI adoption."),
+            EarningsCallQuote(speaker: "Jensen Huang", role: "CEO", quote: "Every country now recognizes AI infrastructure as a national priority. We are at an inflection point."),
+        ]
+    case "AAPL":
+        return [
+            EarningsCallQuote(speaker: "Tim Cook", role: "CEO", quote: "iPhone 16 demand is robust and Apple Intelligence is driving a meaningful upgrade cycle unlike anything we've seen."),
+            EarningsCallQuote(speaker: "Luca Maestri", role: "CFO", quote: "Services revenue reached an all-time high of $24.2B, with over 1 billion paid subscriptions globally."),
+            EarningsCallQuote(speaker: "Tim Cook", role: "CEO", quote: "We're investing heavily in AI while maintaining the privacy-first approach our customers trust us for."),
+        ]
+    default:
+        return [
+            EarningsCallQuote(speaker: "CEO", role: "CEO", quote: "We delivered strong results this quarter with revenue and margins both exceeding our guidance range."),
+            EarningsCallQuote(speaker: "CFO", role: "CFO", quote: "Free cash flow generation remains robust and we remain committed to returning capital to shareholders."),
+            EarningsCallQuote(speaker: "CEO", role: "CEO", quote: "The macro environment remains dynamic, but our fundamentals are stronger than ever entering the next quarter."),
+        ]
+    }
+}
+
+// MARK: - Put/Call Flow
+
+struct PutCallItem: Identifiable {
+    let id = UUID()
+    let ticker: String
+    let ratio: Double       // < 0.7 bullish, > 1.3 bearish
+    let sentiment: String   // "BULLISH FLOW" / "BEARISH FLOW"
+    let changePercent: Double
+}
+
+let PUT_CALL_ITEMS: [PutCallItem] = [
+    PutCallItem(ticker: "NVDA", ratio: 0.38, sentiment: "BULLISH FLOW",  changePercent: +3.2),
+    PutCallItem(ticker: "AAPL", ratio: 0.52, sentiment: "BULLISH FLOW",  changePercent: +1.1),
+    PutCallItem(ticker: "TSLA", ratio: 1.47, sentiment: "BEARISH FLOW",  changePercent: -2.4),
+    PutCallItem(ticker: "SPY",  ratio: 0.61, sentiment: "BULLISH FLOW",  changePercent: +0.6),
+    PutCallItem(ticker: "AMZN", ratio: 1.82, sentiment: "BEARISH FLOW",  changePercent: -1.8),
+]
+
+// MARK: - Unusual Volume
+
+struct UnusualVolumeItem: Identifiable {
+    let id = UUID()
+    let ticker: String
+    let volume: Double      // actual volume
+    let vsAvgMultiple: Double
+    let changePercent: Double
+    let name: String
+}
+
+let UNUSUAL_VOLUME_ITEMS: [UnusualVolumeItem] = [
+    UnusualVolumeItem(ticker: "GME",  volume: 84_300_000, vsAvgMultiple: 6.2, changePercent: +18.4, name: "GameStop Corp"),
+    UnusualVolumeItem(ticker: "PLTR", volume: 62_100_000, vsAvgMultiple: 3.8, changePercent:  +7.1, name: "Palantir Tech"),
+    UnusualVolumeItem(ticker: "MSTR", volume: 31_400_000, vsAvgMultiple: 3.2, changePercent: +11.3, name: "MicroStrategy"),
+    UnusualVolumeItem(ticker: "HOOD", volume: 28_900_000, vsAvgMultiple: 2.9, changePercent:  +4.5, name: "Robinhood Mkts"),
+    UnusualVolumeItem(ticker: "RIVN", volume: 24_600_000, vsAvgMultiple: 2.4, changePercent:  -3.2, name: "Rivian Auto"),
+]
+
+// MARK: - Special Catalyst
+
+struct CatalystItem: Identifiable {
+    let id = UUID()
+    let ticker: String
+    let eventType: String
+    let description: String
+    let date: String
+    let impact: String      // "High" / "Medium"
+    let icon: String        // SF Symbol
+}
+
+let CATALYST_ITEMS: [CatalystItem] = [
+    CatalystItem(ticker: "MRNA", eventType: "FDA Decision",
+                 description: "mRNA-4157 personalized cancer vaccine PDUFA date — potential $8B market",
+                 date: "Jul 8", impact: "High", icon: "cross.vial.fill"),
+    CatalystItem(ticker: "ATVI", eventType: "Merger Close",
+                 description: "Microsoft acquisition final regulatory approval expected — arb spread 1.2%",
+                 date: "Jul 12", impact: "High", icon: "building.2.fill"),
+    CatalystItem(ticker: "AAPL", eventType: "Buyback",
+                 description: "$110B share repurchase program begins Q3 execution — largest in history",
+                 date: "Jul 1",  impact: "Medium", icon: "arrow.clockwise.circle.fill"),
+    CatalystItem(ticker: "GE",   eventType: "Spin-Off",
+                 description: "GE Vernova trading begins as independent company after energy division split",
+                 date: "Jul 15", impact: "Medium", icon: "scissors"),
+]

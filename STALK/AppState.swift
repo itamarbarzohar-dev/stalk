@@ -99,6 +99,7 @@ class AppState {
     var userPosts: [UserPost] = []
     var notifications: [ActivityItem] = ACTIVITY_ITEMS
     var joinedCommunities: Set<String> = []
+    var forYouSections: Set<String> = ["insider", "earnings", "putcall", "volume", "catalyst"]
     var copiedAmounts: [Int: Double] = [:]
     var postComments: [UUID: [Comment]] = [:]
     var savedItems: Set<UUID> = []
@@ -141,6 +142,9 @@ class AppState {
         loadStreak()
         loadWatchlist()
         portfolioATH = UserDefaults.standard.double(forKey: "stalk_ath")
+        if let saved = UserDefaults.standard.array(forKey: "stalk_foryou_sections") as? [String] {
+            forYouSections = Set(saved)
+        }
         if let data = UserDefaults.standard.data(forKey: "stalk_watchlist_columns"),
            let cols = try? JSONDecoder().decode([WatchlistStat].self, from: data) {
             watchlistColumns = cols

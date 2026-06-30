@@ -105,6 +105,14 @@ struct ForYouView: View {
         .padding(.horizontal, 14)
         .padding(.bottom, 10)
 
+        // Intelligence column toggle chips
+        ForYouColumnPicker(enabled: appState.forYouSections) { id, on in
+            if on { appState.forYouSections.insert(id) } else { appState.forYouSections.remove(id) }
+            UserDefaults.standard.set(Array(appState.forYouSections), forKey: "stalk_foryou_sections")
+        }
+            .padding(.horizontal, 14)
+            .padding(.bottom, 10)
+
         // AI Market Context Card
         AIMarketContextCard(onOpenBrief: { appState.showDailyBrief = true })
             .padding(.horizontal, 14)
@@ -129,10 +137,12 @@ struct ForYouView: View {
             .padding(.bottom, 10)
 
         // Earnings Calendar Card
-        sectionLabel("Earnings This Week")
-        EarningsCalendarCard(userTickers: Set(appState.positions.map(\.ticker)), onTicker: onTicker)
-            .padding(.horizontal, 14)
-            .padding(.bottom, 6)
+        if appState.forYouSections.contains("earnings") {
+            sectionLabel("Earnings This Week")
+            EarningsCalendarCard(userTickers: Set(appState.positions.map(\.ticker)), onTicker: onTicker)
+                .padding(.horizontal, 14)
+                .padding(.bottom, 6)
+        }
 
         hotOnSTALKSection()
         missedOpportunitiesSection()
@@ -146,8 +156,31 @@ struct ForYouView: View {
         sectionLabel("Analyst Moves")
         analystSection()
 
-        sectionLabel("Insider Buys")
-        insiderSection()
+        if appState.forYouSections.contains("putcall") {
+            sectionLabel("Options Flow · Put/Call Ratio")
+            PutCallRatioCard()
+                .padding(.horizontal, 14)
+                .padding(.bottom, 9)
+        }
+
+        if appState.forYouSections.contains("volume") {
+            sectionLabel("Unusual Volume · Spikes")
+            UnusualVolumeCard()
+                .padding(.horizontal, 14)
+                .padding(.bottom, 9)
+        }
+
+        if appState.forYouSections.contains("catalyst") {
+            sectionLabel("Special Catalysts")
+            SpecialCatalystCard()
+                .padding(.horizontal, 14)
+                .padding(.bottom, 9)
+        }
+
+        if appState.forYouSections.contains("insider") {
+            sectionLabel("Insider Buys")
+            insiderSection()
+        }
 
         sectionLabel("Trump Watch")
         trumpSection()
@@ -902,6 +935,201 @@ struct EarningsCard: View {
     }
 }
 
+// MARK: - ForYou Column Picker
+
+struct ForYouColumnPicker: View {
+    let enabled: Set<String>
+    let onToggle: (String, Bool) -> Void
+
+    let columns: [(id: String, label: String, icon: String)] = [
+        ("putcall",  "P/C Ratio",    "chart.bar.fill"),
+        ("volume",   "Vol Spike",    "waveform"),
+        ("catalyst", "Catalyst",     "bolt.fill"),
+        ("insider",  "Insider",      "person.fill"),
+        ("earnings", "Earnings",     "calendar.badge.clock"),
+    ]
+
+    var body: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(columns, id: \.id) { col in
+                    let on = enabled.contains(col.id)
+                    Button { onToggle(col.id, !on) } label: {
+                        HStack(spacing: 5) {
+                            Image(systemName: col.icon)
+                                .font(.system(size: 10, weight: .bold))
+                            Text(col.label)
+                                .font(.system(size: 11, weight: .semibold))
+                        }
+                        .foregroundStyle(on ? Theme.bg : Theme.text3)
+                        .padding(.horizontal, 11)
+                        .padding(.vertical, 6)
+                        .background(on ? Theme.text : Theme.card)
+                        .clipShape(Capsule())
+                        .overlay(Capsule().stroke(on ? Color.clear : Theme.border, lineWidth: 1))
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Put/Call Ratio Card
+
+struct PutCallRatioCard: View {
+    var body: some View {
+        VStack(spacing: 0) {
+            ForEach(Array(PUT_CALL_ITEMS.enumerated()), id: \.element.id) { i, item in
+                let isBull = item.ratio < 0.7
+                HStack(spacing: 0) {
+                    Rectangle()
+                        .fill(isBull ? Theme.gain : Theme.loss)
+                        .frame(width: 3)
+                        .padding(.vertical, 8)
+                        .padding(.trailing, 10)
+                    Text(item.ticker)
+                        .font(.system(size: 13, weight: .black))
+                        .foregroundStyle(Theme.text)
+                        .frame(width: 50, alignment: .leading)
+                    Text(String(format: "%.2f", item.ratio))
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundStyle(isBull ? Theme.gain : Theme.loss)
+                        .frame(width: 38, alignment: .trailing)
+                    Spacer()
+                    // Single donut: green = calls, red = puts
+                    let callFrac = CGFloat(1.0 / (1.0 + item.ratio))
+                    ZStack {
+                        Circle()
+                            .stroke(Theme.loss, lineWidth: 5)
+                            .frame(width: 32, height: 32)
+                        Circle()
+                            .trim(from: 0, to: callFrac)
+                            .stroke(Theme.gain, style: StrokeStyle(lineWidth: 5, lineCap: .butt))
+                            .rotationEffect(.degrees(-90))
+                            .frame(width: 32, height: 32)
+                    }
+                }
+                .padding(.horizontal, 14).padding(.vertical, 9)
+                if i < PUT_CALL_ITEMS.count - 1 {
+                    Divider().padding(.leading, 17).overlay(Theme.border)
+                }
+            }
+        }
+        .background(Theme.card)
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Theme.border, lineWidth: 0.5))
+    }
+}
+
+// MARK: - Unusual Volume Card
+
+struct UnusualVolumeCard: View {
+    var body: some View {
+        VStack(spacing: 0) {
+            ForEach(Array(UNUSUAL_VOLUME_ITEMS.enumerated()), id: \.element.id) { i, item in
+                let isUp = item.changePercent >= 0
+                HStack(spacing: 0) {
+                    Rectangle()
+                        .fill(isUp ? Theme.gain : Theme.loss)
+                        .frame(width: 3)
+                        .padding(.vertical, 8)
+                        .padding(.trailing, 10)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(item.ticker)
+                            .font(.system(size: 13, weight: .black))
+                            .foregroundStyle(Theme.text)
+                        Text(item.name)
+                            .font(.system(size: 10))
+                            .foregroundStyle(Theme.text4)
+                    }
+                    .frame(width: 100, alignment: .leading)
+                    Spacer()
+                    VStack(alignment: .trailing, spacing: 2) {
+                        Text(item.volume.fmtCompact())
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundStyle(Theme.text)
+                        Text(String(format: "%.1f× avg", item.vsAvgMultiple))
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundStyle(Theme.gold)
+                    }
+                    Text(item.changePercent.fmtPct())
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundStyle(isUp ? Theme.gain : Theme.loss)
+                        .frame(width: 60, alignment: .trailing)
+                }
+                .padding(.horizontal, 14).padding(.vertical, 9)
+                if i < UNUSUAL_VOLUME_ITEMS.count - 1 {
+                    Divider().padding(.leading, 17).overlay(Theme.border)
+                }
+            }
+            Text("vs 30-day average volume")
+                .font(.system(size: 10))
+                .foregroundStyle(Theme.text4)
+                .frame(maxWidth: .infinity, alignment: .trailing)
+                .padding(.horizontal, 14).padding(.vertical, 6)
+        }
+        .background(Theme.card)
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Theme.border, lineWidth: 0.5))
+    }
+}
+
+// MARK: - Special Catalyst Card
+
+struct SpecialCatalystCard: View {
+    var body: some View {
+        VStack(spacing: 0) {
+            ForEach(Array(CATALYST_ITEMS.enumerated()), id: \.element.id) { i, item in
+                let isHigh = item.impact == "High"
+                HStack(alignment: .top, spacing: 12) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(isHigh ? Theme.gold.opacity(0.12) : Theme.border)
+                            .frame(width: 36, height: 36)
+                        Image(systemName: item.icon)
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(isHigh ? Theme.gold : Theme.text3)
+                    }
+                    VStack(alignment: .leading, spacing: 3) {
+                        HStack(spacing: 6) {
+                            Text(item.ticker)
+                                .font(.system(size: 13, weight: .black))
+                                .foregroundStyle(Theme.text)
+                            Text(item.eventType)
+                                .font(.system(size: 10, weight: .bold))
+                                .foregroundStyle(Theme.text3)
+                        }
+                        Text(item.description)
+                            .font(.system(size: 11))
+                            .foregroundStyle(Theme.text3)
+                            .lineLimit(2)
+                    }
+                    Spacer()
+                    VStack(alignment: .trailing, spacing: 4) {
+                        Text(item.date)
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundStyle(Theme.text2)
+                        Text(item.impact)
+                            .font(.system(size: 9, weight: .black))
+                            .foregroundStyle(isHigh ? Theme.gold : Theme.text3)
+                            .padding(.horizontal, 6).padding(.vertical, 2)
+                            .background(isHigh ? Theme.gold.opacity(0.12) : Theme.border)
+                            .clipShape(RoundedRectangle(cornerRadius: 4))
+                    }
+                }
+                .padding(.horizontal, 14).padding(.vertical, 11)
+                if i < CATALYST_ITEMS.count - 1 {
+                    Divider().padding(.leading, 62).overlay(Theme.border)
+                }
+            }
+        }
+        .background(Theme.card)
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Theme.border, lineWidth: 0.5))
+    }
+}
+
 // MARK: - Premium Locked
 
 struct PremiumLockedCard: View {
@@ -943,7 +1171,7 @@ struct PremiumLockedCard: View {
             .padding(18)
             .background(.white.opacity(0.96))
             .clipShape(RoundedRectangle(cornerRadius: 18))
-            .shadow(color: Theme.accent.opacity(0.18), radius: 16, y: 4)
+            .shadow(color: Theme.accent.opacity(0.06), radius: 8, y: 2)
             .padding(20)
         }
     }
@@ -1637,7 +1865,7 @@ struct EarningsCalendarCard: View {
                             .background(isOwned ? Theme.gold : Theme.accent)
                             .clipShape(RoundedRectangle(cornerRadius: 8))
                             .frame(minWidth: 50)
-                            .shadow(color: isOwned ? Theme.gold.opacity(0.4) : Theme.accent.opacity(0.3), radius: 6)
+                            .shadow(color: isOwned ? Theme.gold.opacity(0.12) : Theme.accent.opacity(0.08), radius: 4)
 
                         VStack(alignment: .leading, spacing: 3) {
                             HStack(spacing: 6) {
@@ -1652,7 +1880,7 @@ struct EarningsCalendarCard: View {
                                         .padding(.vertical, 2.5)
                                         .background(Theme.gold)
                                         .clipShape(RoundedRectangle(cornerRadius: 5))
-                                        .shadow(color: Theme.gold.opacity(0.45), radius: 5)
+                                        .shadow(color: Theme.gold.opacity(0.12), radius: 3)
                                 }
                             }
                             HStack(spacing: 4) {
@@ -1916,7 +2144,7 @@ struct PremiumSheet: View {
                         )
                     )
                     .clipShape(RoundedRectangle(cornerRadius: 18))
-                    .shadow(color: Color(hex: "#7B6FEF").opacity(0.4), radius: 12, y: 4)
+                    .shadow(color: Color(hex: "#4A90D9").opacity(0.08), radius: 6, y: 2)
                 }
                 .disabled(isPurchasing)
                 .padding(.horizontal, 22)

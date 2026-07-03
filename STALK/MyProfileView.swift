@@ -9,10 +9,12 @@ enum ProfileTab {
 struct MyProfileView: View {
     @Environment(AppState.self) var appState
     @Environment(\.dismiss) var dismiss
+    var embedded: Bool = false   // true when rendered inline inside the Feed tab
     @State private var profileTab: ProfileTab = .posts
     @State private var showSettings = false
     @State private var showShareSheet = false
     @State private var showEditProfile = false
+    @State private var showSavedArchive = false
 
     private let gridColumns = [
         GridItem(.flexible(), spacing: 2),
@@ -21,23 +23,34 @@ struct MyProfileView: View {
     ]
 
     var body: some View {
-        ScrollView(showsIndicators: false) {
-            VStack(spacing: 0) {
-                profileCover
-                profileIdentity
-                profileStats
-                profileActions
-                tabSelector
-                tabContent
-                Color.clear.frame(height: 100)
+        Group {
+            if embedded {
+                profileContent
+            } else {
+                ScrollView(showsIndicators: false) {
+                    profileContent
+                }
+                .background(Theme.bg)
+                .ignoresSafeArea(edges: .top)
             }
         }
-        .background(Theme.bg)
-        .ignoresSafeArea(edges: .top)
         .sheet(isPresented: $showSettings) { SettingsView().environment(appState) }
         .sheet(isPresented: $showEditProfile) { EditProfileView().environment(appState) }
+        .sheet(isPresented: $showSavedArchive) { SavedArchiveView().environment(appState) }
         .sheet(isPresented: $showShareSheet) {
             ShareSheet(activityItems: ["Check out my portfolio on STALK! @\(appState.settings.username)"])
+        }
+    }
+
+    var profileContent: some View {
+        VStack(spacing: 0) {
+            profileCover
+            profileIdentity
+            profileStats
+            profileActions
+            tabSelector
+            tabContent
+            Color.clear.frame(height: 100)
         }
     }
 
@@ -45,7 +58,7 @@ struct MyProfileView: View {
         ZStack(alignment: .topTrailing) {
             Rectangle()
                 .fill(AnyShapeStyle(appState.heroGradient))
-                .frame(height: 220)
+                .frame(height: embedded ? 150 : 220)
                 .overlay(alignment: .bottomLeading) {
                     Circle()
                         .fill(AnyShapeStyle(appState.accentGradient))
@@ -60,21 +73,35 @@ struct MyProfileView: View {
                         .offset(x: 20, y: 45)
                 }
 
-            Button { showSettings = true } label: {
-                Image(systemName: "gearshape.fill")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundStyle(.white)
-                    .frame(width: 38, height: 38)
-                    .background(.ultraThinMaterial)
-                    .clipShape(Circle())
-                    .overlay(Circle().stroke(.white.opacity(0.2), lineWidth: 1))
-                    .shadow(color: .black.opacity(0.25), radius: 6, y: 2)
+            HStack(spacing: 10) {
+                Button { showSavedArchive = true } label: {
+                    Image(systemName: "bookmark.fill")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .frame(width: 38, height: 38)
+                        .background(.ultraThinMaterial)
+                        .clipShape(Circle())
+                        .overlay(Circle().stroke(.white.opacity(0.2), lineWidth: 1))
+                        .shadow(color: .black.opacity(0.25), radius: 6, y: 2)
+                }
+                .buttonStyle(.plain)
+
+                Button { showSettings = true } label: {
+                    Image(systemName: "gearshape.fill")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .frame(width: 38, height: 38)
+                        .background(.ultraThinMaterial)
+                        .clipShape(Circle())
+                        .overlay(Circle().stroke(.white.opacity(0.2), lineWidth: 1))
+                        .shadow(color: .black.opacity(0.25), radius: 6, y: 2)
+                }
+                .buttonStyle(.plain)
             }
-            .buttonStyle(.plain)
-            .padding(.top, 56)
+            .padding(.top, embedded ? 16 : 56)
             .padding(.trailing, 18)
         }
-        .frame(height: 220)
+        .frame(height: embedded ? 150 : 220)
     }
 
     var profileIdentity: some View {
@@ -639,5 +666,145 @@ struct EditProfileView: View {
                 bio = appState.settings.bio
             }
         }
+    }
+}
+
+// MARK: - Saved & Archive (Instagram-style)
+
+struct SavedArchiveView: View {
+    @Environment(AppState.self) var appState
+    @Environment(\.dismiss) var dismiss
+    @State private var section = "Saved"
+
+    var savedTraders: [Trader] {
+        FEED_TRADERS.filter { appState.savedTraderPosts.contains($0.id) }
+    }
+    var archivedPosts: [UserPost] {
+        appState.userPosts.filter { appState.archivedUserPosts.contains($0.id) }
+    }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            // Header
+            HStack {
+                Button { dismiss() } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundStyle(Theme.text2)
+                        .frame(width: 34, height: 34)
+                        .background(Theme.bg2)
+                        .clipShape(Circle())
+                }
+                Spacer()
+                Text(section)
+                    .font(.system(size: 16, weight: .black))
+                    .foregroundStyle(Theme.text)
+                Spacer()
+                Color.clear.frame(width: 34, height: 34)
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 18)
+            .padding(.bottom, 12)
+
+            // Segmented control
+            HStack(spacing: 0) {
+                ForEach(["Saved", "Archive"], id: \.self) { s in
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.2)) { section = s }
+                    } label: {
+                        VStack(spacing: 7) {
+                            HStack(spacing: 5) {
+                                Image(systemName: s == "Saved" ? "bookmark" : "archivebox")
+                                    .font(.system(size: 12, weight: .semibold))
+                                Text(s)
+                                    .font(.system(size: 13, weight: section == s ? .black : .semibold))
+                            }
+                            .foregroundStyle(section == s ? Theme.text : Theme.text3)
+                            .frame(maxWidth: .infinity)
+                            Rectangle()
+                                .fill(section == s ? Theme.accent : Color.clear)
+                                .frame(height: 2)
+                        }
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.horizontal, 16)
+            .overlay(Rectangle().fill(Theme.border).frame(height: 0.5), alignment: .bottom)
+
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 0) {
+                    if section == "Saved" {
+                        if savedTraders.isEmpty {
+                            savedEmptyState(icon: "bookmark", title: "No saved posts",
+                                            text: "Tap the bookmark on any post in your feed to save it here.")
+                        } else {
+                            ForEach(savedTraders) { trader in
+                                SocialPostCard(trader: trader, onTicker: { _ in })
+                                Rectangle().fill(Theme.border).frame(height: 0.5)
+                            }
+                        }
+                    } else {
+                        if archivedPosts.isEmpty {
+                            savedEmptyState(icon: "archivebox", title: "Archive is empty",
+                                            text: "Posts you archive disappear from your feed but stay here — only you can see them.")
+                        } else {
+                            ForEach(archivedPosts) { post in
+                                VStack(alignment: .leading, spacing: 10) {
+                                    Text(post.text)
+                                        .font(.system(size: 14))
+                                        .foregroundStyle(Theme.text)
+                                        .lineSpacing(4)
+                                    HStack {
+                                        Text(post.sentiment)
+                                            .font(.system(size: 11, weight: .bold))
+                                            .foregroundStyle(Theme.text3)
+                                        Spacer()
+                                        Button {
+                                            withAnimation { _ = appState.archivedUserPosts.remove(post.id) }
+                                        } label: {
+                                            Text("Unarchive")
+                                                .font(.system(size: 12, weight: .bold))
+                                                .foregroundStyle(Theme.accent)
+                                                .padding(.horizontal, 14)
+                                                .padding(.vertical, 7)
+                                                .background(Theme.accentBg)
+                                                .clipShape(Capsule())
+                                        }
+                                        .buttonStyle(.plain)
+                                    }
+                                }
+                                .padding(16)
+                                .background(Theme.card)
+                                .clipShape(RoundedRectangle(cornerRadius: 16))
+                                .overlay(RoundedRectangle(cornerRadius: 16).stroke(Theme.border, lineWidth: 1))
+                                .padding(.horizontal, 14)
+                                .padding(.top, 10)
+                            }
+                        }
+                    }
+                    Color.clear.frame(height: 40)
+                }
+            }
+        }
+        .background(Theme.bg)
+    }
+
+    func savedEmptyState(icon: String, title: String, text: String) -> some View {
+        VStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.system(size: 36, weight: .light))
+                .foregroundStyle(Theme.text3)
+            Text(title)
+                .font(.system(size: 15, weight: .bold))
+                .foregroundStyle(Theme.text2)
+            Text(text)
+                .font(.system(size: 13))
+                .foregroundStyle(Theme.text3)
+                .multilineTextAlignment(.center)
+        }
+        .padding(.vertical, 60)
+        .padding(.horizontal, 40)
+        .frame(maxWidth: .infinity)
     }
 }

@@ -36,6 +36,10 @@ struct AIHubView: View {
                 // ── Hero ─────────────────────────────────────────────────────
                 heroSection
 
+                // ── Autopilot Entry ──────────────────────────────────────────
+                AutopilotEntryCard()
+                    .onTapGesture { showAutopilot = true }
+
                 // ── Quick Actions ────────────────────────────────────────────
                 quickActions
 
@@ -537,5 +541,80 @@ struct AIActionCard: View {
                 isPressed = pressing
             }
         }, perform: {})
+    }
+}
+
+// MARK: - Autopilot Entry Card (moved from Portfolio)
+
+struct AutopilotEntryCard: View {
+    @State private var newBadgePulse = false
+    @State private var arrowOffset: CGFloat = 0
+
+    private let blue = Color(hex: "#4A90D9")
+
+    var body: some View {
+        HStack(spacing: 14) {
+            ZStack {
+                Circle()
+                    .fill(LinearGradient(
+                        colors: [Color(hex: "#1E40AF"), Color(hex: "#4A90D9")],
+                        startPoint: .topLeading, endPoint: .bottomTrailing
+                    ))
+                    .frame(width: 52, height: 52)
+                    .shadow(color: blue.opacity(0.35), radius: 10)
+                Image(systemName: "cpu.fill")
+                    .font(.system(size: 22, weight: .bold))
+                    .foregroundStyle(.white)
+            }
+
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(spacing: 7) {
+                    Text("AI Autopilot")
+                        .font(.system(size: 15, weight: .black))
+                        .foregroundStyle(Theme.text)
+                    Text("NEW")
+                        .font(.system(size: 9, weight: .black))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 7).padding(.vertical, 3)
+                        .background(
+                            LinearGradient(colors: [blue, Color(hex: "#1E40AF")], startPoint: .leading, endPoint: .trailing)
+                        )
+                        .clipShape(Capsule())
+                        .scaleEffect(newBadgePulse ? 1.08 : 1.0)
+                        .animation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true), value: newBadgePulse)
+                        .onAppear { newBadgePulse = true }
+                }
+                Text("Copy AI-managed strategies · 5 live strategies")
+                    .font(.system(size: 12))
+                    .foregroundStyle(Theme.text3)
+            }
+
+            Spacer()
+
+            Image(systemName: "arrow.right")
+                .font(.system(size: 14, weight: .bold))
+                .foregroundStyle(blue)
+                .offset(x: arrowOffset)
+        }
+        .padding(16)
+        .background(
+            LinearGradient(
+                colors: [Color(hex: "#1E40AF").opacity(0.15), blue.opacity(0.08), Color.clear],
+                startPoint: .leading, endPoint: .trailing
+            )
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 20))
+        .overlay(RoundedRectangle(cornerRadius: 20).stroke(blue.opacity(0.30), lineWidth: 1))
+        .shadow(color: .black.opacity(0.08), radius: 10, y: 4)
+        .onTapGesture {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.5)) {
+                arrowOffset = 6
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                    arrowOffset = 0
+                }
+            }
+        }
     }
 }

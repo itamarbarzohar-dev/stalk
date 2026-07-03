@@ -15,6 +15,7 @@ struct FeedView: View {
     @State private var commentsTrader: Trader? = nil
     @State private var commentsDiscoverItem: DiscoverItem? = nil
     @State private var showTagSheet = false
+    @State private var showSendSheet = false
 
     var feedTraders: [Trader] {
         switch feedTab {
@@ -36,7 +37,9 @@ struct FeedView: View {
                     feedHeader
                     feedTabBar
 
-                    if feedTab == "Discover" {
+                    if feedTab == "My Wall" {
+                        MyProfileView(embedded: true)
+                    } else if feedTab == "Discover" {
                         DiscoverFeedSection(onTicker: onTicker)
                             .padding(.top, 8)
                     } else {
@@ -95,7 +98,7 @@ struct FeedView: View {
                         }
 
                         if !appState.userPosts.isEmpty {
-                            ForEach(appState.userPosts) { post in
+                            ForEach(appState.userPosts.filter { !appState.archivedUserPosts.contains($0.id) }) { post in
                                 MyPostCard(post: post, appState: appState, onTicker: onTicker)
                                 Rectangle()
                                     .fill(Theme.border)
@@ -141,6 +144,9 @@ struct FeedView: View {
         }
         .sheet(isPresented: $showCreatePost) {
             CreatePostView().environment(appState)
+        }
+        .sheet(isPresented: $showSendSheet) {
+            SendSheet().environment(appState)
         }
         .sheet(isPresented: $showMyProfile) {
             MyProfileView().environment(appState)
@@ -200,13 +206,13 @@ struct FeedView: View {
                 }
             }
             .buttonStyle(.plain)
-            Button {} label: {
+            Button { showSendSheet = true } label: {
                 Image(systemName: "paperplane")
                     .font(.system(size: 17, weight: .semibold))
                     .foregroundStyle(Theme.text2)
             }
             .buttonStyle(.plain)
-            Button { showMyProfile = true } label: {
+            Button { withAnimation(.easeInOut(duration: 0.2)) { feedTab = "My Wall" } } label: {
                 Circle()
                     .fill(Theme.accentGradient)
                     .frame(width: 32, height: 32)
@@ -226,7 +232,7 @@ struct FeedView: View {
 
     var feedTabBar: some View {
         HStack(spacing: 0) {
-            ForEach(["For You", "Following", "Discover"], id: \.self) { tab in
+            ForEach(["My Wall", "For You", "Following", "Discover"], id: \.self) { tab in
                 Button {
                     withAnimation(.easeInOut(duration: 0.2)) { feedTab = tab }
                 } label: {
@@ -391,6 +397,7 @@ struct FeedEarningsCard: View {
 // MARK: - SocialPostCard
 
 struct SocialPostCard: View {
+    @Environment(AppState.self) var appState
     let trader: Trader
     let onTicker: (String) -> Void
     var onComments: (() -> Void)? = nil
@@ -398,6 +405,8 @@ struct SocialPostCard: View {
 
     @State private var liked = false
     @State private var likeCount: Int
+
+    private var saved: Bool { appState.savedTraderPosts.contains(trader.id) }
 
     init(trader: Trader, onTicker: @escaping (String) -> Void,
          onComments: (() -> Void)? = nil, onProfile: (() -> Void)? = nil) {
@@ -515,6 +524,19 @@ struct SocialPostCard: View {
                     Image(systemName: "arrowshape.turn.up.right")
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundStyle(Theme.text3)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 10)
+                }
+                .buttonStyle(.plain)
+                Button {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                        if saved { appState.savedTraderPosts.remove(trader.id) }
+                        else { appState.savedTraderPosts.insert(trader.id) }
+                    }
+                } label: {
+                    Image(systemName: saved ? "bookmark.fill" : "bookmark")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(saved ? Theme.gold : Theme.text3)
                         .padding(.horizontal, 14)
                         .padding(.vertical, 10)
                 }
@@ -2053,6 +2075,23 @@ struct MyPostCard: View {
                 Spacer()
                 Text(post.sentiment).font(.system(size: 12, weight: .bold)).foregroundStyle(sentimentColor)
                     .padding(.horizontal, 10).padding(.vertical, 5).background(sentimentColor.opacity(0.12)).clipShape(Capsule())
+                Menu {
+                    Button {
+                        withAnimation { _ = appState.archivedUserPosts.insert(post.id) }
+                    } label: {
+                        Label("Archive", systemImage: "archivebox")
+                    }
+                    Button(role: .destructive) {
+                        withAnimation { appState.userPosts.removeAll { $0.id == post.id } }
+                    } label: {
+                        Label("Delete", systemImage: "trash")
+                    }
+                } label: {
+                    Image(systemName: "ellipsis")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(Theme.text3)
+                        .frame(width: 28, height: 28)
+                }
             }
             .padding(.horizontal, 16).padding(.top, 14)
 
@@ -2088,5 +2127,122 @@ struct MyPostCard: View {
             }
             .padding(.top, 4).padding(.bottom, 6)
         }
+    }
+}
+
+// MARK: - Send Sheet (paperplane share popup)
+
+struct SendSheet: View {
+    @Environment(AppState.self) var appState
+    @Environment(\.dismiss) var dismiss
+    @State private var search = ""
+    @State private var sentTo: Set<Int> = []
+    @State private var message = ""
+
+    var filteredTraders: [Trader] {
+        search.isEmpty
+            ? FEED_TRADERS
+            : FEED_TRADERS.filter { $0.name.localizedCaseInsensitiveContains(search) || $0.handle.localizedCaseInsensitiveContains(search) }
+    }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            // Grabber + title
+            Capsule().fill(Theme.border).frame(width: 36, height: 5).padding(.top, 10)
+            Text("Send to")
+                .font(.system(size: 16, weight: .black))
+                .foregroundStyle(Theme.text)
+                .padding(.top, 14)
+                .padding(.bottom, 12)
+
+            // Search
+            HStack(spacing: 8) {
+                Image(systemName: "magnifyingglass")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(Theme.text3)
+                TextField("Search traders", text: $search)
+                    .font(.system(size: 14))
+                    .foregroundStyle(Theme.text)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .background(Theme.bg2)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .padding(.horizontal, 16)
+            .padding(.bottom, 8)
+
+            // Trader list
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 0) {
+                    ForEach(filteredTraders) { trader in
+                        HStack(spacing: 12) {
+                            Circle()
+                                .fill(trader.color)
+                                .frame(width: 42, height: 42)
+                                .overlay(
+                                    Text(trader.initial)
+                                        .font(.system(size: 16, weight: .black))
+                                        .foregroundStyle(.white)
+                                )
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(trader.name)
+                                    .font(.system(size: 14, weight: .bold))
+                                    .foregroundStyle(Theme.text)
+                                Text(trader.handle)
+                                    .font(.system(size: 12))
+                                    .foregroundStyle(Theme.text3)
+                            }
+                            Spacer()
+                            Button {
+                                withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                                    if sentTo.contains(trader.id) { sentTo.remove(trader.id) }
+                                    else { sentTo.insert(trader.id) }
+                                }
+                            } label: {
+                                Text(sentTo.contains(trader.id) ? "Sent ✓" : "Send")
+                                    .font(.system(size: 13, weight: .bold))
+                                    .foregroundStyle(sentTo.contains(trader.id) ? Theme.gain : .white)
+                                    .padding(.horizontal, 18)
+                                    .padding(.vertical, 8)
+                                    .background(sentTo.contains(trader.id) ? Theme.gain.opacity(0.12) : Theme.accent)
+                                    .clipShape(Capsule())
+                            }
+                            .buttonStyle(.plain)
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 10)
+                    }
+                }
+                .padding(.bottom, 12)
+            }
+
+            // Optional message + external share
+            VStack(spacing: 10) {
+                Rectangle().fill(Theme.border).frame(height: 1)
+                HStack(spacing: 10) {
+                    TextField("Write a message…", text: $message)
+                        .font(.system(size: 14))
+                        .foregroundStyle(Theme.text)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 10)
+                        .background(Theme.bg2)
+                        .clipShape(Capsule())
+                    ShareLink(item: "Check out STALK — social portfolio tracking. Join me: @\(appState.settings.username)") {
+                        Image(systemName: "square.and.arrow.up")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(Theme.text2)
+                            .frame(width: 42, height: 42)
+                            .background(Theme.bg2)
+                            .clipShape(Circle())
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.bottom, 14)
+            }
+            .background(Theme.bg)
+        }
+        .background(Theme.bg)
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.hidden)
     }
 }

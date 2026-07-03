@@ -5,7 +5,6 @@ struct PortfolioView: View {
     @Environment(AppState.self) var appState
     let onTicker: (String) -> Void
     let onAdd: () -> Void
-    @State private var showAutopilot = false
 
     var body: some View {
         ScrollView {
@@ -40,18 +39,10 @@ struct PortfolioView: View {
                         .padding(.bottom, 8)
                 }
 
-                AutopilotEntryCard()
-                    .padding(.horizontal, 14)
-                    .padding(.bottom, 8)
-                    .onTapGesture { showAutopilot = true }
-
                 Color.clear.frame(height: 100)
             }
         }
         .background(Theme.bg)
-        .sheet(isPresented: $showAutopilot) {
-            AutopilotView().environment(appState)
-        }
         .task {
             async let p: () = appState.refreshPortfolio()
             async let m: () = appState.refreshMarket()
@@ -1482,80 +1473,6 @@ struct PortfolioHealthCard: View {
         .clipShape(RoundedRectangle(cornerRadius: 24))
         .overlay(RoundedRectangle(cornerRadius: 24).stroke(Theme.border, lineWidth: 1))
         .shadow(color: .black.opacity(0.08), radius: 10, y: 4)
-    }
-}
-
-// MARK: - Autopilot Entry Card
-
-struct AutopilotEntryCard: View {
-    @State private var newBadgePulse = false
-    @State private var arrowOffset: CGFloat = 0
-
-    var body: some View {
-        HStack(spacing: 14) {
-            ZStack {
-                Circle()
-                    .fill(LinearGradient(
-                        colors: [Color(hex: "#4338CA"), Color(hex: "#7C3AED")],
-                        startPoint: .topLeading, endPoint: .bottomTrailing
-                    ))
-                    .frame(width: 52, height: 52)
-                    .shadow(color: Color(hex: "#6D28D9").opacity(0.45), radius: 10)
-                Image(systemName: "cpu.fill")
-                    .font(.system(size: 22, weight: .bold))
-                    .foregroundStyle(.white)
-            }
-
-            VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: 7) {
-                    Text("AI Autopilot")
-                        .font(.system(size: 15, weight: .black))
-                        .foregroundStyle(Theme.text)
-                    // Pulsing NEW badge
-                    Text("NEW")
-                        .font(.system(size: 9, weight: .black))
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 7).padding(.vertical, 3)
-                        .background(
-                            LinearGradient(colors: [Color(hex: "#7C3AED"), Color(hex: "#4F46E5")], startPoint: .leading, endPoint: .trailing)
-                        )
-                        .clipShape(Capsule())
-                        .scaleEffect(newBadgePulse ? 1.08 : 1.0)
-                        .animation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true), value: newBadgePulse)
-                        .onAppear { newBadgePulse = true }
-                }
-                Text("Copy AI-managed strategies · 5 live strategies")
-                    .font(.system(size: 12))
-                    .foregroundStyle(Theme.text3)
-            }
-
-            Spacer()
-
-            Image(systemName: "arrow.right")
-                .font(.system(size: 14, weight: .bold))
-                .foregroundStyle(Color(hex: "#7C3AED"))
-                .offset(x: arrowOffset)
-        }
-        .padding(16)
-        .background(
-            LinearGradient(
-                colors: [Color(hex: "#4338CA").opacity(0.15), Color(hex: "#7C3AED").opacity(0.08), Color.clear],
-                startPoint: .leading, endPoint: .trailing
-            )
-        )
-        .clipShape(RoundedRectangle(cornerRadius: 20))
-        .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color(hex: "#6D28D9").opacity(0.35), lineWidth: 1))
-        .shadow(color: .black.opacity(0.08), radius: 10, y: 4)
-        .onTapGesture {
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.5)) {
-                arrowOffset = 6
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                    arrowOffset = 0
-                }
-            }
-        }
     }
 }
 

@@ -5,7 +5,14 @@ struct DailyBriefView: View {
     @Environment(AppState.self) var appState
     @Environment(\.dismiss) var dismiss
     @State private var now = Date()
+    @State private var selectedTab: BriefTab = .portfolio
     let timer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
+
+    enum BriefTab: String, CaseIterable {
+        case portfolio = "My Portfolio"
+        case market    = "Stock Market"
+        case crypto    = "Crypto"
+    }
 
     var marketStatus: MarketStatus { MarketCalendar.status(at: now) }
     var isTradingToday: Bool { MarketCalendar.isTradingDay(now) }
@@ -14,20 +21,60 @@ struct DailyBriefView: View {
         ScrollView {
             VStack(spacing: 0) {
                 briefHeader()
+                briefTabBar()
                 VStack(spacing: 24) {
                     if !isTradingToday { nextTradingDayBanner() }
-                    portfolioSection()
-                    marketSection()
-                    macroSection()
+                    switch selectedTab {
+                    case .portfolio:
+                        portfolioSection()
+                        portfolioAnalysisSection()
+                    case .market:
+                        marketSection()
+                        macroSection()
+                        marketAnalysisSection()
+                    case .crypto:
+                        cryptoSection()
+                        cryptoAnalysisSection()
+                    }
                 }
                 .padding(.horizontal, 16)
-                .padding(.top, 24)
+                .padding(.top, 20)
                 .padding(.bottom, 60)
             }
         }
         .background(Theme.bg)
         .ignoresSafeArea(edges: .top)
         .onReceive(timer) { now = $0 }
+    }
+
+    // MARK: - Tab Bar
+
+    func briefTabBar() -> some View {
+        HStack(spacing: 0) {
+            ForEach(BriefTab.allCases, id: \.self) { tab in
+                Button {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {
+                        selectedTab = tab
+                    }
+                } label: {
+                    VStack(spacing: 7) {
+                        Text(tab.rawValue)
+                            .font(.system(size: 13, weight: selectedTab == tab ? .black : .semibold))
+                            .foregroundStyle(selectedTab == tab ? Theme.text : Theme.text3)
+                            .frame(maxWidth: .infinity)
+                        Rectangle()
+                            .fill(selectedTab == tab ? Theme.accent : Color.clear)
+                            .frame(height: 2)
+                            .clipShape(Capsule())
+                    }
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.top, 6)
+        .background(Theme.bg)
+        .overlay(alignment: .bottom) { Rectangle().fill(Theme.border).frame(height: 1) }
     }
 
     // MARK: - Header
@@ -173,6 +220,123 @@ struct DailyBriefView: View {
             briefCard(icon: "👀", title: "Key events to watch",
                       body: "Tuesday: CPI 8:30am ET · Wednesday: FOMC minutes · Thursday: jobless claims · Friday: consumer sentiment. Any of these can move your portfolio ±2%.",
                       type: .alert)
+        }
+    }
+
+    // MARK: - Crypto Section
+
+    func cryptoSection() -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            sectionLabel("₿ Crypto Today")
+
+            // Price snapshot rows
+            VStack(spacing: 0) {
+                let coins: [(sym: String, name: String, price: String, change: Double)] = [
+                    ("BTC", "Bitcoin",  "$118,240", 3.4),
+                    ("ETH", "Ethereum", "$4,180",   5.1),
+                    ("SOL", "Solana",   "$212",     7.8),
+                    ("XRP", "XRP",      "$2.41",   -1.2),
+                ]
+                ForEach(Array(coins.enumerated()), id: \.element.sym) { i, c in
+                    HStack(spacing: 12) {
+                        Text(c.sym)
+                            .font(.system(size: 12, weight: .black).monospaced())
+                            .foregroundStyle(Theme.gold)
+                            .frame(width: 38, alignment: .leading)
+                        Text(c.name)
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundStyle(Theme.text)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        Text(c.price)
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(Theme.text)
+                            .monospacedDigit()
+                        Text(c.change.fmtPct())
+                            .font(.system(size: 13, weight: .black))
+                            .foregroundStyle(c.change >= 0 ? Theme.gain : Theme.loss)
+                            .frame(width: 62, alignment: .trailing)
+                    }
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 11)
+                    if i < coins.count - 1 {
+                        Rectangle().fill(Theme.border).frame(height: 1).padding(.leading, 50)
+                    }
+                }
+            }
+            .background(Theme.card)
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+            .overlay(RoundedRectangle(cornerRadius: 16).stroke(Theme.border, lineWidth: 1))
+
+            briefCard(icon: "🏦", title: "Spot ETF inflows hit $1.2B this week",
+                      body: "BlackRock's IBIT alone took in $640M over three sessions — the strongest weekly inflow since March. Institutional demand is doing the heavy lifting while retail volume stays muted.",
+                      type: .good)
+            briefCard(icon: "⛓️", title: "Ethereum led majors on staking-ETF speculation",
+                      body: "ETH +5.1% outpaced BTC after reports that the SEC is reviewing staking provisions for existing ETH ETFs. Adding yield to the ETF wrapper would materially widen the buyer base.",
+                      type: .good)
+            briefCard(icon: "⚡", title: "Solana ecosystem volume spiked 40%",
+                      body: "SOL +7.8% on a surge in DEX activity and two new institutional custody integrations. High-beta majors are outperforming — a classic risk-on signature.",
+                      type: .good)
+            briefCard(icon: "📉", title: "Funding rates are getting stretched",
+                      body: "Perpetual futures funding turned sharply positive across exchanges. Leverage is building on the long side — raising the odds of a sharp washout on any negative headline.",
+                      type: .warn)
+        }
+    }
+
+    // MARK: - AI Analysis Sections
+
+    func portfolioAnalysisSection() -> some View {
+        analysisBlock(title: "🤖 STALK AI · Portfolio Deep Dive", paragraphs: [
+            ("What happened", "Your book moved with the market today, but with higher beta — your tech concentration (NVDA, AAPL, META) amplifies every index move in both directions. Today's session was driven by the Fed holding rates and money rotating from tech into energy and financials, which hit your largest holdings directly."),
+            ("Why it moved this way", "None of today's move was company-specific — no earnings, downgrades, or news on your names. This was pure macro: elevated rates compress the multiples of long-duration growth stocks first, and your portfolio is heavily weighted there. That's why you tracked the Nasdaq more closely than the S&P today."),
+            ("How it affects you next", "Tomorrow's CPI print at 8:30am ET is the single biggest risk to your book this week. A hot print (above 3.1%) likely means another leg down in tech — expect your portfolio to underperform the S&P by 0.5–1pt. A cool print could snap the rotation and send your holdings up sharply, since they've been the source of funds. If you're overweight one name above 25% of the book, trimming into strength before the print is the risk-managed play."),
+        ])
+    }
+
+    func marketAnalysisSection() -> some View {
+        analysisBlock(title: "🤖 STALK AI · Market Analysis", paragraphs: [
+            ("What happened", "Indices closed mixed: S&P 500 +1.2%, Nasdaq 100 +2.1%, Dow +0.8%, Russell 2000 -0.4%. Under the surface, the story was rotation — tech (XLK -2.8% at the lows) bled into energy (XLE +2.1%) and financials (XLF +0.9%) before a late-day recovery. Breadth was poor: fewer than half of S&P constituents closed green."),
+            ("Why it moved", "Three forces drove today. First, the Fed held at 5.25–5.50% and Powell pushed back on near-term cuts, which keeps pressure on high-multiple growth. Second, China's manufacturing PMI beat (51.4 vs 50.1) lifted commodities, energy, and China-exposed names. Third, positioning ahead of tomorrow's CPI — funds de-risked crowded tech longs into the print."),
+            ("How it affects the market", "The market is priced for a 3.1% CPI consensus. A cooler print would likely trigger a sharp relief rally led by the most beaten-down growth names, and rate-cut odds for September would jump. A hotter print extends the rotation: expect energy, value, and cash-rich large caps to hold up while unprofitable tech takes the damage. Earnings remain the market's safety net — with 65% of the S&P reported and blended EPS growth at +7.2% versus +5.1% expected, dips are still being bought. Watch small caps: the Russell's weakness signals the market still doubts a soft landing."),
+        ])
+    }
+
+    func cryptoAnalysisSection() -> some View {
+        analysisBlock(title: "🤖 STALK AI · Crypto Analysis", paragraphs: [
+            ("What happened", "Crypto had a strong risk-on session: BTC +3.4% to $118K, ETH +5.1%, SOL +7.8%. The rally was led by high-beta majors rather than Bitcoin — the pattern you see when confidence is rising, not when investors are hiding in the largest asset."),
+            ("Why it moved", "The primary driver is institutional flow: $1.2B into spot ETFs this week, led by IBIT. Layered on top, ETH staking-ETF speculation gave Ethereum its own catalyst, and Solana's ecosystem metrics (DEX volume +40%) attracted momentum money. Crypto is also front-running tomorrow's CPI — a cooling inflation print weakens the dollar and historically lifts hard-cap assets first."),
+            ("How it affects the market", "Crypto strength spills into equities through the miners and treasury plays — COIN, MSTR, MARA, and RIOT all tend to move 1.5–2x BTC's daily change. If BTC holds above $115K through the CPI print, expect crypto-adjacent stocks to lead any relief rally. The main risk is leverage: funding rates are stretched long, so a hot CPI could trigger a cascade of liquidations that takes BTC down 5–8% fast, dragging the whole complex with it. For equity investors, BTC is currently behaving as a high-beta Nasdaq proxy — it confirms, rather than hedges, your tech exposure."),
+        ])
+    }
+
+    func analysisBlock(title: String, paragraphs: [(header: String, body: String)]) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            sectionLabel(title)
+
+            VStack(alignment: .leading, spacing: 0) {
+                ForEach(Array(paragraphs.enumerated()), id: \.offset) { i, p in
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(p.header.uppercased())
+                            .font(.system(size: 10, weight: .black))
+                            .foregroundStyle(Color(hex: "#4A90D9"))
+                            .kerning(1.2)
+                        Text(p.body)
+                            .font(.system(size: 13))
+                            .foregroundStyle(Theme.text2)
+                            .lineSpacing(4)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    .padding(14)
+                    if i < paragraphs.count - 1 {
+                        Rectangle().fill(Theme.border).frame(height: 1)
+                    }
+                }
+            }
+            .background(Theme.card)
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(Color(hex: "#4A90D9").opacity(0.25), lineWidth: 1)
+            )
         }
     }
 

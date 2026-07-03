@@ -377,21 +377,22 @@ struct WatchlistGroup: Identifiable {
     let label: String
     let color: Color
     let tickers: [String]
+    var etf: String = ""   // closest theme ETF — tappable shortcut to its landing page
     var icon: String { label.split(separator: " ").first.map(String.init) ?? "📊" }
     var title: String { label.split(separator: " ").dropFirst().joined(separator: " ") }
 }
 
 let WATCHLISTS: [WatchlistGroup] = [
-    .init(id: "trending", label: "🔥 Trending Now",          color: Color(hex: "#E11D48"), tickers: ["NVDA","TSLA","META","PLTR","MSTR","COIN","ARM","SMCI"]),
-    .init(id: "chips",    label: "🔷 Semiconductors",         color: Color(hex: "#5B5BD6"), tickers: ["NVDA","AMD","INTC","QCOM","AVGO","TSM","SMCI","MU"]),
-    .init(id: "ai",       label: "🤖 Artificial Intelligence",color: Color(hex: "#8B7CF6"), tickers: ["NVDA","MSFT","GOOGL","META","PLTR","AI","IBM","ORCL"]),
-    .init(id: "quantum",  label: "⚛️ Quantum Computing",      color: Color(hex: "#0284C7"), tickers: ["IONQ","RGTI","QUBT","IBM","GOOGL","MSFT"]),
-    .init(id: "crypto",   label: "🪙 Crypto Stocks",          color: Color(hex: "#F59E0B"), tickers: ["COIN","MSTR","MARA","RIOT","CLSK","IBIT"]),
-    .init(id: "energy",   label: "⚡ Clean Energy",           color: Color(hex: "#059669"), tickers: ["ENPH","FSLR","NEE","PLUG","BE","SEDG"]),
-    .init(id: "space",    label: "🚀 Space & Defense",        color: Color(hex: "#1D4ED8"), tickers: ["RKLB","ASTS","LUNR","LMT","RTX","NOC"]),
-    .init(id: "fintech",  label: "🏦 Fintech",                color: Color(hex: "#7C3AED"), tickers: ["SQ","PYPL","SOFI","AFRM","NU","UPST","HOOD"]),
-    .init(id: "health",   label: "🏥 Healthcare",             color: Color(hex: "#DB2777"), tickers: ["LLY","JNJ","UNH","MRNA","PFE","ABBV","AMGN"]),
-    .init(id: "etf",      label: "📊 ETFs",                   color: Color(hex: "#0EA5E9"), tickers: ["SPY","QQQ","VTI","ARKK","SCHD","VGT","GLD"]),
+    .init(id: "trending", label: "🔥 Trending Now",          color: Color(hex: "#E11D48"), tickers: ["NVDA","TSLA","META","PLTR","MSTR","COIN","ARM","SMCI"], etf: "SPY"),
+    .init(id: "chips",    label: "🔷 Semiconductors",         color: Color(hex: "#5B5BD6"), tickers: ["NVDA","AMD","INTC","QCOM","AVGO","TSM","SMCI","MU"], etf: "SMH"),
+    .init(id: "ai",       label: "🤖 Artificial Intelligence",color: Color(hex: "#8B7CF6"), tickers: ["NVDA","MSFT","GOOGL","META","PLTR","AI","IBM","ORCL"], etf: "BOTZ"),
+    .init(id: "quantum",  label: "⚛️ Quantum Computing",      color: Color(hex: "#0284C7"), tickers: ["IONQ","RGTI","QUBT","IBM","GOOGL","MSFT"], etf: "QTUM"),
+    .init(id: "crypto",   label: "🪙 Crypto Stocks",          color: Color(hex: "#F59E0B"), tickers: ["COIN","MSTR","MARA","RIOT","CLSK","IBIT"], etf: "IBIT"),
+    .init(id: "energy",   label: "⚡ Clean Energy",           color: Color(hex: "#059669"), tickers: ["ENPH","FSLR","NEE","PLUG","BE","SEDG"], etf: "ICLN"),
+    .init(id: "space",    label: "🚀 Space & Defense",        color: Color(hex: "#1D4ED8"), tickers: ["RKLB","ASTS","LUNR","LMT","RTX","NOC"], etf: "ITA"),
+    .init(id: "fintech",  label: "🏦 Fintech",                color: Color(hex: "#7C3AED"), tickers: ["SQ","PYPL","SOFI","AFRM","NU","UPST","HOOD"], etf: "ARKF"),
+    .init(id: "health",   label: "🏥 Healthcare",             color: Color(hex: "#DB2777"), tickers: ["LLY","JNJ","UNH","MRNA","PFE","ABBV","AMGN"], etf: "XLV"),
+    .init(id: "etf",      label: "📊 ETFs",                   color: Color(hex: "#0EA5E9"), tickers: ["SPY","QQQ","VTI","ARKK","SCHD","VGT","GLD"], etf: "VTI"),
 ]
 
 // MARK: - For You

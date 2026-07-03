@@ -118,6 +118,24 @@ struct SearchView: View {
 
                         Spacer()
 
+                        if !wl.etf.isEmpty {
+                            Button { onTicker(wl.etf) } label: {
+                                HStack(spacing: 3) {
+                                    Text(wl.etf)
+                                        .font(.system(size: 10, weight: .black).monospaced())
+                                    Image(systemName: "arrow.up.right")
+                                        .font(.system(size: 8, weight: .bold))
+                                }
+                                .foregroundStyle(wl.color)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 5)
+                                .background(wl.color.opacity(0.10))
+                                .clipShape(Capsule())
+                                .overlay(Capsule().stroke(wl.color.opacity(0.30), lineWidth: 1))
+                            }
+                            .buttonStyle(.plain)
+                        }
+
                         Image(systemName: "chevron.right")
                             .font(.system(size: 14))
                             .foregroundStyle(Theme.text3)

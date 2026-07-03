@@ -62,8 +62,9 @@ enum Theme {
     }
 
     // MARK: - Semantic (work on both modes)
-    static let accent     = Color(hex: "#5B5BD6")
-    static let accent2    = Color(hex: "#7C7CF0")
+    // Deep trust-blue — finance-standard accent (Chase / Coinbase / Schwab family)
+    static let accent     = Color(hex: "#2563EB")
+    static let accent2    = Color(hex: "#60A5FA")
     static let gain       = Color(hex: "#00D26A")
     static let loss       = Color(hex: "#FF4757")
     static let gold       = Color(hex: "#F5A623")
@@ -99,13 +100,13 @@ enum Theme {
 
     // MARK: - Alloc bar — nano banana leads
     static let allocColors: [Color] = [
-        Color(hex: "#D4F03C"), Color(hex: "#5B5BD6"), Color(hex: "#7C7CF0"),
-        Color(hex: "#A78BFA"), Color(hex: "#60A5FA"), Color(hex: "#34D399"),
+        Color(hex: "#D4F03C"), Color(hex: "#2563EB"), Color(hex: "#60A5FA"),
+        Color(hex: "#38BDF8"), Color(hex: "#818CF8"), Color(hex: "#34D399"),
     ]
 
     // MARK: - Gradients
     static let accentGradient = LinearGradient(
-        colors: [Color(hex: "#5B5BD6"), Color(hex: "#7C7CF0")],
+        colors: [Color(hex: "#1D4E9E"), Color(hex: "#2563EB")],
         startPoint: .topLeading, endPoint: .bottomTrailing
     )
     static let gainGradient = LinearGradient(
@@ -134,10 +135,10 @@ enum Theme {
     )
     static let autopilotHeroGradient = LinearGradient(
         colors: [
-            Color(hex: "#0D0726"),
-            Color(hex: "#1A0938"),
-            Color(hex: "#2D1B6B"),
-            Color(hex: "#5B3BA8"),
+            Color(hex: "#050D1F"),
+            Color(hex: "#0B2144"),
+            Color(hex: "#123468"),
+            Color(hex: "#1D4E9E"),
         ],
         startPoint: .topLeading, endPoint: .bottomTrailing
     )

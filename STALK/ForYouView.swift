@@ -11,7 +11,6 @@ struct ForYouView: View {
 
     enum ForYouTab: String, CaseIterable {
         case forYou = "For You"
-        case markets = "Markets"
         case news    = "News"
     }
 
@@ -56,8 +55,6 @@ struct ForYouView: View {
                 switch selectedTab {
                 case .forYou:
                     forYouContent()
-                case .markets:
-                    marketsContent()
                 case .news:
                     newsContent()
                 }
@@ -197,65 +194,6 @@ struct ForYouView: View {
     }
 
     // MARK: - Markets Tab (curated market summary)
-
-    @ViewBuilder
-    func marketsContent() -> some View {
-        sectionLabel("Index Snapshot")
-
-        VStack(spacing: 0) {
-            let indices: [(ticker: String, name: String, icon: String, color: Color, change: Double)] = [
-                ("SPY", "S&P 500",    "chart.bar.fill",        Color(hex: "#3B82F6"), 1.2),
-                ("QQQ", "NASDAQ 100", "cpu.fill",              Color(hex: "#8B5CF6"), 2.1),
-                ("DIA", "Dow Jones",  "building.columns.fill", Color(hex: "#22C55E"), 0.8),
-                ("IWM", "Russell 2K", "chart.pie.fill",        Color(hex: "#F97316"), -0.4),
-            ]
-            ForEach(Array(indices.enumerated()), id: \.element.ticker) { i, idx in
-                let q = appState.marketQuotes[idx.ticker]
-                HStack(spacing: 12) {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 6)
-                            .fill(idx.color.opacity(0.15))
-                            .frame(width: 26, height: 26)
-                        Image(systemName: idx.icon)
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundStyle(idx.color)
-                    }
-                    Text(idx.name)
-                        .font(.system(size: 13, weight: .bold))
-                        .foregroundStyle(Theme.text)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    Text(q?.price.fmtPrice() ?? "—")
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(Theme.text)
-                        .monospacedDigit()
-                    let displayChange = q?.changePercent ?? idx.change
-                    Text(displayChange.fmtPct())
-                        .font(.system(size: 13, weight: .black))
-                        .foregroundStyle(displayChange >= 0 ? Theme.gain : Theme.loss)
-                }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 13)
-                if i < indices.count - 1 {
-                    Rectangle().fill(Theme.border).frame(height: 1).padding(.leading, 54)
-                }
-            }
-        }
-        .background(Theme.card)
-        .clipShape(RoundedRectangle(cornerRadius: 18))
-        .overlay(RoundedRectangle(cornerRadius: 18).stroke(Theme.border, lineWidth: 1))
-        .padding(.horizontal, 14)
-        .padding(.bottom, 20)
-
-        sectionLabel("Trending · Social Buzz")
-        TrendingTickersFeedView(onTicker: onTicker)
-            .padding(.horizontal, 14)
-            .padding(.bottom, 20)
-
-        sectionLabel("Top Movers")
-        TopMoversGrid(onTicker: onTicker)
-            .padding(.horizontal, 14)
-            .padding(.bottom, 20)
-    }
 
     // MARK: - News Tab
 

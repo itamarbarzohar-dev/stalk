@@ -44,7 +44,7 @@ enum AppTheme: String, CaseIterable {
 
     var accent: Color {
         switch self {
-        case .indigo:   return Color(hex: "#5B5BD6")
+        case .indigo:   return Color(hex: "#2563EB")
         case .rose:     return Color(hex: "#E11D48")
         case .emerald:  return Color(hex: "#059669")
         case .ocean:    return Color(hex: "#0284C7")
@@ -57,7 +57,7 @@ enum AppTheme: String, CaseIterable {
 
     var accent2: Color {
         switch self {
-        case .indigo:   return Color(hex: "#8B7CF6")
+        case .indigo:   return Color(hex: "#60A5FA")
         case .rose:     return Color(hex: "#FB7185")
         case .emerald:  return Color(hex: "#34D399")
         case .ocean:    return Color(hex: "#38BDF8")
@@ -74,7 +74,7 @@ enum AppTheme: String, CaseIterable {
 
     var heroGradient: LinearGradient {
         switch self {
-        case .indigo:   return LinearGradient(colors: [Color(hex: "#4B4ACF"), Color(hex: "#7B6FEF"), Color(hex: "#B8AAFF")], startPoint: .topLeading, endPoint: .bottomTrailing)
+        case .indigo:   return LinearGradient(colors: [Color(hex: "#0B2D5C"), Color(hex: "#1D4E9E"), Color(hex: "#4A90D9")], startPoint: .topLeading, endPoint: .bottomTrailing)
         case .rose:     return LinearGradient(colors: [Color(hex: "#BE123C"), Color(hex: "#E11D48"), Color(hex: "#FB7185")], startPoint: .topLeading, endPoint: .bottomTrailing)
         case .emerald:  return LinearGradient(colors: [Color(hex: "#047857"), Color(hex: "#059669"), Color(hex: "#6EE7B7")], startPoint: .topLeading, endPoint: .bottomTrailing)
         case .ocean:    return LinearGradient(colors: [Color(hex: "#0369A1"), Color(hex: "#0284C7"), Color(hex: "#7DD3FC")], startPoint: .topLeading, endPoint: .bottomTrailing)
@@ -103,6 +103,8 @@ class AppState {
     var copiedAmounts: [Int: Double] = [:]
     var postComments: [UUID: [Comment]] = [:]
     var savedItems: Set<UUID> = []
+    var savedTraderPosts: Set<Int> = []      // bookmarked posts from the feed
+    var archivedUserPosts: Set<UUID> = []    // own posts hidden from feed (Instagram-style archive)
     var userWatchlists: [UserWatchlist] = []
     var activeWatchlistIndex: Int = 0
     var watchlistColumns: [WatchlistStat] = [.last, .changePct]

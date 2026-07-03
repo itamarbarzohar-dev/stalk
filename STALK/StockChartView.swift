@@ -4,26 +4,30 @@ import Charts
 // MARK: - Supporting Types
 
 enum StockTab: String, CaseIterable {
-    case overview, earnings, sentiment, fundamentals, financials, news
+    case overview, feed, earnings, sentiment, fundamentals, financials, news, about
 
     var label: String {
         switch self {
         case .overview:     return "Overview"
+        case .feed:         return "Feed"
         case .earnings:     return "Earnings"
         case .sentiment:    return "Sentiment"
         case .fundamentals: return "Fundamentals"
         case .financials:   return "Financials"
         case .news:         return "News"
+        case .about:        return "About"
         }
     }
     var icon: String {
         switch self {
         case .overview:     return "chart.line.uptrend.xyaxis"
+        case .feed:         return "bubble.left.and.bubble.right"
         case .earnings:     return "calendar.badge.clock"
         case .sentiment:    return "brain.head.profile"
         case .fundamentals: return "building.columns"
         case .financials:   return "dollarsign.circle"
         case .news:         return "newspaper"
+        case .about:        return "info.circle"
         }
     }
 }
@@ -69,6 +73,7 @@ struct StockChartView: View {
     @State private var isLoading = false
     @State private var error = false
     @State private var activeTab: StockTab = .overview
+    @State private var showAskAI = false
 
     let ranges = [("1M", "1mo"), ("3M", "3mo"), ("6M", "6mo"), ("1Y", "1y")]
 
@@ -290,11 +295,13 @@ struct StockChartView: View {
                             Group {
                                 switch activeTab {
                                 case .overview:     overviewTab()
+                                case .feed:         feedTab()
                                 case .earnings:     earningsTab()
                                 case .sentiment:    sentimentTab()
                                 case .fundamentals: fundamentalsTab()
                                 case .financials:   financialsTab()
                                 case .news:         newsTab()
+                                case .about:        aboutTab()
                                 }
                             }
                             .padding(.bottom, 60)
@@ -311,6 +318,9 @@ struct StockChartView: View {
                     appState.quotes[ticker] = q
                 }
             }
+        }
+        .sheet(isPresented: $showAskAI) {
+            AIFullChatView().environment(appState)
         }
     }
 
@@ -389,6 +399,28 @@ struct StockChartView: View {
                 .padding(.horizontal, 20)
                 .padding(.bottom, 14)
             }
+
+            // Perplexity-style: ask AI anything about this ticker
+            Button { showAskAI = true } label: {
+                HStack(spacing: 7) {
+                    Image(systemName: "sparkles")
+                        .font(.system(size: 12, weight: .semibold))
+                    Text("Ask STALK AI about $\(ticker)")
+                        .font(.system(size: 13, weight: .semibold))
+                    Spacer()
+                    Image(systemName: "arrow.up.right")
+                        .font(.system(size: 11, weight: .bold))
+                }
+                .foregroundStyle(Color(hex: "#4A90D9"))
+                .padding(.horizontal, 14)
+                .padding(.vertical, 11)
+                .background(Color(hex: "#4A90D9").opacity(0.08))
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color(hex: "#4A90D9").opacity(0.25), lineWidth: 1))
+            }
+            .buttonStyle(.plain)
+            .padding(.horizontal, 20)
+            .padding(.bottom, 14)
 
             Divider()
         }
@@ -1212,6 +1244,92 @@ struct StockChartView: View {
         do { chartData = try await QuoteService.fetchHistory(ticker, range: range) }
         catch { self.error = true }
         isLoading = false
+    }
+
+    // MARK: - Feed Tab (StockTwits-style community posts)
+
+    private var tickerPosts: [Trader] {
+        let holders = FEED_TRADERS.filter { $0.holdings.contains(ticker) || $0.text.contains(ticker) }
+        return holders.isEmpty ? Array(FEED_TRADERS.prefix(3)) : holders
+    }
+
+    @ViewBuilder
+    private func feedTab() -> some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack {
+                sectionLabel("$\(ticker) Community")
+                Spacer()
+                HStack(spacing: 4) {
+                    Circle().fill(Theme.gain).frame(width: 6, height: 6)
+                    Text("\(tickerPosts.count * 847) watching")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(Theme.text3)
+                }
+                .padding(.trailing, 20)
+            }
+            .padding(.top, 16)
+
+            ForEach(tickerPosts) { trader in
+                SocialPostCard(trader: trader, onTicker: { _ in })
+                    .padding(.horizontal, 14)
+            }
+        }
+    }
+
+    // MARK: - About Tab
+
+    private var companyFacts: [(String, String)] {
+        let f: [String: [(String, String)]] = [
+            "NVDA": [("Sector", "Technology"), ("Industry", "Semiconductors"), ("CEO", "Jensen Huang"),
+                     ("Headquarters", "Santa Clara, CA"), ("Employees", "29,600"), ("Founded", "1993"), ("Website", "nvidia.com")],
+            "AAPL": [("Sector", "Technology"), ("Industry", "Consumer Electronics"), ("CEO", "Tim Cook"),
+                     ("Headquarters", "Cupertino, CA"), ("Employees", "164,000"), ("Founded", "1976"), ("Website", "apple.com")],
+            "TSLA": [("Sector", "Consumer Discretionary"), ("Industry", "Automobiles"), ("CEO", "Elon Musk"),
+                     ("Headquarters", "Austin, TX"), ("Employees", "140,500"), ("Founded", "2003"), ("Website", "tesla.com")],
+            "META": [("Sector", "Communication Services"), ("Industry", "Interactive Media"), ("CEO", "Mark Zuckerberg"),
+                     ("Headquarters", "Menlo Park, CA"), ("Employees", "74,000"), ("Founded", "2004"), ("Website", "meta.com")],
+        ]
+        return f[ticker] ?? [("Sector", "—"), ("Industry", "—"), ("Headquarters", "United States"), ("Exchange", "NYSE / NASDAQ")]
+    }
+
+    @ViewBuilder
+    private func aboutTab() -> some View {
+        VStack(alignment: .leading, spacing: 20) {
+            sectionLabel("About \(companyName)")
+                .padding(.top, 16)
+
+            Text(companyDescription)
+                .font(.system(size: 14))
+                .foregroundStyle(Theme.text2)
+                .lineSpacing(4)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.horizontal, 20)
+
+            sectionLabel("Company Facts")
+
+            VStack(spacing: 0) {
+                ForEach(Array(companyFacts.enumerated()), id: \.offset) { i, fact in
+                    HStack {
+                        Text(fact.0)
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(Theme.text3)
+                        Spacer()
+                        Text(fact.1)
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundStyle(fact.0 == "Website" ? Theme.accent : Theme.text)
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    if i < companyFacts.count - 1 {
+                        Rectangle().fill(Theme.border).frame(height: 1)
+                    }
+                }
+            }
+            .background(Theme.card)
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+            .overlay(RoundedRectangle(cornerRadius: 16).stroke(Theme.border, lineWidth: 1))
+            .padding(.horizontal, 14)
+        }
     }
 
     // MARK: - Helper Components

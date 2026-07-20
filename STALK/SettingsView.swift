@@ -84,6 +84,7 @@ struct SettingsView: View {
 
                     // Content
                     VStack(spacing: 20) {
+                        accountSection()
                         profileSection()
                         privacySection()
                         appearanceSection()
@@ -110,6 +111,90 @@ struct SettingsView: View {
         .confirmationDialog("Clear all portfolio data?", isPresented: $showClearConfirm, titleVisibility: .visible) {
             Button("Clear All Data", role: .destructive) { appState.clearAllData() }
             Button("Cancel", role: .cancel) {}
+        }
+    }
+
+    // MARK: - Account (single home for account type + plan)
+
+    func accountSection() -> some View {
+        SettingsSection(title: "⭐ Account") {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Account type")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(Theme.text)
+                    .padding(.bottom, 4)
+
+                ForEach([("private",    "person.fill",         "Private Investor",     "Portfolio tracking, radar intelligence, AI analysis"),
+                         ("influencer", "checkmark.seal.fill", "Influencer / Creator", "Boosted reach, post analytics, revenue share, blue check")],
+                        id: \.0) { val, icon, label, sub in
+                    let selected = appState.settings.accountType == val
+                    let tint = val == "influencer" ? Color(hex: "#3897F0") : Theme.accent
+                    Button {
+                        appState.settings.accountType = val
+                        appState.saveSettings()
+                    } label: {
+                        HStack(spacing: 12) {
+                            Image(systemName: icon)
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundStyle(tint)
+                                .frame(width: 26)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(label).font(.system(size: 14, weight: .semibold)).foregroundStyle(Theme.text)
+                                Text(sub).font(.system(size: 11)).foregroundStyle(Theme.text3)
+                                    .lineLimit(2)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                            Spacer()
+                            Image(systemName: selected ? "checkmark.circle.fill" : "circle")
+                                .font(.system(size: 20))
+                                .foregroundStyle(selected ? tint : Theme.text4)
+                        }
+                        .padding(12)
+                        .background(selected ? tint.opacity(0.07) : Theme.bg2)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .overlay(RoundedRectangle(cornerRadius: 12).stroke(selected ? tint.opacity(0.5) : Color.clear, lineWidth: 1.5))
+                    }
+                    .buttonStyle(.plain)
+                }
+
+                SettingsDivider().padding(.vertical, 4)
+
+                // Plan status + upgrade
+                HStack(spacing: 12) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Plan")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(Theme.text)
+                        Text(appState.settings.isCreator ? "STALK Creator" : appState.settings.isPro ? "STALK Pro" : "Free")
+                            .font(.system(size: 11))
+                            .foregroundStyle(appState.settings.isPro ? Theme.gain : Theme.text3)
+                    }
+                    Spacer()
+                    Button { showPremium = true } label: {
+                        Text(appState.settings.isPro ? "Manage" : "Upgrade")
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 8)
+                            .background(Theme.accentGradient)
+                            .clipShape(Capsule())
+                    }
+                    .buttonStyle(.plain)
+                }
+
+                // Verification status
+                HStack(spacing: 8) {
+                    VerifiedBadge(size: 14)
+                    Text(appState.isVerified
+                         ? "Verified — blue check active"
+                         : "Blue check: Creator plan or 10,000 followers (\(appState.followerCount.formatted()) now)")
+                        .font(.system(size: 11))
+                        .foregroundStyle(appState.isVerified ? Theme.gain : Theme.text3)
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .padding(.top, 2)
+            }
         }
     }
 

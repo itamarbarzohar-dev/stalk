@@ -186,6 +186,11 @@ struct FeedView: View {
                     .font(.system(size: 22, weight: .black))
                     .foregroundStyle(Theme.text)
             }
+
+            if appState.isInfluencer {
+                VerifiedBadge(size: 13)
+            }
+
             Spacer()
             Button {} label: {
                 Image(systemName: "magnifyingglass")
@@ -2067,8 +2072,16 @@ struct MyPostCard: View {
                 VStack(alignment: .leading, spacing: 3) {
                     HStack(spacing: 6) {
                         Text(appState.settings.displayName).font(.system(size: 15, weight: .bold)).foregroundStyle(Theme.text)
+                        if appState.isVerified {
+                            VerifiedBadge(size: 13)
+                        }
                         Text("YOU").font(.system(size: 9, weight: .black)).foregroundStyle(Theme.accent)
                             .padding(.horizontal, 5).padding(.vertical, 2).background(Theme.accentBg).clipShape(Capsule())
+                        if appState.isInfluencer, appState.settings.isCreator {
+                            Text("BOOSTED").font(.system(size: 8, weight: .black)).foregroundStyle(Color(hex: "#3897F0"))
+                                .padding(.horizontal, 5).padding(.vertical, 2)
+                                .background(Color(hex: "#3897F0").opacity(0.12)).clipShape(Capsule())
+                        }
                     }
                     Text("\(appState.settings.username) · \(timeAgo)").font(.system(size: 13)).foregroundStyle(Theme.text3)
                 }
@@ -2126,6 +2139,41 @@ struct MyPostCard: View {
                 .padding(.horizontal, 14).padding(.vertical, 10)
             }
             .padding(.top, 4).padding(.bottom, 6)
+
+            // Influencer-only post analytics strip
+            if appState.isInfluencer {
+                HStack(spacing: 16) {
+                    postAnalytic(icon: "eye", value: "1.2K", label: "views")
+                    postAnalytic(icon: "person.badge.plus", value: "+8", label: "follows")
+                    postAnalytic(icon: "doc.on.doc", value: "3", label: "copies")
+                    postAnalytic(icon: "dollarsign.circle", value: appState.settings.isCreator ? "$42" : "—", label: "earned")
+                    Spacer()
+                    if !appState.settings.isCreator {
+                        Text("Upgrade for earnings")
+                            .font(.system(size: 9, weight: .bold))
+                            .foregroundStyle(Color(hex: "#3897F0"))
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .background(Color(hex: "#3897F0").opacity(0.05))
+                .overlay(Rectangle().fill(Color(hex: "#3897F0").opacity(0.2)).frame(height: 0.5), alignment: .top)
+            }
+        }
+    }
+
+    func postAnalytic(icon: String, value: String, label: String) -> some View {
+        HStack(spacing: 4) {
+            Image(systemName: icon)
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundStyle(Theme.text3)
+            Text(value)
+                .font(.system(size: 11, weight: .black))
+                .foregroundStyle(Theme.text)
+                .monospacedDigit()
+            Text(label)
+                .font(.system(size: 9))
+                .foregroundStyle(Theme.text4)
         }
     }
 }

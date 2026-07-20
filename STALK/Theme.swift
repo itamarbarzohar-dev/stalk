@@ -232,6 +232,18 @@ struct PremiumIconView: View {
     }
 }
 
+// MARK: - Verified Badge (Instagram-style blue check)
+
+struct VerifiedBadge: View {
+    var size: CGFloat = 14
+
+    var body: some View {
+        Image(systemName: "checkmark.seal.fill")
+            .font(.system(size: size, weight: .bold))
+            .foregroundStyle(Color(hex: "#3897F0"))
+    }
+}
+
 // MARK: - Formatting
 
 extension Double {

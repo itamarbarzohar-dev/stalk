@@ -16,12 +16,15 @@ struct OnboardingFlowView: View {
                 OnboardingScreen1(onContinue: { advance() }, onSkip: { skip1(); advance() })
                     .transition(pageTransition(direction: direction))
             case 1:
-                OnboardingScreen2(onContinue: { advance() })
+                OnboardingAccountTypeScreen(onContinue: { advance() })
                     .transition(pageTransition(direction: direction))
             case 2:
-                OnboardingScreen3(onContinue: { advance() })
+                OnboardingScreen2(onContinue: { advance() })
                     .transition(pageTransition(direction: direction))
             case 3:
+                OnboardingScreen3(onContinue: { advance() })
+                    .transition(pageTransition(direction: direction))
+            case 4:
                 OnboardingScreen4(onFinish: { finish() })
                     .transition(pageTransition(direction: direction))
             default:
@@ -33,12 +36,12 @@ struct OnboardingFlowView: View {
 
     private func advance() {
         direction = 1
-        if currentScreen == 1 && appState.positions.isEmpty {
+        if currentScreen == 2 && appState.positions.isEmpty {
             // Skip notification screen if no stocks
             markDone()
             return
         }
-        if currentScreen >= 3 {
+        if currentScreen >= 4 {
             finish()
         } else {
             currentScreen += 1
@@ -104,7 +107,7 @@ private struct OnboardingScreen1: View {
                     Text("Your portfolio.")
                         .font(.system(size: 28, weight: .bold))
                         .foregroundStyle(Theme.text)
-                    Text("Live. Obsessive. Personal.")
+                    Text("Live. Personal.")
                         .font(.system(size: 18, weight: .medium))
                         .foregroundStyle(Theme.text3)
                 }
@@ -694,3 +697,117 @@ private struct OnboardingScreen4: View {
     }
 }
 
+
+// MARK: - Account Type Screen (Private vs Influencer)
+
+private struct OnboardingAccountTypeScreen: View {
+    @Environment(AppState.self) var appState
+    let onContinue: () -> Void
+    @State private var selected = "private"
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Spacer().frame(height: 90)
+
+            Text("How will you use STALK?")
+                .font(.system(size: 30, weight: .black))
+                .foregroundStyle(Theme.text)
+                .padding(.horizontal, 28)
+
+            Text("You can change this anytime from the Feed header.")
+                .font(.system(size: 14))
+                .foregroundStyle(Theme.text3)
+                .padding(.horizontal, 28)
+                .padding(.top, 6)
+
+            VStack(spacing: 12) {
+                accountCard(
+                    id: "private",
+                    icon: "person.fill",
+                    iconColor: Theme.accent,
+                    title: "Private Investor",
+                    lines: ["Track your portfolio & watchlists",
+                            "Radar intelligence and AI analysis",
+                            "Your posts visible to followers only"]
+                )
+                accountCard(
+                    id: "influencer",
+                    icon: "checkmark.seal.fill",
+                    iconColor: Color(hex: "#3897F0"),
+                    title: "Influencer / Creator",
+                    lines: ["Public profile boosted in Discover",
+                            "Post analytics & follower insights",
+                            "Earn revenue share when people copy you",
+                            "Blue check with Creator plan or 10K followers"]
+                )
+            }
+            .padding(.horizontal, 22)
+            .padding(.top, 28)
+
+            Spacer()
+
+            Button {
+                appState.settings.accountType = selected
+                appState.saveSettings()
+                onContinue()
+            } label: {
+                Text("Continue")
+                    .font(.system(size: 17, weight: .black))
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 56)
+                    .background(Theme.accentGradient)
+                    .clipShape(RoundedRectangle(cornerRadius: 18))
+            }
+            .buttonStyle(.plain)
+            .padding(.horizontal, 22)
+            .padding(.bottom, 40)
+        }
+    }
+
+    func accountCard(id: String, icon: String, iconColor: Color, title: String, lines: [String]) -> some View {
+        Button {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) { selected = id }
+        } label: {
+            VStack(alignment: .leading, spacing: 10) {
+                HStack(spacing: 10) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 11)
+                            .fill(iconColor.opacity(0.14))
+                            .frame(width: 40, height: 40)
+                        Image(systemName: icon)
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundStyle(iconColor)
+                    }
+                    Text(title)
+                        .font(.system(size: 16, weight: .black))
+                        .foregroundStyle(Theme.text)
+                    Spacer()
+                    Image(systemName: selected == id ? "checkmark.circle.fill" : "circle")
+                        .font(.system(size: 22))
+                        .foregroundStyle(selected == id ? iconColor : Theme.text4)
+                }
+                VStack(alignment: .leading, spacing: 5) {
+                    ForEach(lines, id: \.self) { line in
+                        HStack(spacing: 7) {
+                            Image(systemName: "checkmark")
+                                .font(.system(size: 9, weight: .black))
+                                .foregroundStyle(iconColor)
+                            Text(line)
+                                .font(.system(size: 12))
+                                .foregroundStyle(Theme.text2)
+                        }
+                    }
+                }
+            }
+            .padding(16)
+            .background(selected == id ? iconColor.opacity(0.06) : Theme.card)
+            .clipShape(RoundedRectangle(cornerRadius: 18))
+            .overlay(
+                RoundedRectangle(cornerRadius: 18)
+                    .stroke(selected == id ? iconColor : Theme.border, lineWidth: selected == id ? 2 : 1)
+            )
+        }
+        .buttonStyle(.plain)
+    }
+}

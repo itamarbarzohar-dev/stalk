@@ -94,12 +94,6 @@ struct PortfolioHero: View {
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Open Daily Brief")
-                Button { appState.showSettings = true } label: {
-                    Image(systemName: "gearshape")
-                        .font(.system(size: 16, weight: .regular))
-                        .foregroundStyle(Theme.text3)
-                }
-                .accessibilityLabel("Settings")
             }
             .padding(.horizontal, 20)
             .padding(.top, 52)

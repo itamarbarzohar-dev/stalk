@@ -35,6 +35,8 @@ struct STALKSettings: Codable {
     var isPro: Bool = false
     var aiMessagesUsed: Int = 0
     var priceAlertCount: Int = 0
+    var accountType: String = "private"   // "private" | "influencer"
+    var isCreator: Bool = false           // paying Creator (influencer) plan
 }
 
 enum AppTheme: String, CaseIterable {
@@ -121,6 +123,12 @@ class AppState {
 
     // MARK: Settings
     var settings: STALKSettings = STALKSettings()
+
+    // MARK: Account type / verification
+    var isInfluencer: Bool { settings.accountType == "influencer" }
+    var followerCount: Int { 2_341 }   // mock — real value would come from backend
+    // Blue check: paying Creator plan OR 10K+ followers
+    var isVerified: Bool { settings.isCreator || followerCount >= 10_000 }
 
     var currentTheme: AppTheme { AppTheme(rawValue: settings.theme) ?? .indigo }
     var accentColor: Color { currentTheme.accent }
@@ -575,5 +583,5 @@ class AppState {
 }
 
 enum Tab: String, CaseIterable {
-    case market, portfolio, watchlist, ai, feed, forYou
+    case market, portfolio, watchlist, ai, feed, forYou, radar
 }

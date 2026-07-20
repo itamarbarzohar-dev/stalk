@@ -48,10 +48,72 @@ struct MyProfileView: View {
             profileIdentity
             profileStats
             profileActions
+            if appState.isInfluencer {
+                creatorDashboard
+            }
             tabSelector
             tabContent
             Color.clear.frame(height: 100)
         }
+    }
+
+    // Creator dashboard — influencer accounts only
+    var creatorDashboard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 6) {
+                Image(systemName: "chart.bar.xaxis")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundStyle(Color(hex: "#3897F0"))
+                Text("CREATOR DASHBOARD")
+                    .font(.system(size: 10, weight: .black))
+                    .foregroundStyle(Theme.text3)
+                    .kerning(1.5)
+                Spacer()
+                if !appState.settings.isCreator {
+                    Text("PREVIEW")
+                        .font(.system(size: 8, weight: .black))
+                        .foregroundStyle(Theme.gold)
+                        .padding(.horizontal, 6).padding(.vertical, 2)
+                        .background(Theme.goldBg)
+                        .clipShape(Capsule())
+                }
+            }
+
+            HStack(spacing: 0) {
+                creatorStat("48.2K", "Post views", "+18%")
+                creatorStat("+182", "Followers /wk", "+9%")
+                creatorStat("36", "Copiers", "+4")
+                creatorStat("$1,284", "Earnings", "+$212")
+            }
+
+            if !appState.settings.isCreator {
+                Text("Upgrade to Creator to activate revenue share and unlock full analytics.")
+                    .font(.system(size: 11))
+                    .foregroundStyle(Theme.text3)
+            }
+        }
+        .padding(14)
+        .background(Theme.card)
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color(hex: "#3897F0").opacity(0.25), lineWidth: 1))
+        .padding(.horizontal, 14)
+        .padding(.bottom, 14)
+    }
+
+    func creatorStat(_ value: String, _ label: String, _ delta: String) -> some View {
+        VStack(spacing: 2) {
+            Text(value)
+                .font(.system(size: 15, weight: .black))
+                .foregroundStyle(Theme.text)
+                .monospacedDigit()
+            Text(label)
+                .font(.system(size: 8, weight: .semibold))
+                .foregroundStyle(Theme.text3)
+            Text(delta)
+                .font(.system(size: 9, weight: .bold))
+                .foregroundStyle(Theme.gain)
+        }
+        .frame(maxWidth: .infinity)
     }
 
     var profileCover: some View {
@@ -110,12 +172,29 @@ struct MyProfileView: View {
 
             HStack(alignment: .bottom) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(appState.settings.displayName)
-                        .font(.system(size: 20, weight: .black))
-                        .foregroundStyle(Theme.text)
-                    Text("@\(appState.settings.username)")
-                        .font(.system(size: 13))
-                        .foregroundStyle(Theme.text3)
+                    HStack(spacing: 5) {
+                        Text(appState.settings.displayName)
+                            .font(.system(size: 20, weight: .black))
+                            .foregroundStyle(Theme.text)
+                        if appState.isVerified {
+                            VerifiedBadge(size: 16)
+                        }
+                    }
+                    HStack(spacing: 6) {
+                        Text("@\(appState.settings.username)")
+                            .font(.system(size: 13))
+                            .foregroundStyle(Theme.text3)
+                        if appState.isInfluencer {
+                            Text("CREATOR")
+                                .font(.system(size: 8, weight: .black))
+                                .foregroundStyle(Color(hex: "#3897F0"))
+                                .kerning(0.8)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(Color(hex: "#3897F0").opacity(0.12))
+                                .clipShape(Capsule())
+                        }
+                    }
                 }
                 Spacer()
                 Text(appState.totalPnlPct.fmtPct())

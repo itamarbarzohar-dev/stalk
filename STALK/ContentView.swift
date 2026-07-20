@@ -14,6 +14,7 @@ struct ContentView: View {
             case .ai:         AIHubView(onTicker: { chartTicker = $0 })
             case .feed:       FeedView(onTicker: { chartTicker = $0 })
             case .forYou:     ForYouView(onTicker: { chartTicker = $0 })
+            case .radar:      RadarView(onTicker: { chartTicker = $0 })
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -131,6 +132,7 @@ struct CustomTabBar: View {
                 TabBarButton(icon: "list.star",                 label: "Watchlist", tab: .watchlist, activeColor: Color(hex: "#F59E0B"))
                 TabBarButton(icon: "person.2.fill",             label: "Feed",      tab: .feed,      activeColor: Color(hex: "#FF375F"))
                 TabBarButton(icon: "bolt.fill",                 label: "For You",   tab: .forYou,    activeColor: Color(hex: "#FF9500"))
+                TabBarButton(icon: "dot.radiowaves.left.and.right", label: "Radar", tab: .radar,     activeColor: Color(hex: "#06B6D4"))
             }
             .padding(.horizontal, 6)
             .padding(.bottom, 4)

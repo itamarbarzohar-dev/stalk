@@ -182,15 +182,38 @@ struct ForYouView: View {
         sectionLabel("Trump Watch")
         trumpSection()
 
-        sectionLabel("Whale Alerts · Options Flow")
-        PremiumLockedCard(icon: "waveform.path.ecg", title: "Whale Alerts", subtitle: "See where the big money is flowing in real-time.") { showPremium = true }
+        // Whale Alerts + Short Squeeze Radar moved to the Radar tab
+        Button {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                appState.selectedTab = .radar
+            }
+        } label: {
+            HStack(spacing: 10) {
+                Image(systemName: "dot.radiowaves.left.and.right")
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundStyle(Color(hex: "#06B6D4"))
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Radar — Pro Intelligence")
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundStyle(Theme.text)
+                    Text("Squeeze radar · Whale alerts · Congress trades · 13Fs")
+                        .font(.system(size: 11))
+                        .foregroundStyle(Theme.text3)
+                }
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(Color(hex: "#06B6D4"))
+            }
             .padding(.horizontal, 14)
-            .padding(.bottom, 9)
-
-        sectionLabel("Short Squeeze Radar")
-        PremiumLockedCard(icon: "chart.line.downtrend.xyaxis", title: "Short Squeeze Radar", subtitle: "Spot the next GME before it happens. Upgrade to Pro.") { showPremium = true }
-            .padding(.horizontal, 14)
-            .padding(.bottom, 9)
+            .padding(.vertical, 12)
+            .background(Theme.card)
+            .clipShape(RoundedRectangle(cornerRadius: 14))
+            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color(hex: "#06B6D4").opacity(0.25), lineWidth: 1))
+        }
+        .buttonStyle(.plain)
+        .padding(.horizontal, 14)
+        .padding(.bottom, 9)
     }
 
     // MARK: - Markets Tab (curated market summary)
@@ -1873,17 +1896,33 @@ struct PremiumSheet: View {
     @Environment(AppState.self) var appState
     @Environment(\.dismiss) var dismiss
 
+    @State private var track: String = "private"     // "private" | "influencer"
     @State private var selectedPlan: String = "annual"
     @State private var isPurchasing = false
     @State private var showError = false
     @State private var showSuccess = false
 
-    let features: [(String, String, String)] = [
-        ("waveform.path.ecg",             "Whale Alerts",            "See $1M+ options trades live"),
-        ("brain.fill",                    "AI Analysis (Unlimited)", "Real AI answers about your stocks"),
-        ("chart.line.downtrend.xyaxis",   "Short Squeeze Radar",     "Spot the next GME early"),
-        ("bell.fill",                     "Unlimited Price Alerts",  "Set as many thresholds as you want"),
+    private let blue = Color(hex: "#2563EB")
+    private let igBlue = Color(hex: "#3897F0")
+
+    // What a paying PRIVATE customer gets
+    let privateFeatures: [(String, String, String)] = [
+        ("dot.radiowaves.left.and.right", "Full Radar Access",       "Squeeze radar, whale alerts, congress trades, 13Fs — real-time, no locks"),
+        ("brain.fill",                    "Unlimited AI Analysis",   "Ask STALK AI anything, no daily cap"),
+        ("bolt.horizontal.fill",          "Live Options Flow",       "Premium sweeps & dark pool prints as they hit"),
+        ("bell.fill",                     "Unlimited Price Alerts",  "Every ticker, every threshold"),
+        ("slider.horizontal.3",           "Screener Pro Presets",    "Save custom screens, all 15 columns"),
         ("paintpalette.fill",             "Premium Themes",          "Gold & Midnight — exclusive styles"),
+    ]
+
+    // What a paying INFLUENCER gets (everything in Pro, plus:)
+    let influencerFeatures: [(String, String, String)] = [
+        ("checkmark.seal.fill",           "Blue Verified Badge",     "The blue check on your name, everywhere in the app"),
+        ("chart.bar.xaxis",               "Creator Dashboard",       "Views, follower growth, copy-trade earnings per post"),
+        ("megaphone.fill",                "2× Reach Boost",          "Your posts rank higher in Discover and For You"),
+        ("dollarsign.circle.fill",        "Revenue Share",           "Earn 5% of profits from everyone who copies your trades"),
+        ("person.3.fill",                 "Follower Insights",       "See who follows, unfollows, and copies you"),
+        ("star.fill",                     "Priority Support",        "Front of the queue, always"),
     ]
 
     var monthlyProduct: Product? {
@@ -1892,33 +1931,41 @@ struct PremiumSheet: View {
     var annualProduct: Product? {
         appState.storeKitProducts.first { $0.id == "com.itamar.stalk.pro.annual" }
     }
-    var monthlyPrice: String { monthlyProduct?.displayPrice ?? "$6.99" }
-    var annualPrice:  String { annualProduct?.displayPrice  ?? "$49.99" }
+
+    // Pricing — Pro raised to $9.99 / $79.99, Creator at $24.99 / $199.99
+    var monthlyPrice: String { track == "influencer" ? "$24.99" : (monthlyProduct?.displayPrice ?? "$9.99") }
+    var annualPrice:  String { track == "influencer" ? "$199.99" : (annualProduct?.displayPrice ?? "$79.99") }
+    var annualMonthlyPrice: String { track == "influencer" ? "$16.67" : "$6.67" }
+    var planName: String { track == "influencer" ? "STALK Creator" : "STALK Pro" }
 
     var body: some View {
         ScrollView {
             VStack(spacing: 0) {
-                // Dark gradient header
+                // Header
                 ZStack(alignment: .bottom) {
                     LinearGradient(
-                        colors: [Color(hex: "#1A0B3B"), Color(hex: "#2D1B69"), Color(hex: "#4A2C8F")],
+                        colors: track == "influencer"
+                            ? [Color(hex: "#071A33"), Color(hex: "#0B2D5C"), Color(hex: "#1D6FD9")]
+                            : [Color(hex: "#050D1F"), Color(hex: "#0B2144"), Color(hex: "#1D4E9E")],
                         startPoint: .topLeading, endPoint: .bottomTrailing
                     )
 
                     VStack(spacing: 10) {
                         PremiumIconView(
-                            symbol: "sparkles",
-                            colors: [Color(hex: "#7C3AED"), Color(hex: "#5B21B6")],
+                            symbol: track == "influencer" ? "checkmark.seal.fill" : "sparkles",
+                            colors: track == "influencer" ? [igBlue, Color(hex: "#1D4E9E")] : [blue, Color(hex: "#0B2D5C")],
                             size: 80,
                             iconSize: 36
                         )
                         .padding(.top, 48)
 
-                        Text("STALK Pro")
+                        Text(planName)
                             .font(.system(size: 32, weight: .black))
                             .foregroundStyle(.white)
 
-                        Text("Trade smarter. Stay obsessed.")
+                        Text(track == "influencer"
+                             ? "Build your audience. Get paid for your calls."
+                             : "Trade smarter. Stay ahead.")
                             .font(.system(size: 15))
                             .foregroundStyle(.white.opacity(0.7))
                             .padding(.bottom, 28)
@@ -1937,133 +1984,162 @@ struct PremiumSheet: View {
                     .padding(.trailing, 20)
                 }
 
+                // Account-type track toggle
+                HStack(spacing: 0) {
+                    ForEach([("private", "person.fill", "Private"), ("influencer", "checkmark.seal.fill", "Influencer")], id: \.0) { id, icon, label in
+                        Button {
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) { track = id }
+                        } label: {
+                            HStack(spacing: 5) {
+                                Image(systemName: icon)
+                                    .font(.system(size: 11, weight: .semibold))
+                                Text(label)
+                                    .font(.system(size: 13, weight: .bold))
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.75)
+                            }
+                            .foregroundStyle(track == id ? .white : Theme.text3)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 11)
+                            .padding(.horizontal, 4)
+                            .background(track == id ? (id == "influencer" ? igBlue : blue) : Color.clear)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(4)
+                .background(Theme.bg2)
+                .clipShape(RoundedRectangle(cornerRadius: 15))
+                .padding(.horizontal, 22)
+                .padding(.top, 18)
+
+                // Feed-look preview (what changes for you)
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(track == "influencer" ? "HOW YOUR FEED LOOKS" : "WHAT YOU UNLOCK")
+                        .font(.system(size: 9, weight: .black))
+                        .foregroundStyle(Theme.text3)
+                        .kerning(1.6)
+
+                    if track == "influencer" {
+                        HStack(spacing: 8) {
+                            Circle().fill(Theme.accentGradient).frame(width: 34, height: 34)
+                                .overlay(Text("I").font(.system(size: 14, weight: .black)).foregroundStyle(.white))
+                            HStack(spacing: 4) {
+                                Text(appState.settings.displayName)
+                                    .font(.system(size: 13, weight: .bold))
+                                    .foregroundStyle(Theme.text)
+                                VerifiedBadge(size: 13)
+                            }
+                            Spacer()
+                            Text("BOOSTED")
+                                .font(.system(size: 8, weight: .black))
+                                .foregroundStyle(igBlue)
+                                .padding(.horizontal, 6).padding(.vertical, 3)
+                                .background(igBlue.opacity(0.12))
+                                .clipShape(Capsule())
+                        }
+                        HStack(spacing: 0) {
+                            statMini("48.2K", "views")
+                            statMini("+182", "new /wk")
+                            statMini("$1,284", "earned")
+                            statMini("36", "copiers")
+                        }
+                        .padding(.top, 2)
+                    } else {
+                        Text("Every Radar section unlocked and real-time, unlimited AI chat, live options flow, and alerts on every ticker you own or watch.")
+                            .font(.system(size: 12))
+                            .foregroundStyle(Theme.text2)
+                            .lineSpacing(3)
+                    }
+                }
+                .padding(14)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Theme.card)
+                .clipShape(RoundedRectangle(cornerRadius: 14))
+                .overlay(RoundedRectangle(cornerRadius: 14).stroke((track == "influencer" ? igBlue : blue).opacity(0.25), lineWidth: 1))
+                .padding(.horizontal, 22)
+                .padding(.top, 12)
+
                 // Feature list
                 VStack(spacing: 0) {
-                    ForEach(features, id: \.0) { icon, title, sub in
+                    if track == "influencer" {
+                        HStack(spacing: 6) {
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.system(size: 12))
+                                .foregroundStyle(Theme.gain)
+                            Text("Everything in STALK Pro, plus:")
+                                .font(.system(size: 12, weight: .bold))
+                                .foregroundStyle(Theme.text2)
+                            Spacer()
+                        }
+                        .padding(.vertical, 10)
+                    }
+                    ForEach(track == "influencer" ? influencerFeatures : privateFeatures, id: \.0) { icon, title, sub in
                         HStack(spacing: 14) {
                             ZStack {
                                 RoundedRectangle(cornerRadius: 12)
-                                    .fill(Color(hex: "#7B6FEF").opacity(0.15))
+                                    .fill((track == "influencer" ? igBlue : blue).opacity(0.12))
                                     .frame(width: 40, height: 40)
                                 Image(systemName: icon)
-                                    .font(.system(size: 18, weight: .semibold))
-                                    .foregroundStyle(Color(hex: "#7B6FEF"))
+                                    .font(.system(size: 17, weight: .semibold))
+                                    .foregroundStyle(track == "influencer" ? igBlue : blue)
                             }
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(title)
                                     .font(.system(size: 14, weight: .semibold))
                                     .foregroundStyle(Theme.text)
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.85)
                                 Text(sub)
                                     .font(.system(size: 12))
                                     .foregroundStyle(Theme.text3)
+                                    .lineLimit(2)
+                                    .fixedSize(horizontal: false, vertical: true)
                             }
-                            Spacer()
+                            Spacer(minLength: 8)
                             Image(systemName: "checkmark.circle.fill")
                                 .font(.system(size: 18))
-                                .foregroundStyle(Color(hex: "#7B6FEF"))
+                                .foregroundStyle(track == "influencer" ? igBlue : blue)
                         }
                         .padding(.vertical, 12)
-                        if icon != features.last!.0 {
-                            Divider()
-                        }
+                        Divider()
                     }
                 }
                 .padding(.horizontal, 22)
                 .padding(.vertical, 8)
 
+                // Blue check eligibility note
+                if track == "influencer" {
+                    HStack(alignment: .top, spacing: 8) {
+                        VerifiedBadge(size: 14)
+                        Text("The blue check comes with Creator — or free once you pass 10,000 followers.")
+                            .font(.system(size: 11))
+                            .foregroundStyle(Theme.text3)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    .padding(.horizontal, 22)
+                    .padding(.bottom, 4)
+                }
+
                 // Plan selector
                 VStack(spacing: 10) {
-                    // Annual plan (pre-selected)
-                    Button { selectedPlan = "annual" } label: {
-                        HStack {
-                            VStack(alignment: .leading, spacing: 3) {
-                                HStack(spacing: 6) {
-                                    Text("Annual")
-                                        .font(.system(size: 16, weight: .black))
-                                        .foregroundStyle(Theme.text)
-                                    Text("BEST VALUE")
-                                        .font(.system(size: 9, weight: .black))
-                                        .foregroundStyle(.white)
-                                        .padding(.horizontal, 7)
-                                        .padding(.vertical, 2)
-                                        .background(Color(hex: "#7B6FEF"))
-                                        .clipShape(Capsule())
-                                }
-                                Text("\(annualPrice)/yr · \(annualMonthlyPrice)/mo · Save 40%")
-                                    .font(.system(size: 12))
-                                    .foregroundStyle(Theme.text3)
-                            }
-                            Spacer()
-                            Image(systemName: selectedPlan == "annual" ? "checkmark.circle.fill" : "circle")
-                                .font(.system(size: 22))
-                                .foregroundStyle(selectedPlan == "annual" ? Color(hex: "#7B6FEF") : Theme.text3)
-                        }
-                        .padding(16)
-                        .background(selectedPlan == "annual" ? Color(hex: "#7B6FEF").opacity(0.08) : Theme.bg2)
-                        .clipShape(RoundedRectangle(cornerRadius: 14))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 14)
-                                .stroke(selectedPlan == "annual" ? Color(hex: "#7B6FEF") : Color.clear, lineWidth: 2)
-                        )
-                    }
-                    .buttonStyle(.plain)
-
-                    // Monthly plan
-                    Button { selectedPlan = "monthly" } label: {
-                        HStack {
-                            VStack(alignment: .leading, spacing: 3) {
-                                Text("Monthly")
-                                    .font(.system(size: 16, weight: .black))
-                                    .foregroundStyle(Theme.text)
-                                Text("Billed monthly, cancel anytime")
-                                    .font(.system(size: 12))
-                                    .foregroundStyle(Theme.text3)
-                            }
-                            Spacer()
-                            Text("\(monthlyPrice)/mo")
-                                .font(.system(size: 14, weight: .semibold))
-                                .foregroundStyle(Theme.text3)
-                            Image(systemName: selectedPlan == "monthly" ? "checkmark.circle.fill" : "circle")
-                                .font(.system(size: 22))
-                                .foregroundStyle(selectedPlan == "monthly" ? Color(hex: "#7B6FEF") : Theme.text3)
-                        }
-                        .padding(16)
-                        .background(selectedPlan == "monthly" ? Color(hex: "#7B6FEF").opacity(0.08) : Theme.bg2)
-                        .clipShape(RoundedRectangle(cornerRadius: 14))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 14)
-                                .stroke(selectedPlan == "monthly" ? Color(hex: "#7B6FEF") : Color.clear, lineWidth: 2)
-                        )
-                    }
-                    .buttonStyle(.plain)
+                    planButton(id: "annual",
+                               title: "Annual", badge: "BEST VALUE",
+                               subtitle: "\(annualPrice)/yr · \(annualMonthlyPrice)/mo · Save 33%",
+                               trailing: nil)
+                    planButton(id: "monthly",
+                               title: "Monthly", badge: nil,
+                               subtitle: "Billed monthly, cancel anytime",
+                               trailing: "\(monthlyPrice)/mo")
                 }
                 .padding(.horizontal, 22)
                 .padding(.top, 16)
                 .padding(.bottom, 8)
 
-                // CTA Button
-                Button {
-                    isPurchasing = true
-                    Task {
-                        let productID = selectedPlan == "annual"
-                            ? "com.itamar.stalk.pro.annual"
-                            : "com.itamar.stalk.pro.monthly"
-                        if let product = appState.storeKitProducts.first(where: { $0.id == productID }) {
-                            let success = await appState.purchaseProduct(product)
-                            if success {
-                                showSuccess = true
-                                try? await Task.sleep(for: .seconds(1.2))
-                                dismiss()
-                            } else {
-                                showError = true
-                            }
-                        } else {
-                            // Products not loaded yet — surface error
-                            showError = true
-                        }
-                        isPurchasing = false
-                    }
-                } label: {
+                // CTA
+                Button { purchase() } label: {
                     Group {
                         if isPurchasing {
                             ProgressView().tint(.white)
@@ -2077,24 +2153,22 @@ struct PremiumSheet: View {
                     .frame(height: 56)
                     .background(
                         LinearGradient(
-                            colors: [Color(hex: "#5B5BD6"), Color(hex: "#7B6FEF")],
+                            colors: track == "influencer" ? [Color(hex: "#1D4E9E"), igBlue] : [Color(hex: "#1D4E9E"), blue],
                             startPoint: .leading, endPoint: .trailing
                         )
                     )
                     .clipShape(RoundedRectangle(cornerRadius: 18))
-                    .shadow(color: Color(hex: "#4A90D9").opacity(0.08), radius: 6, y: 2)
+                    .shadow(color: blue.opacity(0.15), radius: 8, y: 3)
                 }
                 .disabled(isPurchasing)
                 .padding(.horizontal, 22)
                 .padding(.top, 8)
 
-                // Subtext under CTA
                 Text("Then \(selectedPlan == "annual" ? "\(annualPrice)/yr" : "\(monthlyPrice)/mo") · Cancel anytime")
                     .font(.system(size: 12))
                     .foregroundStyle(Theme.text3)
                     .padding(.top, 6)
 
-                // Restore + Maybe later
                 HStack(spacing: 24) {
                     Button("Restore Purchases") {
                         Task { await appState.restorePurchases() }
@@ -2108,7 +2182,6 @@ struct PremiumSheet: View {
                 }
                 .padding(.top, 12)
 
-                // Trust signals
                 HStack(spacing: 6) {
                     Image(systemName: "lock.fill")
                         .font(.system(size: 10))
@@ -2119,7 +2192,6 @@ struct PremiumSheet: View {
                 }
                 .padding(.top, 8)
 
-                // Legal footer (required by App Store)
                 Text("7-day free trial. Payment charged to your Apple ID at end of trial. Cancel anytime in Settings > Subscriptions. Subscription auto-renews unless cancelled at least 24 hours before the end of the current period.")
                     .font(.system(size: 10))
                     .foregroundStyle(Theme.text3)
@@ -2130,24 +2202,112 @@ struct PremiumSheet: View {
             }
         }
         .background(Theme.bg)
+        .onAppear { track = appState.settings.accountType }
         .alert("Purchase Failed", isPresented: $showError) {
             Button("OK", role: .cancel) {}
         } message: {
             Text("Something went wrong. Please try again.")
         }
-        .alert("STALK Pro Activated!", isPresented: $showSuccess) {
+        .alert("\(planName) Activated!", isPresented: $showSuccess) {
             Button("Let's go!", role: .cancel) {}
         } message: {
-            Text("Enjoy your 7-day trial. Welcome to the pro side.")
+            Text(track == "influencer"
+                 ? "Your blue check is live. Welcome to the creator side."
+                 : "Enjoy your 7-day trial. Welcome to the pro side.")
         }
     }
 
-    var annualMonthlyPrice: String {
-        if let p = annualProduct {
-            // Approximate monthly equivalent — Decimal arithmetic, format as string
-            let val = (p.price as NSDecimalNumber).doubleValue / 12
-            return "$\(String(format: "%.2f", val))"
+    func statMini(_ value: String, _ label: String) -> some View {
+        VStack(alignment: .leading, spacing: 1) {
+            Text(value)
+                .font(.system(size: 13, weight: .black))
+                .foregroundStyle(Theme.text)
+                .monospacedDigit()
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+            Text(label)
+                .font(.system(size: 9))
+                .foregroundStyle(Theme.text3)
+                .lineLimit(1)
         }
-        return "$4.16"
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    func planButton(id: String, title: String, badge: String?, subtitle: String, trailing: String?) -> some View {
+        let accent = track == "influencer" ? igBlue : blue
+        return Button { selectedPlan = id } label: {
+            HStack {
+                VStack(alignment: .leading, spacing: 3) {
+                    HStack(spacing: 6) {
+                        Text(title)
+                            .font(.system(size: 16, weight: .black))
+                            .foregroundStyle(Theme.text)
+                        if let badge {
+                            Text(badge)
+                                .font(.system(size: 9, weight: .black))
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 7)
+                                .padding(.vertical, 2)
+                                .background(accent)
+                                .clipShape(Capsule())
+                        }
+                    }
+                    Text(subtitle)
+                        .font(.system(size: 12))
+                        .foregroundStyle(Theme.text3)
+                }
+                Spacer()
+                if let trailing {
+                    Text(trailing)
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(Theme.text3)
+                }
+                Image(systemName: selectedPlan == id ? "checkmark.circle.fill" : "circle")
+                    .font(.system(size: 22))
+                    .foregroundStyle(selectedPlan == id ? accent : Theme.text3)
+            }
+            .padding(16)
+            .background(selectedPlan == id ? accent.opacity(0.08) : Theme.bg2)
+            .clipShape(RoundedRectangle(cornerRadius: 14))
+            .overlay(
+                RoundedRectangle(cornerRadius: 14)
+                    .stroke(selectedPlan == id ? accent : Color.clear, lineWidth: 2)
+            )
+        }
+        .buttonStyle(.plain)
+    }
+
+    func purchase() {
+        isPurchasing = true
+        Task {
+            if track == "influencer" {
+                // Creator products not yet in App Store Connect — demo activation only, no charge
+                try? await Task.sleep(for: .seconds(0.8))
+                appState.settings.accountType = "influencer"
+                appState.settings.isPro = true
+                appState.settings.isCreator = true
+                appState.saveSettings()
+                showSuccess = true
+                try? await Task.sleep(for: .seconds(1.2))
+                dismiss()
+            } else {
+                let productID = selectedPlan == "annual"
+                    ? "com.itamar.stalk.pro.annual"
+                    : "com.itamar.stalk.pro.monthly"
+                if let product = appState.storeKitProducts.first(where: { $0.id == productID }) {
+                    let success = await appState.purchaseProduct(product)
+                    if success {
+                        showSuccess = true
+                        try? await Task.sleep(for: .seconds(1.2))
+                        dismiss()
+                    } else {
+                        showError = true
+                    }
+                } else {
+                    showError = true
+                }
+            }
+            isPurchasing = false
+        }
     }
 }
